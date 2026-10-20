@@ -55,3 +55,5 @@ Format: `- YYYY-MM-DD [who] decision — why`
 - 2026-10-20 [Matho] Gate latching is OK for passage. The scale always shows live truth, and any level with ≥2 gates exits only when all of them are true at once. Otherwise kids "solve" a system with △=5 for one gate and △=3 for the other, which teaches that a variable has many values.
 - 2026-10-20 [Matho] A crossing cell counting toward both lanes is honest: it is set membership, counted once in each sum. Never author a gate implying △ + ○ = blocks on the board.
 - 2026-10-20 [Matho] S11 Variables and V1–V6 have been added to the curriculum. Shapes stay until P4, then letters a, b, n with a faded pairing. x and y are reserved for N4, because a row lane is literally y = k.
+- 2026-10-20 [Commissioner] Repo made public (experiment; no trademark enforcement intended).
+- 2026-10-20 [Archo] game.js split into render/ (look, draw, fx, state, audio; game.js = input + boot), no behavior change: only state.js reassigns game state, the others read live ES-module bindings, and there are no import cycles. CI runs node --test on push/PR. Workflow is in docs/workflow.md — keeps browser files under ~300 lines with one owner each.

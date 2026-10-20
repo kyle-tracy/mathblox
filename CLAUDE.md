@@ -17,7 +17,7 @@ A game where **the math is the physics**. Prototype: ages 6–9 (2D, browser). T
 |---|---|
 | `core/` | Axio |
 | `levels/` | Worldo |
-| renderer, audio, `style-guide.md` | Arto |
+| `render/`, audio, `style-guide.md` | Arto |
 | `test/` | Testo |
 | repo layout, git, tooling, backend | Archo |
 | `curriculum.md` | Matho |
