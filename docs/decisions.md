@@ -1,71 +1,50 @@
-# Decisions log
-Format: `- YYYY-MM-DD [who] decision — why`
+# Decisions: current rules
+The rules still in force, grouped by topic. Full P0–P2 history with reasons: `docs/archive/decisions-p0-p2.md`. Gate reports: `docs/gates/`.
+When a rule changes, edit it here and add a Log entry at the bottom: `- YYYY-MM-DD [who] decision — why`.
 
-- 2026-10-19 [Commissioner] Prototype for ages 6–9; architecture must scale to linear algebra/space — long-term vision.
-- 2026-10-19 [Commissioner] Block meaning = attributes, not location; world has visible axes — position-as-value was rejected.
-- 2026-10-19 [Commissioner] Emergencies only, via local push notification — commissioner is hands-off.
-- 2026-10-19 [CEO] Stack: plain HTML5 canvas + ES modules, no build, no deps; pure core tested with `node --test` — fewest moving parts.
-- 2026-10-19 [CEO] Operators are pushable blocks. Pushing the chain `[a][op][b]` resolves to the result in b's cell; a rejected op bounces with nothing moving — makes order (non-commutativity of −) physically discoverable.
-- 2026-10-19 [CEO] Before negatives are unlocked, a − b with b > a bounces ("can't carve more than is there") — keeps the naturals honest and sets up the negatives reveal.
-- 2026-10-19 [CEO] Levels are an ES module (`levels/levels.js`), not JSON — importable by both browser and node without fetch/attribute quirks.
-- 2026-10-19 [CEO] Deferred: unit size / bundling (place value), Tick tool, × ÷ — scheduled for P2/P3.
-- 2026-10-19 [Psycho] Build-review gate: 5 criteria scored 1–5 (goal clarity, agency, juice, frustration risk, replay pull); pass = none below 3 and mean ≥ 3.5 — makes fun reviews comparable across builds.
-- 2026-10-19 [Psycho] Failure feedback is shown in dots (empty outlines for missing, hovering extras for too many), never words/color alone; bounce uses a comedic "boing", never a buzzer or red X — safe, readable failure for ages 6–9 and math-anxiety research.
-- 2026-10-19 [Psycho] Doors display their value as empty dot slots that fill on match — lets kids compare and predict before pushing.
-- 2026-10-19 [Psycho] No score, stars, or ranking in M0; celebration is fixed and proportional (bigger only at a skill's Master level) — avoids variable-ratio reward hooks.
-- 2026-10-19 [Psycho] Never raise spatial (push) complexity and math complexity in the same level; numbers ≤ 10 through P2 unless Matho overrides — the hard part must be the math, not Sokoban.
-- 2026-10-19 [Psycho] Undo is unlimited and rewinds merges/carves, always visible as key + big button — push puzzles deadlock; no state may cost more than one undo.
-- 2026-10-19 [Matho] curriculum.md v1 adopted: skills S1–S10 (P1–P4), N1–N6 (P6–P7); default mastery = first-try success in 3 of last 4 encounters, ≥2 sessions, ≥1 interleaved — stealth assessment without quizzes or timers.
-- 2026-10-19 [Matho] Expression reading order is fixed by the axes (+x, then top→bottom), never by push direction — otherwise non-commutativity of − looks arbitrary.
-- 2026-10-19 [Matho] Mixed-precedence chains ({+,−} with {×,÷}) must bounce until P4; repaired by P4 level "Arrays Bind First" — physical push order would otherwise teach left-to-right as law.
-- 2026-10-19 [Matho] Carve bounce must show a "deficit ghost", never an error glyph or auto-swap; repaired by Mirror Caves L1 "The Chisel Goes Through" — avoids "can't subtract a bigger number".
-- 2026-10-19 [Matho] ≥1/3 of P2 Lock doors must be non-`expr = ?` forms (target-left, both-sides) — prevents "= means the answer comes next".
-- 2026-10-19 [Matho] a − a leaves a visible Void block; 0 ÷ n resolves, only ÷0 storms; ×0 and ×1 levels mandatory in P3 — 0 is a number; pre-empts "× makes bigger".
-- 2026-10-19 [Matho] × taught as area/array (an object, not a taller block), not repeated addition — survives fractions and matrices.
-- 2026-10-19 [Matho] Undo ≠ inverse: S6 inverse levels lock Undo and require Carve — kids must not learn "inverse = rewind".
-- 2026-10-19 [CEO] Chains evaluate in READING order (left→right, top→bottom), never push order — Psycho+Matho both flagged that push order would compute 7−3 while the screen reads 3−7. Take Away redesigned around it.
-- 2026-10-19 [CEO] Operators are consumed when a chain resolves; unlimited undo restores everything — Psycho open question; keeps levels countable.
-- 2026-10-19 [CEO] Bounce carries `missing` units; renderer draws a deficit ghost (hollow dots) — Matho/Psycho "why in dots".
-- 2026-10-19 [CEO] Bundling: intro in P3, place-value depth in P6 — resolves Matho's open question.
-- 2026-10-19 [CEO] Next for P2: Worldo adds `7 = □+3`-style doors (≥1/3 target-on-left), a 1-wide "2+1" first-push level per Psycho §4, and mixed chains bounce until P4 precedence.
-- 2026-10-20 [Arto] Style guide v1 (`docs/style-guide.md`): blocks are coded four ways (numeral, 5-structure dots, unit rod whose length tracks the value, Cuisenaire-inspired color). The palette is CVD-checked (min ΔE ≥ 12), and >10 shows ten-rods plus dots. Implements curriculum hook 3, and color is never the only cue.
-- 2026-10-20 [Arto] The − glyph is a symmetric bar, not a chisel/arrow, because an arrow-shaped minus reads as a push direction. "Why" explanations (deficit ghost, extra ghost, balance scale) animate in ≤300 ms and then linger until the next input, because 600 ms is too short for a 6-year-old to read.
-- 2026-10-20 [Worldo] P2 slice = 15 critical-path levels + Sandbox (S1 Tick/trench → S2 lock → S3 multi-path → S4 Void → S5 carve → S6 missing addend/round trip → S7 contrast → master "There and Back" 13 = □+5); 6 of 15 doors target-left/both-sides — follows Matho's ≥1/3 rule and Psycho's rest-after-twist/master cadence (Sandbox is the post-master rest).
-- 2026-10-20 [Worldo] Authoring rule: no − in any line of ≥5 blocks, and Sandbox spares are + only — engine evaluates long lines right-to-left when pushed left/up (9−3−2 → 8); flagged to Axio.
-- 2026-10-20 [Worldo] S7 contrast is about arrangement, not push direction: [4][+][6] then the same [4][−][6] layout, which bounces from every side until rebuilt as 6−4 (column read top-to-bottom) — reading order makes push direction irrelevant.
-- 2026-10-20 [Matho] P2 honesty gate: PASS WITH FIXES (`docs/gate-p2-matho.md`) — the critical-path rules are true in ℕ. Three falsehoods must be fixed: teen rendering, the level NaN beam, and 0 vanishing in a trench.
-- 2026-10-20 [Matho] The long-line rule (the reading-first triple resolves first, the result goes to the right-hand operand) is honest same-precedence left-to-right, so "no − in lines ≥5" is obsolete on math grounds. Lifting it is Worldo's call.
-- 2026-10-20 [Matho] The trench "too long bounces" rule is honest as length comparison, provided a short rod leaves countable holes, a long one shows its exact overhang, and trenches are entered only along their length. The curriculum now says "fill the holes", not "beam that fits", because a real beam spans a shorter gap.
-- 2026-10-20 [Matho] A 0 block never vanishes. At a trench it bounces ("fills 0 holes") — 0 is an object (S4).
-- 2026-10-20 [Matho] Balance scale: a side that can't be built rises and is never level. Door equations may use − only as the last op on a side, so "can't build" ⇔ negative in ℤ — a level beam means "equal", and negative < any natural.
-- 2026-10-20 [Matho] The S6 Undo-lock requirement is satisfied structurally: L15 traps the operand so Undo can't help. This keeps Psycho's unlimited Undo, and the evidence is a carve after the forced merge with no undo.
-- 2026-10-20 [Matho] Levels with no choice (1-wide forced corridors) carry no mastery evidence — first-try success there measures nothing.
-- 2026-10-20 [Matho] Doors consuming the key are acceptable — the dots fill the slots one-to-one, and both sides are shown before the door opens.
-- 2026-10-20 [Matho] Proposed (CEO to approve): the S1 "bigger-looking = more" (thin-4/fat-5) twist is deferred to P3 Array Fields (a 1×6 strip vs a 2×4 platform) — every P2 block is one cell, so it can't surface. The S1 twist in P2 is L4 "close enough fits".
-- 2026-10-20 [Psycho] P2 gate fun review (`docs/gate-p2-psycho.md`): as-is the build scores Agency 2.25 across all levels and 2.75 on graded levels, which is below the floor of 3. The verdict is PASS WITH FIXES, conditional on the L13 and L11 maps (verified, graded agency 3.0) plus the clarity fixes. The gate rule is met only once those land.
-- 2026-10-20 [Psycho] Rubric clarification: build-level Agency is averaged over graded beats only (practice/twist/combine/master), not intro or rest levels. Every other criterion is averaged over all levels. Reason: §2 requires one solution for intros, so counting them would make Agency fail by design. This changes the method, not today's result (it still fails as-is).
-- 2026-10-20 [Psycho] A level must not need a block swap to rebuild an expression; where order is the lesson, offer an alternative reading instead (row vs column sharing one operator). Reason: four open-room 4−6 → 6−4 rebuilds cost 25–32 moves of pure Sokoban, so the pushing would swamp the math.
-- 2026-10-20 [Psycho] Every new verb gets a 1-wide intro level before any open room (the trench/fill intro is missing before L3), and the whole board must fit on screen without scrolling. Reason: introducing a new idea in new space breaks the "never raise math and space together" rule.
-- 2026-10-20 [Commissioner] Playtest: fun, "very Baba Is You". Every level after L1 must require a choice. Negation (− order, bounce, ghosts, inverses) is a near-constant theme. L13 was a favourite — keep it (overrides Psycho's replace-L13 recommendation; real player > AI prediction).
-- 2026-10-20 [Commissioner] Proposal: full rows/columns as variables → basic algebra. CEO: prototyping as "variable lanes" (P2.5).
-- 2026-10-20 [CEO] Gate rulings: teens drawn unit-for-unit (two ten-frames), no ten-rods before P3 bundling; L15 numbers ≤10; thin-4/fat-5 twist moved to P3; 17-level slice OK.
-- 2026-10-20 [Testo] "No cheese" = with each `teaches` event banned, the solver exhausts the level without a win (test/cheese.test.js); the solver throws on its state cap instead of returning null — shortest-path checks miss longer skill-skipping routes, and a capped search must never read as "unsolvable".
-- 2026-10-20 [Matho] Variable lanes: value = SUM of number blocks inside, empty = 0. This is honest: it is a named total, where position doesn't matter and blocks keep their attributes, and it scales to ℤ, ℚ and vectors. A one-block rule is rejected, because two blocks would have no meaning and it would break the empty-lane = 0 case. The "letter = object" risk is surfaced on purpose in V3 (`△ + △ = 8`).
-- 2026-10-20 [Matho] An operator block in a lane makes the lane "?" (undefined) and is never ignored, because a row reading `3 − 2` and totalling 5 contradicts the reading-order rule.
-- 2026-10-20 [Matho] Gate latching is OK for passage. The scale always shows live truth, and any level with ≥2 gates exits only when all of them are true at once. Otherwise kids "solve" a system with △=5 for one gate and △=3 for the other, which teaches that a variable has many values.
-- 2026-10-20 [Matho] A crossing cell counting toward both lanes is honest: it is set membership, counted once in each sum. Never author a gate implying △ + ○ = blocks on the board.
-- 2026-10-20 [Matho] S11 Variables and V1–V6 have been added to the curriculum. Shapes stay until P4, then letters a, b, n with a faded pairing. x and y are reserved for N4, because a row lane is literally y = k.
-- 2026-10-20 [Commissioner] Repo made public (experiment; no trademark enforcement intended).
-- 2026-10-20 [Archo] game.js split into render/ (look, draw, fx, state, audio; game.js = input + boot), no behavior change: only state.js reassigns game state, the others read live ES-module bindings, and there are no import cycles. CI runs node --test on push/PR. Workflow is in docs/workflow.md — keeps browser files under ~300 lines with one owner each.
-- 2026-10-20 [Commissioner] After P2.1: modularize to cut token cost (agents re-read large files). CEO plan: levels per world, split core move(), per-effect fx, decisions.md → current-rules summary + phase archive, gate reports → docs/gates/, briefs name exact files + use code-review-graph.
-- 2026-10-20 [Arto] Teens 11–20 render unit-for-unit (two ten-frames, rod wraps to a second row of unit segments; no orange ten-rods anywhere, scale pans included) — CEO gate ruling, no bundling before P3. Ceiling is 20; P3 bundling replaces it.
-- 2026-10-20 [Arto] Every equation door hangs its equation on a sign with each number's own dots under it and each lane shape's live total; no idle beam — Psycho #4 (goal readable before a bump) without drawing a level beam beside an empty □, which Matho rules means "equal".
-- 2026-10-20 [Arto] Balance scale: a NaN side rises (lighter than anything); both NaN = dashed beam. Why-bubbles pick above/below/right/left by fewest covered blocks, player and other signs — Matho gate fix, Testo L12/L13 popup findings.
-- 2026-10-20 [Arto] Lanes: tint + hatch direction (rows —, columns |; crossing = cross-hatch) + wall tag "△=5" with dots / "△=?" at the axis edge. Gates: portcullis, bars lift when open, dashed frame, floor shows through — color is never the only cue.
-- 2026-10-20 [Arto] Fit by CSS scaling (draw grid stays 64 px), floor 48 px cells, buttons beside the board on wide screens; at 1100×720 this fits ≤ 12 rows — keeps every layout offset valid. Restart is undoable; the ∿ reduced-motion toggle persists and overrides the OS setting.
-- 2026-10-20 [Worldo] P2.1 slice = 17 critical-path levels + S11 V1–V6 + Sandbox (24). Every level carries `choice`, and only L1 is `evidence: false`. Reason: the commissioner's rule that every level after L1 requires a choice.
-- 2026-10-20 [Worldo] "Two roads" pattern for intros and rests (One More, Fill the Holes, Both Sides Weigh, Tip the Scale, Chip Away, Carve to Nothing, Ten Pals). The player spawns between a bait road and a true road, and the bait ends in a bounce. The true side varies irregularly, so "always go right" never works (scale, deficit ghost, overhang). Reason: it gives a real choice, puts the negation theme in every intro, and leaves 0% dead states.
-- 2026-10-20 [Worldo] Lifted the "no − in lines of 5+" authoring rule. Reason: the engine computes long lines in reading order from both ends (Testo-tested, Matho-approved).
-- 2026-10-20 [Worldo] One Family uses 3 doors (3+4 = □, 7 − 3 = □, 7 = □+4), not Matho's 4. Reason: doors consume keys, so three blocks open at most three doors, and 7 − 3 adds the inverse.
-- 2026-10-20 [Worldo] L9 and L12 spawn in the lower room. Reason: the first natural `r` is now a walk instead of a dead state (shortest trap is now `uuur`).
-- 2026-10-20 [Worldo] Authoring limits: maps ≤ 12 rows, and each level stays under 200k solver states. Reason: Arto's 1100×720 at 48 px. L13 was compressed from 15 to 12 rows by removing its door necks and spare top row, which costs +1 move and keeps the same rooms.
+## Vision and authority
+- Ages 6–9 prototype, 2D browser; the architecture must scale to linear algebra in space. No 3D before the P5 gate. [Commissioner]
+- A block's meaning lives in its attributes, never its location. The visible axes are a frame of reference. [Commissioner]
+- Commissioner feedback outranks agent predictions: every level after L1 requires a choice; negation (− order, bounces, ghosts, inverses) is a near-constant theme; keep L13. [Commissioner]
+- Commissioner is hands-off (emergencies only, local push notification). The repo is public. [Commissioner]
+
+## Stack and repo
+- Plain HTML5 canvas + ES modules, no build, no dependencies without CEO approval; the pure core is tested with `node --test`. [CEO]
+- Levels are ES modules, not JSON: one file per world, imported in play order by `levels/levels.js`. [CEO, Archo]
+- Rules code is pure (no DOM). The renderer never does math; it reads state and `step()` events. Only `render/state.js` reassigns game state; no import cycles. [Archo]
+- Branches, commits, CI, review and the screenshot merge gate: `docs/workflow.md`. [Archo]
+
+## Engine rules
+- Operators are pushable blocks. `[a][op][b]` resolves into the right-hand operand's cell and the operator is consumed; a rejected op bounces and nothing moves. [CEO]
+- Chains compute in READING order (left→right, top→bottom), never push order. Long lines resolve the reading-first triple first (honest same-precedence left-to-right). [CEO, Matho]
+- Naturals only: a − b with b > a bounces carrying `missing` units (deficit ghost). a − a leaves a visible 0 (Void) block. Mixed-precedence chains bounce until P4. [CEO, Matho]
+- A 0 block never vanishes; at a trench it bounces ("0 fills 0 holes"). A block of n fills exactly n trench cells; too long bounces showing its exact overhang. Trenches are entered only along their length. [Matho]
+- Doors consume their key; both sides are shown before a door opens. Door equations use − only as the last op on a side, so "can't build" means negative. [Matho]
+- Variable lanes: value = sum of the number blocks inside (empty = 0); an operator in a lane makes it "?"; a crossing cell counts in both lanes. Gates are live; the exit needs every gate true at once. [Matho]
+- Undo is unlimited and always visible, and restart is undoable. Undo ≠ inverse: S6 levels trap the operand so only a carve helps. [Psycho, Matho, Arto]
+
+## Curriculum and level design
+- `docs/curriculum.md` owns skills (S1–S11, N1–N6). Mastery = first-try success in 3 of the last 4 encounters, ≥2 sessions, ≥1 interleaved. Forced levels (no choice) are `evidence: false`. [Matho]
+- ≥1/3 of lock doors are not `expr = ?` (target-left or both sides). [Matho]
+- Deferred: × as area/array, bundling intro and the thin-4/fat-5 twist in P3; ×0/×1 levels mandatory in P3; place value in P6. [CEO, Matho]
+- Variables are shapes until P4, then letters a, b, n; x and y are reserved for N4. Never author a gate implying △ + ○ = blocks on the board. [Matho]
+- Authoring limits: maps ≤ 12 rows; each level < 200k solver states; numbers ≤ 10 except teens up to 20 where a level needs them. [Worldo, CEO]
+- Never raise math and push complexity in the same level; every new verb gets a 1-wide intro; no level needs a block swap to rebuild an expression. [Psycho]
+- "Two roads" for intros and rests: spawn between a bait road and a true road; the bait ends in a harmless bounce; the true side varies. [Worldo]
+- No cheese: with each `teaches` event banned, the solver must exhaust the level without a win. A capped search throws; it never reads as "unsolvable". [Testo]
+
+## Feedback and fun
+- No dark patterns. No score, stars or ranking; celebration is fixed and proportional (bigger only at a skill's Master level). [Psycho]
+- Failure feedback is shown in dots (deficit ghost, overhang, balance scale, socket hole), never words or colour alone; a comedic boing, never a buzzer or red X. [Psycho]
+- "Why" effects animate in ≤ 300 ms, then linger until the next input. [Arto]
+- Build gate: 5 criteria scored 1–5; pass = none below 3 and mean ≥ 3.5. Agency is averaged over graded beats only. [Psycho]
+
+## Look (`docs/style-guide.md`)
+- Blocks are coded four ways: numeral, 5-structure dots, unit rod, CVD-checked colour. Colour is never the only cue. − is a symmetric bar. [Arto]
+- Teens 11–20 render unit-for-unit (two ten-frames); no ten-rods before P3 bundling. [CEO, Arto]
+- Equation doors hang a sign with each number's dots and each lane's live total; no idle beam. On the scale a NaN side rises and is never level. [Matho, Arto]
+- Lanes: tint + hatch direction + wall tag. Gates: portcullis. Fit by CSS scaling with ≥ 48 px cells; the reduced-motion toggle persists. [Arto]
+
+## Log
+- 2026-10-20 [Archo] Modularized for token cost (Commissioner, 2026-10-20): levels split per world, `move()` and `drawFx` split into named helpers, this file condensed with the full log archived, gate reports in `docs/gates/`, `docs/INDEX.md` routes tasks to docs. No behavior change — verified by identical LEVELS JSON, solver paths, step() traces and static screenshots.
+- 2026-10-20 [Archo] Static screenshot checks force `--force-prefers-reduced-motion` — without it, lingering-ghost shots differ run to run.

@@ -3,7 +3,14 @@
 A game where **the math is the physics**. Prototype: ages 6–9 (2D, browser). The long arc reaches linear algebra in space.
 
 - **Run:** `python3 -m http.server`, then open http://localhost:8000 (`?level=N`, `?showcase`, `&moves=udlr`). **Test:** `node --test test/`. Both must pass before you commit.
-- **Studio memory is `docs/`.** Read `docs/vision.md` and `docs/decisions.md` before working, and log your decisions there as `- YYYY-MM-DD [who] decision — why`.
+- **Studio memory is `docs/`.** `docs/decisions.md` is the current-rules summary; log new decisions under its "Log" heading as `- YYYY-MM-DD [who] decision — why`.
+- **Read narrowly.** Read `docs/INDEX.md`, then only the files your task names. Before opening a whole source file, use code-review-graph `query` / `impact` (CLI or MCP) to find the function you need, then read just that range. Grep the archive (`docs/archive/`) instead of reading it.
+- **File map:**
+  - `core/world.js`: `parseLevel`, `step`, `laneValues`; `move()` delegates to `resolveChain`, `unlockDoor`, `fillTrench`, `tickPads`. `core/math.js`: ops, doors, equations.
+  - `levels/levels.js`: index only, play order. One file per world: `meadow.js` (L1–5, S1), `balance.js` (L6–8, S2), `merge.js` (L9–10, S3/S4), `carve.js` (L11–17, S5–S7), `lanes.js` (L18–23, S11), `sandbox.js`. `showcase.js`: visual-QA rooms.
+  - `render/`: `look.js` (canvas, palette, primitives), `draw.js` (board, blocks), `fx.js` (one function per effect, `FX` table), `state.js` (state, undo, events to fx/sound), `audio.js`. `game.js`: input and boot.
+  - `test/`: `node --test test/*.test.js`; `solver.js` is the BFS bot.
+  - `docs/`: `INDEX.md` (what to read), `decisions.md`, `workflow.md`, `gates/`, `archive/`.
 - **Locked decisions:**
   - A block's meaning lives in its attributes, never its location. The visible axes are a frame of reference.
   - Chains compute in reading order.
