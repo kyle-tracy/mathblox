@@ -75,3 +75,8 @@ test('resolve: forward the player steps in; reverse the player stays and the res
   const dangling = run(['#+7-3@#'], ['left']);
   assert.deepEqual(nums(dangling.state), ['4@4,0'], 'a stray operator past the line is left alone');
 });
+
+test('blocks cannot bury the exit: a push onto E bounces and nothing moves (P2 blocker, fixed in P2.1)', () => {
+  assert.equal(unchanged(['#@3E#'], 'right').reason, 'wall');
+  assert.equal(unchanged(['#@32E#'], 'right').reason, 'wall', 'a chain stops short of E too');
+});
