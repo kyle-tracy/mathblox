@@ -37,6 +37,17 @@ test('pushing [a][op][b] calculates; wrong order bounces', () => {
   assert.deepEqual(good.state.objects.map(o => o.value), [4]);
 });
 
+test('long lines compute in reading order from either side: 9-3-2 = 4', () => {
+  for (const [map, d] of [['#@9-3-2.#', 'right'], ['#.9-3-2@#', 'left']]) {
+    const r = run({ name: 't', map: [map], doors: {} }, [d, d, d]);
+    const vals = r.state.objects.filter(o => o.kind === 'num').map(o => o.value);
+    assert.deepEqual(vals, [4], `${map} pushed ${d}`);
+    assert.deepEqual(r.events.find(e => e.type === 'carve').operands, [9, 3]);
+  }
+  const col = run({ name: 't', map: ['#.#', '#9#', '#-#', '#3#', '#-#', '#2#', '#@#'], doors: {} }, ['up', 'up']);
+  assert.deepEqual(col.state.objects.map(o => o.value), [4], 'columns read top to bottom');
+});
+
 test('door opens only for an equal block', () => {
   const no = run({ name: 't', map: ['#@3A.E#'], doors: { A: 4 } }, ['right']);
   assert.equal(no.events[0].reason, 'not-equal');

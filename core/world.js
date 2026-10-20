@@ -47,16 +47,22 @@ export function step(state, dir) {
   while ((o = objAt(s, cx, cy)) && o.kind !== 'door') { chain.push(o); cx += dx; cy += dy; }
 
   // [a][op][b] pushed together always calculates, in READING order (left->right, top->bottom),
-  // never push order: the screen must show the sum being computed.
-  const [a, op, b] = chain;
-  if (a?.kind === 'num' && op?.kind === 'op' && b?.kind === 'num') {
-    const [l, r_] = dx < 0 || dy < 0 ? [b, a] : [a, b];
-    const r = apply(op.op, l.value, r_.value);
-    if (!r.ok) return bounce(state, r.reason, { x: b.x, y: b.y }, { missing: r.missing });
-    b.value = r.value;
-    s.objects = s.objects.filter(x => x !== a && x !== op);
-    s.player = { x: nx, y: ny };
-    return { state: s, events: [{ type: op.op === '+' ? 'merge' : 'carve', at: { x: b.x, y: b.y }, value: r.value }] };
+  // never push order. On a long line like 9-3-2 the reading-first triple resolves first, so
+  // pushed left/up that's the far end. The result lands in the right-hand operand (reading order).
+  let k = 0;
+  while (chain[k]?.kind === (k % 2 ? 'op' : 'num')) k++;
+  if (k % 2 === 0) k--;
+  if (k >= 3) {
+    const rev = dx < 0 || dy < 0;
+    const [p, op, q] = rev ? chain.slice(k - 3, k) : chain.slice(0, 3);
+    const [l, rr] = rev ? [q, p] : [p, q];
+    const r = apply(op.op, l.value, rr.value);
+    if (!r.ok) return bounce(state, r.reason, { x: rr.x, y: rr.y }, { missing: r.missing });
+    const operands = [l.value, rr.value];
+    rr.value = r.value;
+    s.objects = s.objects.filter(x => x !== l && x !== op);
+    if (!rev) s.player = { x: nx, y: ny }; // pushed forward, the player steps into the freed cell
+    return { state: s, events: [{ type: op.op === '+' ? 'merge' : 'carve', at: { x: rr.x, y: rr.y }, value: r.value, operands }] };
   }
 
   const events = [], last = chain[chain.length - 1], here = tileAt(s, cx, cy);

@@ -12,6 +12,7 @@
   button { min-width: 56px; min-height: 56px; font-size: 26px; border: 0; border-radius: 12px; background: #8ecae6; color: #2b2d42; cursor: pointer; }
   button:focus-visible { outline: 4px solid #ffd166; }
   #next { background: #06d6a0; }
+  #mute.off { background: linear-gradient(to top right, #8ecae6 45%, #2b2d42 46% 54%, #8ecae6 55%); }
 </style>
 </head>
 <body>
@@ -24,6 +25,7 @@
   <button data-dir="right" aria-label="right">→</button>
   <button id="undo" aria-label="undo">↶</button>
   <button id="restart" aria-label="restart">⟳</button>
+  <button id="mute" aria-label="mute" aria-pressed="false">♪</button>
   <button id="next" aria-label="next level" hidden>★→</button>
 </div>
 <script type="module" src="game.js"></script>
