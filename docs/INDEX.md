@@ -1,8 +1,8 @@
 # Docs index: read only what your task needs
 | Task | Read |
 |---|---|
-| Any task (start here) | `docs/decisions.md` (current rules, ≤60 lines); `docs/vision.md` only for direction questions |
-| Engine rules (`core/`) | `core/world.js`, `core/math.js`; the "Engine rules" section of decisions.md |
+| Any task (start here) | `docs/vision.md` (27 lines) and `docs/decisions.md` (current rules, ≤60 lines) |
+| Engine rules (`core/`) | `core/world.js` (parse, step, move), `core/push.js` (chain, door, trench, tick pads), `core/math.js`; the "Engine rules" section of decisions.md |
 | One level or world | that world's file in `levels/` (meadow, balance, merge, carve, lanes, sandbox); its skill in `docs/curriculum.md` |
 | Level order / adding a world | `levels/levels.js` (index, play order) |
 | Skills, mastery, sequencing | `docs/curriculum.md` (search for the skill ID, e.g. `S11`) |

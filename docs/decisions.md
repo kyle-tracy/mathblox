@@ -28,7 +28,8 @@ When a rule changes, edit it here and add a Log entry at the bottom: `- YYYY-MM-
 - ≥1/3 of lock doors are not `expr = ?` (target-left or both sides). [Matho]
 - Deferred: × as area/array, bundling intro and the thin-4/fat-5 twist in P3; ×0/×1 levels mandatory in P3; place value in P6. [CEO, Matho]
 - Variables are shapes until P4, then letters a, b, n; x and y are reserved for N4. Never author a gate implying △ + ○ = blocks on the board. [Matho]
-- Authoring limits: maps ≤ 12 rows; each level < 200k solver states; numbers ≤ 10 except teens up to 20 where a level needs them. [Worldo, CEO]
+- Authoring limits: maps ≤ 12 rows; each level < 200k solver states. [Worldo]
+- Numbers ≤ 10 through P2 unless Matho overrides. [Psycho]
 - Never raise math and push complexity in the same level; every new verb gets a 1-wide intro; no level needs a block swap to rebuild an expression. [Psycho]
 - "Two roads" for intros and rests: spawn between a bait road and a true road; the bait ends in a harmless bounce; the true side varies. [Worldo]
 - No cheese: with each `teaches` event banned, the solver must exhaust the level without a win. A capped search throws; it never reads as "unsolvable". [Testo]
@@ -46,5 +47,5 @@ When a rule changes, edit it here and add a Log entry at the bottom: `- YYYY-MM-
 - Lanes: tint + hatch direction + wall tag. Gates: portcullis. Fit by CSS scaling with ≥ 48 px cells; the reduced-motion toggle persists. [Arto]
 
 ## Log
-- 2026-10-20 [Archo] Modularized for token cost (Commissioner, 2026-10-20): levels split per world, `move()` and `drawFx` split into named helpers, this file condensed with the full log archived, gate reports in `docs/gates/`, `docs/INDEX.md` routes tasks to docs. No behavior change — verified by identical LEVELS JSON, solver paths, step() traces and static screenshots.
+- 2026-10-20 [Archo] Modularized for token cost (Commissioner, 2026-10-20): levels split per world, `move()` push branches moved to `core/push.js`, `drawFx` split into per-effect functions, this file condensed with the full log archived, gate reports in `docs/gates/`, `docs/INDEX.md` routes tasks to docs. No behavior change — verified by identical LEVELS JSON, solver paths, step() traces and static screenshots.
 - 2026-10-20 [Archo] Static screenshot checks force `--force-prefers-reduced-motion` — without it, lingering-ghost shots differ run to run.
