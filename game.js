@@ -1,6 +1,6 @@
 // Entry: wires input (keyboard, buttons, swipe) to the game. Rules live in core/, drawing in render/.
-import { cv } from './render/look.js';
-import { lvlIdx, won, load, act, undo, Q } from './render/state.js';
+import { cv, reduced, setReduced } from './render/look.js';
+import { lvlIdx, won, load, act, undo, restart, fit, Q } from './render/state.js';
 import { muted, setMute, muteBtn } from './render/audio.js';
 import { draw } from './render/draw.js';
 
@@ -10,15 +10,17 @@ addEventListener('keydown', e => {
   if (e.repeat) return; // one step per press: forgiving input
   if (KEYS[e.key]) { act(KEYS[e.key]); e.preventDefault(); }
   else if (e.key === 'z' || e.key === 'Backspace') undo();
-  else if (e.key === 'r') load(lvlIdx);
+  else if (e.key === 'r') restart();
   else if (e.key === 'm') setMute(!muted);
   else if (e.key === 'Enter' && won) load(lvlIdx + 1);
 });
 document.querySelectorAll('[data-dir]').forEach(b => b.onclick = () => act(b.dataset.dir));
 document.getElementById('undo').onclick = undo;
-document.getElementById('restart').onclick = () => load(lvlIdx);
+document.getElementById('restart').onclick = restart;
 document.getElementById('next').onclick = () => load(lvlIdx + 1);
 muteBtn.onclick = () => setMute(!muted);
+document.getElementById('motion').onclick = () => setReduced(!reduced);
+addEventListener('resize', fit);
 setMute(muted);
 let touch;
 cv.addEventListener('touchstart', e => { touch = e.touches[0]; }, { passive: true });

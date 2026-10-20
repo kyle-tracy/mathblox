@@ -23,7 +23,10 @@ export function parseLevel(level) {
     return '#Eo^'.includes(ch) ? ch : '.';
   }).join(''));
   if (!player) throw new Error(`level "${level.name}" has no player`);
-  return { tiles, player, objects, lanes: level.lanes ?? {}, won: false };
+  const state = { tiles, player, objects, lanes: level.lanes ?? {}, won: false };
+  const env = laneValues(state);
+  for (const g of objects.filter(o => o.gate)) g.open = accepts(g.value, env); // gates are live from the start
+  return state;
 }
 
 // A lane is a box: its value is the total of the number blocks inside it. Blocks keep their own values.
@@ -68,6 +71,10 @@ function move(state, dir) {
   if ('#o'.includes(tileAt(s, nx, ny))) return bounce(state, 'wall', { x: nx, y: ny });
 
   const first = objAt(s, nx, ny);
+  if (!first && tileAt(s, nx, ny) === 'E' && !gatesTrue(s)) {
+    const env = laneValues(s);
+    return bounce(state, 'gates', { x: nx, y: ny }, { falseGates: s.objects.filter(o => o.gate && !accepts(o.value, env)).map(o => [o.x, o.y]) });
+  }
   if (!first) return walk(s, nx, ny);
   if (first.kind === 'door') return bounce(state, 'door', { x: nx, y: ny });
 
@@ -100,7 +107,7 @@ function move(state, dir) {
 
   const door = objAt(s, cx, cy);
   if (door) {
-    if (door.gate) return bounce(state, 'gate', { x: cx, y: cy }); // gates open themselves; no key fits
+    if (door.gate) return bounce(state, 'gate', { x: cx, y: cy }, { sides: sides(door.value, laneValues(s)) }); // gates listen to lanes; no key fits
     if (last.kind !== 'num') return bounce(state, 'socket', { x: cx, y: cy }); // a door wants a number, not an operator
     const env = { ...laneValues(s), '□': last.value };
     if (!accepts(door.value, env)) return bounce(state, 'not-equal', { x: cx, y: cy }, { sides: sides(door.value, env) });
@@ -133,7 +140,6 @@ function move(state, dir) {
 }
 
 function walk(s, x, y) {
-  if (tileAt(s, x, y) === 'E' && !gatesTrue(s)) return bounce(s, 'gates', { x, y });
   s.player = { x, y };
   const events = [{ type: 'move' }];
   if (tileAt(s, x, y) === 'E') { s.won = true; events.push({ type: 'win' }); }

@@ -1,5 +1,5 @@
 # MathBlox — Style Guide
-Owner: Arto. Code: `game.js`. Visual QA: `?showcase&level=N` (`levels/showcase.js`), add `&moves=rrdl` to replay inputs.
+Owner: Arto. Code: `render/` (look, draw, fx, state, audio) and `game.js` (input). Visual QA: `?showcase&level=N` (`levels/showcase.js`), add `&moves=rrdl` to replay inputs.
 Rule zero: **visuals carry the math, and the renderer computes none of it.** Every value drawn comes from the state or an event.
 
 ## 1. One quantity, three codes (curriculum §5 hook 3)
@@ -9,7 +9,7 @@ Every number block shows, on a 55 px face inside a 64 px cell:
 3. **Unit rod**, bottom: n segments of a fixed width, so rod **length is proportional to value** (Cuisenaire). This is what lays into trenches.
 4. **Color**, per value (below). It is the fourth cue and never the only one.
 
-Above 10: neutral fill `#efe9dc`, ones as dots, and each ten as an orange (`#ff9f1c`) ten-rod notched into 10 units. 0 (Void): dashed outline, an empty dashed rod, no dots.
+11–20: neutral fill `#efe9dc`, drawn **unit-for-unit**: two ten-frames of dots (the first full) and the rod wraps onto a second row of the same unit segments. No ten-rods or bundles before P3: every unit stays countable, and merge dots and carve chips leave from the visible face dots. 0 (Void): dashed outline, an empty dashed rod, no dots.
 
 ## 2. Palette
 Values (Cuisenaire-inspired). Min pairwise ΔE (CIE76) under Machado-2009 simulation: protan 17.9, deutan 12.7, tritan 12.0. Every ink reaches ≥ 5.4:1.
@@ -21,20 +21,25 @@ Values (Cuisenaire-inspired). Min pairwise ΔE (CIE76) under Machado-2009 simula
 | 2 | `#f4826a` red | dark | 8 | `#8a5a2b` brown | white |
 | 3 | `#9be08a` light green | dark | 9 | `#4f9be8` blue | dark |
 | 4 | `#e7a6dc` purple-pink | dark | 10 | `#ff9f1c` orange | dark |
-| 5 | `#f7e35a` yellow | dark | >10 | `#efe9dc` + orange rods | dark |
+| 5 | `#f7e35a` yellow | dark | 11–20 | `#efe9dc` two ten-frames | dark |
 
 Dark ink `#1d1f2e`, white `#ffffff`. Every block has a 2 px ink outline, so 1-white reads on the cream floor.
 World: floor `#f4efe4`, wall `#5b6475`, axes `#3a3f4b`, exit `#06d6a0`, player `#ef476f`, operator `#dfe3ea`, door `#5b3aa8` (white text 8.0:1),
 trench `#7a5c43` / lip `#5a4231`, tick pad `#1f7a6d` (white 5.2:1), sign `#f1e2c2` (ink 12.7:1).
+Lanes (declaration order): `#3fb8c9`, `#c77dff`, `#e0a43a`, a hue family outside the value palette, never the only cue (hatching + shape glyph).
 
 ## 3. Glyphs
 - **Number block**: rounded square. **Operator**: round token with a thick `+` cross or a symmetric `−` bar. The bar has no arrow tip, so it can't read as a direction. Shape tells numbers from operators without color.
 - **Trench `o`**: a sunken channel. Runs join across cells, and each cell has one dashed unit hole you can count. When filled, each cell holds one unit cube in the filler's value color with one dot.
 - **Tick pad `^`**: teal disc with "+1" and one dot. Once used it stays as a grey dashed ring with "+1", so you can see it is spent (undo restores it).
 - **Door, plain**: numeral + n empty white dot slots. **Door, equation**: tokens drawn left to right, `□` is a hollow box (the block you bring) and `-` shows as `−`.
-  It is drawn on the door at 13 px if it fits in 56 px. Otherwise it goes on a sign above the door (below if the door is on the top row), and the door shows a big `□`.
-- **Balance scale** (not-equal bump): a plate above the door with left and right pans for `sides[0]` and `sides[1]`. Each pan holds dots, ten-rods past 10, and its numeral.
-  The heavier side sinks. A side that can't be built yet (NaN) shows `?` and the beam stays level.
+  It always hangs on a sign (the door face shows a big `□`), and **every number on the sign carries its own dots** underneath, each lane shape its live total (or `?`). The goal reads at a glance before any bump, and no sum is computed by the renderer.
+  The sign sits above the door unless it would leave the canvas or cover more blocks than below.
+- **Gate** (an equation with no `□`): a portcullis. Shut = purple face with white bars. Open = the bars lift into a strip at the top, the frame turns dashed and the floor shows through (it is passable). Lift/drop takes 200 ms.
+- **Lane**: a tinted stripe with hatching, `—` for rows and `|` for columns, so a crossing cell is cross-hatched and reads as part of both. A tag on the wall cell at the axis edge (rows: x = 0, beside the y-axis; columns: the bottom row, beside the x-axis) reads `△=5` with that many dots, or `△=?` when the lane holds an operator.
+- **Balance scale** (not-equal bump): a plate next to the door with left and right pans for `sides[0]` and `sides[1]`. Each pan holds one dot per unit (5 to a row, teens too) and its numeral.
+  The heavier side sinks. A side that can't be built yet (NaN: it would go below 0) shows `?` and **rises**, lighter than anything. A level beam only ever means equal; if both sides are `?` the beam is dashed.
+- **Why-bubbles** (scale, deficit ghost, socket, zero-fill) try above, below, right, left and take the spot that stays on the canvas and covers the fewest other pieces and other doors' signs. The bumped block and the player weigh 50× (covered only if every spot would). The renderer can't know which piece is needed next, so it protects all of them equally.
 
 ## 4. Motion (all ≤ 600 ms, never blocks input; ×0.5 under reduced motion)
 | Event | Visual | ms |
@@ -45,7 +50,12 @@ trench `#7a5c43` / lip `#5a4231`, tick pad `#1f7a6d` (white 5.2:1), sign `#f1e2c
 | tick | "+1" floats up, ring pulse, block squash | 500 |
 | fill | unit cubes drop into trench cells one by one | ≤50/cell + 150 |
 | open | dots drop into slots (plain) or onto the equation, then the door slides up | ≤40/dot + 120, +200 slide |
-| bounce | rubbery wobble on the bumped block or door | 400 |
+| bounce | rubbery wobble on the bumped block or door (half amplitude for zero-fill) | 400 |
+| bounce `socket` (operator into a door) | hollow dashed block-shaped □ ghost: the door wants a number block | lingers |
+| bounce `zero-fill` | "0 fills 0 holes" plate + empty dashed rod on the trench | lingers |
+| bounce `gate` (key at a gate) | the gate's live balance scale (gates listen to their lanes, not keys) | lingers |
+| bounce `gates` (exit refused) | every false gate pulses a yellow frame at 2 Hz (static under reduced motion) | lingers |
+| gate open / close | bars lift / drop; open = consonant fifth, close = soft two-note step down | 200 |
 | win | 3–4 note jingle + confetti puff | 1500 (level end, per fun-principles §3) |
 
 Dot stagger is `min(40, budget/n)`, so big numbers stay countable without passing 600 ms.
@@ -58,6 +68,8 @@ Mute: the ♪ button or the `M` key. Its state persists (try/catch localStorage)
 ## 6. Accessibility rules
 - Never color alone: value = numeral + dots + rod length; operator = glyph + round silhouette; spent pad = dashed ring.
 - Text ≥ 4.5:1 everywhere the player must read (the spent pad is intentionally dim, and its dashed shape carries the meaning).
-- `prefers-reduced-motion`: no slide, wobble, squash or confetti; dots still fly and fall at half duration.
+- Reduced motion: no slide, wobble, squash, pulse or confetti; dots still fly and fall at half duration. The `∿` button next to mute toggles it (`aria-pressed`, persisted); with no saved choice it follows `prefers-reduced-motion`.
+- The board scales (CSS) to fit the window with cells never below 48 px; on wide screens the buttons sit beside it. At 1100×720 that leaves room for **≤ 12 rows**.
+- Restart (`⟳` / `R`) is undoable: it goes onto the history like a move.
 - No flashing above 3 Hz. Sound is never required: every cue has a visual twin.
 - Touch targets ≥ 56 px; one step per key press.

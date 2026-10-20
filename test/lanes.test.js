@@ -29,6 +29,13 @@ test('gates are live and the exit needs all gates true at once', () => {
   assert.deepEqual(r.events.filter(e => e.gate).map(e => e.type), ['open', 'close']);
   const locked = run({ name: 't', map: ['#@E#', '#A.#'], lanes: { '△': { row: 1 } }, doors: { A: '△ = 5' } }, ['right']);
   assert.equal(locked.events[0].reason, 'gates', 'exit refuses while any gate equation is false');
+  assert.deepEqual(locked.events[0].falseGates, [[1, 1]]);
+  const s0 = parseLevel({ name: 't', map: ['#@E#', '#A.#'], lanes: { '△': { row: 1 } }, doors: { A: '△ = 5' } });
+  assert.equal(step(s0, 'right').state, s0, 'a refused exit returns the same state (no phantom undo step)');
+  const g = run({ name: 't', map: ['#@4AE#'], lanes: { '△': { row: 0 } }, doors: { A: '△ = 9' } }, ['right']);
+  assert.deepEqual(g.events[0].sides, [4, 9], 'gate bump shows the lane total vs target');
+  const pre = parseLevel({ name: 't', map: ['#@.#', '#5A#'], lanes: { '△': { row: 1 } }, doors: { A: '△ = 5' } });
+  assert.equal(pre.objects.find(o => o.gate).open, true, 'gate true at load starts open');
   assert.ok(!locked.state.won);
 });
 

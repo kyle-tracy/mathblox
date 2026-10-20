@@ -16,9 +16,24 @@ export function load(i) {
   state = prev = orig = parseLevel(SET[lvlIdx]);
   history = []; fx = []; fills = new Map(); won = false;
   const H = state.tiles.length, W = state.tiles[0].length;
-  cv.width = W * CELL + PAD; cv.height = H * CELL + PAD;
+  cv.width = W * CELL + PAD; cv.height = H * CELL + PAD; fit();
   document.getElementById('name').textContent = `${lvlIdx + 1}. ${SET[lvlIdx].name}`;
   document.getElementById('next').hidden = true;
+}
+
+// Fit the board to the window by CSS scaling (drawing stays on the 64 px grid), never below 48 px cells.
+// The bar sits beside the board on wide screens (index.html); these margins are calibration for that layout.
+export function fit() {
+  const wide = matchMedia('(min-aspect-ratio: 5/4)').matches;
+  const k = Math.max(48 / CELL, Math.min(1, (innerWidth - 40 - (wide ? 150 : 0)) / cv.width, (innerHeight - 80 - (wide ? 0 : 150)) / cv.height));
+  cv.style.width = `${cv.width * k}px`; cv.style.height = `${cv.height * k}px`;
+}
+
+// Restart is a move like any other: it goes onto the history, so Undo brings your board back.
+export function restart() {
+  if (state === orig) return;
+  history.push(state); prev = state = orig; won = false; fx = []; tMove = 0;
+  document.getElementById('next').hidden = true; tone(300, 0.08, 'sine', -150);
 }
 
 export function act(dir) {
@@ -26,7 +41,7 @@ export function act(dir) {
   lastDir = dir;
   fx = fx.filter(f => !f.linger); // ghosts and scales stay readable until the next move
   const before = state, r = step(state, dir);
-  if (r.state !== state) { history.push(state); prev = state; state = r.state; tMove = performance.now(); }
+  if (r.state !== state && r.events[0]?.type !== 'bounce') { history.push(state); prev = state; state = r.state; tMove = performance.now(); }
   for (const e of r.events) feedback(e, before);
 }
 export function undo() {
@@ -70,6 +85,12 @@ export function feedback(e, before) {
       f.dx = dx; f.dy = dy;
     }
     fx.push(f);
+  }
+  if (e.gate) { // gates stay on the board: bars lift (consonant fifth: the sides balance) or drop (a soft step down)
+    fx.push({ type: 'gate', at: e.at, t0 });
+    if (e.type === 'open') [0, 7].forEach(n => tone(pitch(e.sides[0] + 12 + n), 0.3, 'sine'));
+    else { tone(pitch(10), 0.1, 'triangle'); tone(pitch(5), 0.14, 'triangle', 0, 0.1); }
+    return;
   }
   if (e.type === 'open') {
     const door = objAt(before, e.at.x, e.at.y), st = stagger(e.value, 300);

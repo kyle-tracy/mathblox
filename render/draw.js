@@ -1,25 +1,22 @@
 // Board renderer: tiles, axes, blocks, doors, player; effects come from fx.js.
-import { cv, g, CELL, PAD, reduced, TS, INK, WHITE, C, PAL, pal, px, ease, rr, circle, text, dotPos, door, fitsOnDoor, equation } from './look.js';
+import { cv, g, CELL, PAD, reduced, TS, INK, WHITE, C, LANE, pal, px, ease, rr, circle, text, dotPos, face, door, gate, equation } from './look.js';
 import { state, prev, orig, fx, fills, tMove } from './state.js';
-import { drawFx } from './fx.js';
+import { drawFx, signBox } from './fx.js';
+import { laneValues } from '../core/world.js';
 
 // A number block, triple-coded: numeral + dot face + unit rod (length ∝ value) + Cuisenaire color.
-// Designed on a 55px face; s scales it. Above 10: ones as dots, each ten as a notched ten-rod.
+// Designed on a 55px face; s scales it. 11-20 stay unit-for-unit: two ten-frames of dots, and the rod wraps onto a second row.
 export function block(X, Y, n, s = 1, alpha = 1) {
-  const [fill, ink] = pal(n), u = (CELL * 0.86 * s) / 55;
+  const [fill, ink] = pal(n), u = (CELL * 0.86 * s) / 55, f = face(n);
   g.save(); g.globalAlpha = alpha; g.translate(X + CELL / 2 - 27.5 * u, Y + CELL / 2 - 27.5 * u); g.scale(u, u);
   rr(0, 3, 55, 55, 10, 'rgba(0,0,0,.18)'); rr(0, 0, 55, 55, 10, fill);
   g.strokeStyle = 'rgba(29,31,46,.6)'; g.lineWidth = 2; if (n === 0) g.setLineDash([4, 3]); g.stroke(); g.setLineDash([]);
-  text(n, 27.5, 13, 19, ink);
+  const big = n > 10;
+  text(n, 27.5, big ? 9 : 13, big ? 14 : 19, ink);
   g.fillStyle = ink;
-  for (let i = 0; i < n % 10 + (n === 10 ? 10 : 0); i++) { const [x, y] = dotPos(i, 27.5, 28, 9.4); circle(x, y, 3.5); }
-  if (n <= 10) {
-    for (let i = 0; i < n; i++) g.fillRect(4.5 + i * 4.6, 44, 3.6, 8);
-    if (n === 0) { g.strokeStyle = ink; g.lineWidth = 1; g.setLineDash([2, 2]); g.strokeRect(4.5, 44, 46, 8); g.setLineDash([]); }
-  } else for (let t = 0; t < Math.floor(n / 10); t++) { // ten-rods, each notched into 10 units
-    const y = 51 - t * 6; rr(4.5, y - 3, 46, 5, 1.5, PAL[10][0]); g.strokeStyle = INK; g.lineWidth = 1; g.strokeRect(4.5, y - 3, 46, 5);
-    g.fillStyle = INK; for (let k = 1; k < 10; k++) g.fillRect(4.5 + k * 4.6 - 0.4, y - 3, 0.8, 5);
-  }
+  for (let i = 0; i < n; i++) { const [x, y] = dotPos(i, 27.5, 27.5 + f.cy, f.sp); circle(x, y, f.r); }
+  for (let i = 0; i < n; i++) g.fillRect(4.5 + (i % 10) * 4.6, big ? 44.5 + Math.floor(i / 10) * 4.5 : 44, 3.6, big ? 3.5 : 8);
+  if (n === 0) { g.strokeStyle = ink; g.lineWidth = 1; g.setLineDash([2, 2]); g.strokeRect(4.5, 44, 46, 8); g.setLineDash([]); }
   g.restore();
 }
 export function opBlock(X, Y, op, s) { // round silhouette (numbers are square); thick + and − glyphs
@@ -31,11 +28,33 @@ export function opBlock(X, Y, op, s) { // round silhouette (numbers are square);
   else rr(cx - L / 2, cy - w / 2, L, w, 3, INK); // symmetric bar: no arrow, so it never reads as a direction
 }
 
-export function sign(X, Y, spec) { // long equations hang on a sign above the door (below if the door is on the top row)
-  const w = equation(spec, 0, 0, 17, INK, false) + 16, cx = X + CELL / 2, up = Y >= 34, sy = up ? Y - 32 : Y + CELL + 4;
-  g.fillStyle = C.doorFrame; g.fillRect(cx - 2, up ? sy + 26 : Y + CELL - 2, 4, 8);
-  rr(cx - w / 2, sy, w, 28, 6, C.sign); g.strokeStyle = C.doorFrame; g.lineWidth = 2; g.stroke();
-  equation(spec, cx, sy + 14, 17, INK);
+export function sign(o, lanes) { // equations hang on a sign next to the door, every number with its own dots (goal readable before any bump)
+  const [x, y, w, h] = signBox(o), [X, Y] = px(o.x, o.y), cx = X + CELL / 2, up = y < Y;
+  g.fillStyle = C.doorFrame; g.fillRect(cx - 2, up ? y + h - 2 : Y + CELL - 2, 4, up ? Y - y - h + 4 : y - Y - CELL + 4);
+  rr(x, y, w, h, 6, C.sign); g.strokeStyle = C.doorFrame; g.lineWidth = 2; g.stroke();
+  equation(o.value, cx, y + 13, 17, INK, true, lanes);
+}
+
+// Lanes: a tinted stripe with hatching (rows —, columns |, so a crossing cell is cross-hatched: in both), plus a tag at the
+// axis edge (rows at the y-axis side, columns at the x-axis side) reading "△ = 5" with dots, or "△ = ?".
+function lanes(vals) {
+  const H = state.tiles.length, W = state.tiles[0].length;
+  Object.entries(state.lanes).forEach(([sym, { row, col }], i) => {
+    const tint = LANE[i % LANE.length], isRow = row !== undefined;
+    for (let k = 0; k < (isRow ? W : H); k++) {
+      const x = isRow ? k : col, y = isRow ? row : k;
+      if (state.tiles[y][x] === '#') continue;
+      const [X, Y] = px(x, y);
+      g.globalAlpha = 0.22; g.fillStyle = tint; g.fillRect(X, Y, CELL, CELL); g.globalAlpha = 0.55;
+      for (let j = 1; j < 4; j++) g.fillRect(isRow ? X : X + j * 16 - 1, isRow ? Y + j * 16 - 1 : Y, isRow ? CELL : 2, isRow ? 2 : CELL);
+      g.globalAlpha = 1;
+    }
+    const [X, Y] = px(isRow ? 0 : col, isRow ? row : H - 1), v = vals[sym], cx = X + CELL / 2;
+    rr(X + 3, Y + 3, CELL - 6, CELL - 6, 8, tint); g.strokeStyle = INK; g.lineWidth = 2; g.stroke();
+    text(`${sym}=${Number.isNaN(v) ? '?' : v}`, cx, Y + 17, 15, INK);
+    g.fillStyle = INK; const sp = v > 10 ? 5 : 7;
+    if (!Number.isNaN(v)) for (let d = 0; d < v; d++) { const [dx, dy] = dotPos(d, cx, Y + 32, sp); circle(dx, dy, v > 10 ? 1.8 : 2.4); }
+  });
 }
 
 export function tile(t, x, y, now) {
@@ -66,6 +85,8 @@ export function draw(now) {
   const H = state.tiles.length, W = state.tiles[0].length;
   g.fillStyle = C.floor; g.fillRect(0, 0, cv.width, cv.height);
   state.tiles.forEach((row, y) => [...row].forEach((t, x) => tile(t, x, y, now)));
+  const vals = laneValues(state);
+  lanes(vals);
 
   // Axes: a frame of reference only. y counts up from the bottom, like real math.
   g.strokeStyle = C.axis; g.fillStyle = C.axis; g.lineWidth = 2;
@@ -77,20 +98,26 @@ export function draw(now) {
   // Slide objects from their previous cells.
   const k = reduced ? 1 : Math.min(1, (now - tMove) / 110);
   const from = id => prev.objects.find(o => o.id === id);
-  for (const o of state.objects) {
+  const lift = o => { // gates lift their bars over 200 ms when they open, drop them when they close
+    const f = fx.findLast(f => f.type === 'gate' && f.at.x === o.x && f.at.y === o.y), q = f ? ease((now - f.t0) / (200 * TS)) : 1;
+    return o.open ? q : 1 - q;
+  };
+  const objs = [...state.objects].sort((a, b) => !!b.open - !!a.open); // open gates first: whatever stands in one draws on top
+  for (const o of objs) {
     const p = from(o.id) ?? o, f = fx.find(f => f.wob && f.wob.x === o.x && f.wob.y === o.y && now - f.t0 < 400 * TS);
     let x = p.x + (o.x - p.x) * k, y = p.y + (o.y - p.y) * k, s = 1;
     if (f && !reduced) {
       const t = (now - f.t0) / 400;
-      if (f.type === 'bounce') x += Math.sin((now - f.t0) / 25) * 0.08 * (1 - t);
+      if (f.type === 'bounce') x += Math.sin((now - f.t0) / 25) * (f.reason === 'zero-fill' ? 0.04 : 0.08) * (1 - t);
       else s = 1 + 0.22 * Math.sin(Math.PI * t);
     }
     const [X, Y] = px(x, y);
-    if (o.kind === 'door') door(X, Y, o.value);
+    if (o.gate) gate(X, Y, lift(o));
+    else if (o.kind === 'door') door(X, Y, o.value);
     else if (o.kind === 'op') opBlock(X, Y, o.op, s);
     else block(X, Y, o.value, s);
   }
-  for (const o of state.objects) if (o.kind === 'door' && !fitsOnDoor(o.value)) sign(...px(o.x, o.y), o.value);
+  for (const o of state.objects) if (o.kind === 'door' && typeof o.value === 'string') sign(o, vals);
 
   drawFx(now);
 

@@ -58,4 +58,23 @@ export const SHOWCASE = [
     ],
     doors: { A: '□ = 5', B: 5 },
   },
+  {
+    // moves=r: lanes + crossing, gate B open, C shut, socket ghost (+ into A). moves=ddr: zero-fill. moves=dddddr: key at gate C.
+    // moves=d: B opens. moves=drrrrdd: 3 leaves the △ lane, B closes. moves=drrrrrrrrrru: exit refuses, C pulses. moves=drrrrrrrddddr: 8 vs ◇+1 = ? (? side rises)
+    name: 'Lanes and Gates',
+    skill: 'QA: lanes, crossing, ? lane, gates open/shut/close, socket, zero-fill, gate, gates bounces',
+    map: [
+      '#############',
+      '#@+A.......E#',
+      '#....B......#',
+      '#.0oo.......#',
+      '#....3.4....#',
+      '#......2....#',
+      '#.5C.....8D.#',
+      '#...3-1.....#',
+      '#############',
+    ],
+    lanes: { '△': { row: 4 }, '○': { col: 7 }, '◇': { row: 7 } },
+    doors: { A: 3, B: '△ = 7', C: '○ = 9', D: '□ = ◇ + 1' },
+  },
 ];

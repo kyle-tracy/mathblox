@@ -1,24 +1,44 @@
 // Effects layer: merge dots, carve chips, tick ring, door opening, and the lingering 'why' ghosts and scale.
-import { g, CELL, INK, WHITE, C, PAL, pal, reduced, TS, px, ease, rr, circle, text, dotPos, slots, door, bubble, fitsOnDoor } from './look.js';
+import { g, cv, CELL, INK, WHITE, C, pal, reduced, TS, px, ease, rr, circle, text, dotPos, face, slots, door, bubble, equation } from './look.js';
 import { state, fx, objAt } from './state.js';
+import { laneValues } from '../core/world.js';
+
+// Where an equation door's sign hangs: above the door, unless that leaves the canvas or covers more blocks than below.
+export function signBox(o) {
+  const [X, Y] = px(o.x, o.y), lanes = laneValues(state), w = equation(o.value, 0, 0, 17, INK, false, lanes) + 16;
+  const h = [...(o.value.match(/\d+/g) ?? []), ...Object.values(lanes)].some(n => n > 10) ? 54 : 40; // teens need a second ten-frame
+  const x = Math.max(2, Math.min(cv.width - w - 2, X + CELL / 2 - w / 2));
+  const cover = y => state.objects.filter(b => b !== o).filter(b => { // not the player: a sign must not hop as you walk past
+    const [bx, by] = px(b.x, b.y); return x < bx + CELL && bx < x + w && y < by + CELL && by < y + h;
+  }).length + (y < 0 || y + h > cv.height ? 99 : 0);
+  const up = Y - h - 6, down = Y + CELL + 6;
+  return [x, cover(up) <= cover(down) ? up : down, w, h];
+}
+const must = f => [[...px(f.wob.x, f.wob.y), CELL, CELL], [...px(state.player.x, state.player.y), CELL, CELL]];
+// What a "why" bubble must not cover: every block, the player, and other doors' signs (the bumped door and its sign may be covered).
+const avoid = at => [...state.objects.filter(o => o.x !== at.x || o.y !== at.y).map(o => [...px(o.x, o.y), CELL, CELL]),
+  [...px(state.player.x, state.player.y), CELL, CELL],
+  ...state.objects.filter(o => typeof o.value === 'string' && (o.x !== at.x || o.y !== at.y)).map(signBox)]; // its own sign may hide: the bubble says the same, live
 
 // Balance scale for a not-equal bump: the heavier side of the = sinks. sides come from the engine.
+// Balance scale for a not-equal bump: the heavier side of the = sinks. sides come from the engine.
+// A side that can't be built yet (NaN: it would go below 0) is lighter than anything, so it rises. Never level.
 export function scale(f, now) {
-  const [X, Y] = px(f.at.x, f.at.y), [l, r] = f.sides, door = objAt(state, f.at.x, f.at.y);
-  const [bx, by] = bubble(X, Y, 136, 96, door && !fitsOnDoor(door.value) ? 34 : 0), cx = bx + 68, py = by + 22;
+  const [X, Y] = px(f.at.x, f.at.y), [l, r] = f.sides;
+  const [bx, by] = bubble(X, Y, 136, 104, avoid(f.at), must(f)), cx = bx + 68, py = by + 28;
   const k = reduced ? 1 : ease((now - f.t0) / 300), wob = reduced ? 0 : Math.sin((now - f.t0) / 45) * 0.08 * (1 - k);
-  const th = (0.26 * Math.sign(r - l) || 0) * k + wob, L = 44; // NaN side (can't be built yet): stays level
-  g.fillStyle = INK; g.beginPath(); g.moveTo(cx, py); g.lineTo(cx - 9, by + 90); g.lineTo(cx + 9, by + 90); g.fill();
-  g.save(); g.translate(cx, py); g.rotate(th); g.fillRect(-L, -2, 2 * L, 4); g.restore(); circle(cx, py, 4);
+  const wt = v => (Number.isNaN(v) ? -Infinity : v), both = Number.isNaN(l) && Number.isNaN(r);
+  const th = (0.26 * (Math.sign(wt(r) - wt(l)) || 0)) * k + wob, L = 44;
+  g.fillStyle = INK; g.beginPath(); g.moveTo(cx, py); g.lineTo(cx - 9, by + 98); g.lineTo(cx + 9, by + 98); g.fill();
+  g.save(); g.translate(cx, py); g.rotate(th); if (both) { g.setLineDash([6, 4]); g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.moveTo(-L, 0); g.lineTo(L, 0); g.stroke(); g.setLineDash([]); } else g.fillRect(-L, -2, 2 * L, 4); g.restore(); circle(cx, py, 4);
   [[l, -1], [r, 1]].forEach(([v, d]) => {
     const ex = cx + d * L * Math.cos(th), ey = py + d * L * Math.sin(th), pan = ey + 34;
     g.strokeStyle = INK; g.lineWidth = 1.2; g.beginPath(); g.moveTo(ex - 20, pan); g.lineTo(ex, ey); g.lineTo(ex + 20, pan); g.stroke();
     g.beginPath(); g.arc(ex, pan, 20, 0, Math.PI); g.fillStyle = INK; g.fill(); // bowl
     if (Number.isNaN(v)) return text('?', ex, pan - 10, 15, INK);
     text(v, ex, pan + 9, 12, WHITE);
-    g.fillStyle = INK; const ones = v % 10 + (v === 10 ? 10 : 0); // contents sit on the bowl: ones as dots, tens as rods
-    for (let i = 0; i < ones; i++) circle(ex + (i % 5 - 2) * 6.4, pan - 4 - Math.floor(i / 5) * 6.4, 2.5);
-    for (let t = 0; t < (v > 10 ? Math.floor(v / 10) : 0); t++) rr(ex - 15, pan - 6 - Math.ceil(ones / 5) * 6.4 - t * 5, 30, 3.5, 1.5, PAL[10][0]);
+    g.fillStyle = INK; // every unit sits on the bowl as a dot, 5 to a row (teens too: no bundling before P3)
+    for (let i = 0; i < v; i++) circle(ex + (i % 5 - 2) * 6.4, pan - 4 - Math.floor(i / 5) * 6.4, 2.5);
   });
 }
 
@@ -29,7 +49,7 @@ export function drawFx(now) {
       const [AX, AY] = px(f.from.x, f.from.y), [fill] = pal(f.from.value);
       for (let i = 0; i < f.n; i++) {
         const q = (t - 60 * TS - i * f.st * TS) / (180 * TS); if (q < 0 || q > 1) continue;
-        const e = ease(q), [dx0, dy0] = dotPos(i, 0, 0, 9.4);
+        const ff = face(f.from.value), e = ease(q), [dx0, dy0] = dotPos(i, 0, ff.cy, ff.sp);
         const x = AX + CELL / 2 + dx0 + (X - AX) * e, y = AY + CELL / 2 + dy0 + (Y - AY) * e - Math.sin(Math.PI * e) * 26;
         g.fillStyle = fill; circle(x, y, 6); g.fillStyle = INK; circle(x, y, 3.5);
       }
@@ -38,8 +58,8 @@ export function drawFx(now) {
     }
     if (f.type === 'carve') for (let i = 0; i < f.n; i++) { // chips fall away as pebbles
       const q = (t - i * f.st * TS) / (240 * TS); if (q < 0 || q > 1) continue;
-      const [dx0] = dotPos(i, 0, 0, 9.4);
-      g.fillStyle = `rgba(122,92,67,${1 - q})`; circle(X + CELL / 2 + dx0 * (1 + q), Y + CELL / 2 + q * q * 44, 4.5);
+      const m = f.from.value, ff = face(m), [dx0, dy0] = dotPos(m - f.n + i, 0, ff.cy, ff.sp); // the minuend's last n dots chip off
+      g.fillStyle = `rgba(122,92,67,${1 - q})`; circle(X + CELL / 2 + dx0 * (1 + q), Y + CELL / 2 + dy0 + q * q * 44, ff.r + 1);
     }
     if (f.type === 'tick' && t < 500 * TS) { const q = t / (500 * TS); g.globalAlpha = 1 - q;
       text('+1', X + CELL / 2, Y - 4 - q * 22, 20, C.pad); g.strokeStyle = C.pad; g.lineWidth = 3; g.beginPath(); g.arc(X + CELL / 2, Y + CELL / 2, CELL * (0.4 + q * 0.3), 0, 7); g.stroke(); g.globalAlpha = 1; }
@@ -59,10 +79,23 @@ export function drawFx(now) {
       g.restore();
     }
     if (f.type === 'bounce' && f.missing) { // deficit ghost: missing units as hollow dots, "why" in dots
-      const rows = Math.ceil(f.missing / 5), [bx, by] = bubble(X, Y, 56, 14 + rows * 10);
+      const rows = Math.ceil(f.missing / 5), [bx, by] = bubble(X, Y, 56, 14 + rows * 10, avoid(f.at), must(f));
       slots(f.missing, bx + 28, by + 12, 9.4, 3.5, INK);
     }
-    if (f.type === 'bounce' && f.reason === 'not-equal' && f.sides) scale(f, now);
+    if (f.type === 'bounce' && f.sides && ['not-equal', 'gate'].includes(f.reason)) scale(f, now);
+    if (f.type === 'bounce' && f.reason === 'socket') { // a door wants a number block: show the empty block-shaped hole
+      const [bx, by] = bubble(X, Y, 60, 60, avoid(f.at), must(f));
+      g.strokeStyle = INK; g.lineWidth = 2.5; g.setLineDash([6, 4]); g.beginPath(); g.roundRect(bx + 8, by + 8, 44, 44, 8); g.stroke(); g.setLineDash([]);
+    }
+    if (f.type === 'bounce' && f.reason === 'zero-fill') { // 0 is an object that fills 0 holes: an empty dashed rod lies over the trench
+      const [bx, by] = bubble(X, Y, 128, 34, avoid(f.at), must(f));
+      text('0 fills 0 holes', bx + 64, by + 17, 14, INK);
+      g.strokeStyle = INK; g.lineWidth = 1.5; g.setLineDash([3, 3]); g.strokeRect(X + 9, Y + CELL / 2 - 5, CELL - 18, 10); g.setLineDash([]);
+    }
+    if (f.type === 'bounce' && f.reason === 'gates') for (const [x, y] of f.falseGates) { // exit refused: the false gates pulse (2 Hz)
+      const [GX, GY] = px(x, y), a = reduced ? 1 : 0.55 + 0.45 * Math.sin(t / 80);
+      g.strokeStyle = `rgba(255,209,102,${a})`; g.lineWidth = 5; g.strokeRect(GX - 1, GY - 1, CELL + 2, CELL + 2);
+    }
     if (f.type === 'bounce' && f.reason === 'too-long') { // ghost rod: fits the trench, then `extra` units stick out
       const q = reduced ? 1 : ease(t / 300), [fill, ink] = pal(f.n);
       const cells = [...f.cells];

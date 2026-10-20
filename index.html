@@ -5,10 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MathBlox</title>
 <style>
-  body { margin: 0; background: #2b2d42; color: #f4efe4; font: 18px system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 16px; }
+  body { margin: 0; background: #2b2d42; color: #f4efe4; font: 18px system-ui, sans-serif; display: grid; justify-content: center; justify-items: center; align-items: start; gap: 12px; padding: 16px; }
   h1 { margin: 0; font-size: 22px; }
-  canvas { max-width: 100%; border-radius: 10px; touch-action: none; }
+  canvas { border-radius: 10px; touch-action: none; }
   .bar { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  /* wide screens: buttons beside the board so tall levels fit without scrolling (render/state.js fit() matches this query) */
+  @media (min-aspect-ratio: 5/4) {
+    body { grid-template-columns: auto auto; }
+    h1 { grid-column: 1 / 3; }
+    .bar { display: grid; grid-template-columns: 56px 56px; align-content: start; }
+  }
+  #motion[aria-pressed="true"] { background: #ffd166; }
   button { min-width: 56px; min-height: 56px; font-size: 26px; border: 0; border-radius: 12px; background: #8ecae6; color: #2b2d42; cursor: pointer; }
   button:focus-visible { outline: 4px solid #ffd166; }
   #next { background: #06d6a0; }
@@ -26,6 +33,7 @@
   <button id="undo" aria-label="undo">↶</button>
   <button id="restart" aria-label="restart">⟳</button>
   <button id="mute" aria-label="mute" aria-pressed="false">♪</button>
+  <button id="motion" aria-label="reduce motion" aria-pressed="false" title="reduce motion">∿</button>
   <button id="next" aria-label="next level" hidden>★→</button>
 </div>
 <script type="module" src="game.js"></script>
