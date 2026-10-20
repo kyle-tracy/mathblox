@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MathBlox</title>
+<style>
+  body { margin: 0; background: #2b2d42; color: #f4efe4; font: 18px system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 16px; }
+  h1 { margin: 0; font-size: 22px; }
+  canvas { max-width: 100%; border-radius: 10px; touch-action: none; }
+  .bar { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  button { min-width: 56px; min-height: 56px; font-size: 26px; border: 0; border-radius: 12px; background: #8ecae6; color: #2b2d42; cursor: pointer; }
+  button:focus-visible { outline: 4px solid #ffd166; }
+  #next { background: #06d6a0; }
+</style>
+</head>
+<body>
+<h1 id="name">MathBlox</h1>
+<canvas id="c"></canvas>
+<div class="bar">
+  <button data-dir="left" aria-label="left">←</button>
+  <button data-dir="up" aria-label="up">↑</button>
+  <button data-dir="down" aria-label="down">↓</button>
+  <button data-dir="right" aria-label="right">→</button>
+  <button id="undo" aria-label="undo">↶</button>
+  <button id="restart" aria-label="restart">⟳</button>
+  <button id="next" aria-label="next level" hidden>★→</button>
+</div>
+<script type="module" src="game.js"></script>
+</body>
+</html>
