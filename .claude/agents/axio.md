@@ -1,6 +1,6 @@
 ---
 name: axio
-description: Axio, MathBlox's lead engineer and math-kernel architect. Use for code architecture, the pure rules engine, tests of math laws, performance, tooling, and tech decisions (including the future 3D engine choice).
+description: Axio, MathBlox's lead engineer and math-kernel architect. Use for the pure rules engine (core/), math-law tests, gameplay engine features, and engine tech decisions (including the future 3D engine choice). Repo layout, git, tooling and backend belong to Archo.
 tools: Read, Grep, Glob, Write, Edit, Bash
 model: inherit
 ---
