@@ -20,7 +20,7 @@ Level numbers below are the P2.1 numbers. Fill the Holes was inserted at L3, so 
 | 0 into a trench | Fixed | Bounces with `zero-fill`; the dashed-rod effect shows. |
 
 ## 2. Trap rates
-Method: build the full reachable graph, then mark dead states by reverse BFS from the win states. Random walks use a seeded PRNG, 2000 walks per column (200 for the big graphs, whose endpoints were checked with a capped `solve()`; "unk" means the cap was hit). **Flagged column: walk20 > 50%.**
+Method: build the full reachable graph, then mark dead states by reverse BFS from the win states. Random walks use a seeded PRNG: 300 walks per column, or 200 for L14 and L18–L21. Endpoints those graphs had not expanded were checked with `solve(…, 300k)`, and "unk" means that cap was hit. The L18–L21 shortest traps were confirmed with `solve(…, 3e6)`, which returned `null`. **Flagged column: walk20 > 50%.**
 
 | Lvl | states | walk10 | walk20 | walk60 | shortest trap |
 |---|---|---|---|---|---|
@@ -40,7 +40,7 @@ Method: build the full reachable graph, then mark dead states by reverse BFS fro
 | L21 V4 | 511,022 | 16% | 31% | 68% | `rdd` |
 | L22 V5 | 269,758 | 4% | 15% | 46% | `rrdl` |
 | L23 V6 | 388,376 | 13% | 27% | 63% | `drr` |
-| L24 | not run (free play) | | | | |
+| L24 | > 300k (sampled, 100 walks) | 0% (2 unk) | 0% (6 unk) | 0% (13 unk) | none found |
 
 Every level's `solve()` finishes inside 200k states. The *full* graphs of L14 and L18–L23 are larger than that. Worldo should confirm the authoring limit means solver states, not the full graph.
 
@@ -65,7 +65,7 @@ Definitions:
 | L11 | **1** | 1 | bait: 3−8 |
 | L12 | 2 | 2 | 4−4 or 5−5 |
 | L13 | **1** | 1 | bait: the + |
-| L14 | 2 | 2 | 4+6 or 6+4, then 6−4 |
+| L14 | 2* | 2 | 4+6 or 6+4, then 6−4 (*differ only in operand order) |
 | L15 | **1** | 2 | bait: 0+3 |
 | L16 | **1** | 1 | open 7, 4, 3 in that order |
 | L17 | **1** | 1 | 3+4, then 7−4 |
@@ -74,10 +74,10 @@ Definitions:
 | L20 | 2 | – | △ = 4 or 2+2 |
 | L21 | **1** | – | △ = 3+4 only |
 | L22 | **1** | – | ○ = 5 only (4+1 spends the key) |
-| L23 | 2 | – | 6 in the row and 4 in the column, or the 4 on the crossing cell plus the 2 (same values, a second placement) |
+| L23 | 2* | – | 6 in the row and 4 in the column, or the 4 on the crossing cell plus the 2 (*same values, placement only) |
 | L24 | **1** | – | the 9 can only move into A (found by hand) |
 
-So 15 levels after L1 (16 counting the Sandbox) have exactly one route. In every one of them the choice is "right road or bait". Whether a bait-only choice counts as "a real choice" is the CEO's call. Until that call is made, these levels violate the rule as it was stated.
+Route counts for L18–L23 come from enumerating every subset of the blocks and checking each for reachability; the capped product BFS was not used for them. So 15 levels after L1 (16 counting the Sandbox) have exactly one route. In every one of them the choice is "right road or bait". Whether a bait-only choice counts as "a real choice" is the CEO's call. Until that call is made, these levels violate the rule as it was stated. Under a stricter reading, where the starred levels count as single-route, the count is 17.
 
 ## 4. Cheese hunt, lane levels
 - Every V1–V6 shortest win has exactly the intended lane totals (pinned in a test).
