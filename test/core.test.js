@@ -44,6 +44,34 @@ test('door opens only for an equal block', () => {
   assert.ok(yes.state.won);
 });
 
+test('equation doors: = is two-way, not "answer comes next"', () => {
+  const lvl = v => ({ name: 't', map: [`#@${v}AE#`], doors: { A: '7 = □+3' } });
+  assert.ok(run(lvl(4), ['right', 'right', 'right']).state.won, '7 = 4+3 opens');
+  // Reading "7 = □+3" as "answer comes next" means bringing 10: the scale shows 7 vs 13.
+  const ten = run({ name: 't', map: ['#@9+1AE#'], doors: { A: '7 = □+3' } }, ['right', 'right', 'right']);
+  assert.equal(ten.events.at(-1).reason, 'not-equal');
+  assert.deepEqual(ten.events.at(-1).sides, [7, 13]);
+  assert.ok(run({ name: 't', map: ['#@3AE#'], doors: { A: '2+5 = □+4' } }, ['right', 'right', 'right']).state.won);
+  assert.throws(() => parseLevel({ name: 't', map: ['#@A#'], doors: { A: '7 = 3+4' } }), /bad door/);
+});
+
+test('tick pad adds exactly one, once', () => {
+  const r = run({ name: 't', map: ['#@0^^.#'], doors: {} }, ['right', 'right', 'right']);
+  assert.equal(r.state.objects[0].value, 2);
+  assert.equal(r.events.filter(e => e.type === 'tick').length, 2);
+  const back = run({ name: 't', map: ['#.^0@#'], doors: {} }, ['left', 'right', 'right', 'left', 'left']);
+  assert.equal(back.state.objects[0].value, 1, 'used pad cannot be farmed');
+});
+
+test('trench: n fills n cells, too long bounces, parts add up', () => {
+  const r = run({ name: 't', map: ['#@2.ooooo.#'], doors: {} }, ['right', 'right']);
+  assert.equal(r.events.find(e => e.type === 'fill').left, 3);
+  assert.equal(r.state.tiles[0], '#.....ooo.#');
+  const long = run({ name: 't', map: ['#@6.ooooo.#'], doors: {} }, ['right', 'right']);
+  assert.deepEqual([long.events.at(-1).reason, long.events.at(-1).extra], ['too-long', 1]);
+  assert.equal(run({ name: 't', map: ['#@o#'], doors: {} }, ['right']).events[0].reason, 'wall', 'player cannot walk into a trench');
+});
+
 test('position never changes a block value', () => {
   const r = run({ name: 't', map: ['#@5....#'], doors: {} }, ['right', 'right', 'right']);
   assert.equal(r.state.objects[0].value, 5);
@@ -52,6 +80,8 @@ test('position never changes a block value', () => {
 for (const lvl of LEVELS) test(`level "${lvl.name}" is solvable`, () => {
   const path = solve(parseLevel(lvl));
   assert.ok(path, 'no solution');
-  assert.ok(run(lvl, path).events.some(e => e.type === 'open'), 'exit reachable without opening a door (cheese)');
+  const types = run(lvl, path).events.map(e => e.type);
+  for (const t of ['open', ...(lvl.teaches ?? [])])
+    assert.ok(types.includes(t), `shortest solution skips "${t}" (cheese)`);
   console.log(`  ${lvl.name}: shortest ${path.length} moves`);
 });

@@ -26,6 +26,7 @@ export const LEVELS = [
       '#############',
     ],
     doors: { A: 5 },
+    teaches: ['merge'],
   },
   {
     name: 'Take Away',
@@ -40,5 +41,6 @@ export const LEVELS = [
       '############',
     ],
     doors: { A: 4 },
+    teaches: ['carve'],
   },
 ];

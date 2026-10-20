@@ -13,3 +13,28 @@ export function apply(op, a, b) {
 }
 
 export const equal = (a, b) => a === b;
+export const tick = a => a + 1; // successor: Peano's first axiom, the toddler's "one more"
+
+// Door locks. A number n means "□ = n"; a string is an equation like "7 = □+3".
+// The □ is the block you bring. Same-precedence ops read left to right (only + and − exist yet).
+export function checkDoor(spec) {
+  if (typeof spec === 'number') return;
+  if (spec.split('=').length !== 2 || spec.split('□').length !== 2 || !/^[\d□+\-=\s]+$/.test(spec))
+    throw new Error(`bad door "${spec}": need one "=", one "□", digits, + and −`);
+}
+
+export function sides(spec, v) {
+  if (typeof spec === 'number') return [v, spec];
+  return spec.split('=').map(side => {
+    const t = side.replace(/\s/g, '').match(/\d+|□|[+\-]/g), num = x => (x === '□' ? v : +x);
+    let acc = num(t[0]);
+    for (let i = 1; i < t.length; i += 2) {
+      const r = apply(t[i], acc, num(t[i + 1]));
+      if (!r.ok) return NaN; // that side can't be built in this world yet
+      acc = r.value;
+    }
+    return acc;
+  });
+}
+
+export const accepts = (spec, v) => equal(...sides(spec, v));
