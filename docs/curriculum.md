@@ -117,7 +117,7 @@ P5 (polish/retention) adds no new skills. It adds echo (spaced review) levels fo
   - Solves `7 = 3 + □` by carving 3 from a 7 rather than ticking up from 3.
 - **Misconception to surface:**
   - "Undo is the opposite operation."
-  - "Each fact is a separate thing to memorize." The twist shows all four fact-family doors opened by the same three blocks.
+  - "Each fact is a separate thing to memorize." The twist ("One Family") has three doors, one per family member as the key: `3+4 = □` (7), `7 − 3 = □` (4), `7 = □+4` (3, the missing-addend form of 7 − 4). Doors consume keys, so three blocks allow at most three doors. Each sign shows the other two members. The fourth fact, 4+3, is S7's job (L14 `6+4 = □`).
 - **Verb:** Merge and Carve as a round trip. In P4 a reversing machine runs any chain backward.
 
 ### S7 Commutativity (and associativity) (P2 discovery, P3 for ×)
@@ -251,8 +251,9 @@ P5 (polish/retention) adds no new skills. It adds echo (spaced review) levels fo
   - A gate may latch open. A balance-scale readout always shows its *live* truth. When a level has 2 or more gates, the exit needs them **all true at the same moment**.
 - **Content:** a symbol names a number. It has one value at a time, and the same symbol means the same value everywhere. Inverse operations solve for it, and doing the same thing to both sides keeps an equation true.
 - **Mastery evidence** (default rule, plus):
-  - `△ + △` is solved without putting one block in per △.
-  - `10 − △` is solved without first growing △.
+  - `△ + △` is solved without putting one block in per △. V3 starts with both 4s pre-placed (an incorrect worked example), so V3 only logs "fixed the shown error on the first move". The evidence comes from an empty-lane echo (P3 echo room). There the observable misconception is pushing the second 4 in after the gate has opened.
+  - `10 − △` is solved with no block pushed back out of △. Bringing the 3 alone (7 vs 3) counts as a miss.
+  - Lanes must not hold operator blocks until "?" (unknown) and "below 0" render differently. Today both are NaN, and the scale would make an unknown side rise.
   - A two-gate system is solved without the gates ever being true at different values.
 - **Levels:**
   - V1 *The Box Counts* `△ = 5` (no 5 block, so 3+2 or 4+1)
@@ -263,7 +264,7 @@ P5 (polish/retention) adds no new skills. It adds echo (spaced review) levels fo
   - V6 master *Crossroads* `△ + ○ = 10` and `△ − ○ = 2`, with the lanes crossing
 - **Misconceptions to surface:**
   - "Letter = object." V3: two 4s give a readout of 8, the gate computes 16, and the scale tips.
-  - "A variable is a place." V5: different blocks in different lanes give equal values.
+  - "Different symbols must be different numbers" (Küchemann). V5: different blocks in different lanes give equal values, △ = 3+2 = ○ = 5.
   - "Adding more always makes it bigger." V4.
   - "Each equation can use its own value." V6.
 - **Naming:** keep shapes through P3. Letters (a, b, n) arrive at P4 with `2△ → 2a`, with the shape and letter shown side by side for 3 levels and then faded. Never use x or y before N4, because a row lane *is* the line y = k. Never use object initials such as a for apple.

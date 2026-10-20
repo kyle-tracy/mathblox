@@ -25,6 +25,10 @@ export function checkDoor(spec, laneSyms = []) {
   const holes = syms.filter(c => c === '□').length;
   if (spec.split('=').length !== 2 || holes > 1 || !syms.length || syms.some(c => c !== '□' && !laneSyms.includes(c)))
     throw new Error(`bad door "${spec}": need one "=", at most one "□", known lane symbols, digits, + and −`);
+  // Until negatives unlock, − may only be the last op on a side: 3 − 5 + 4 is 2, but its
+  // left-to-right middle step (3 − 5) can't be built in the naturals.
+  if (spec.split('=').some(side => /-.*[+\-]/.test(side)))
+    throw new Error(`bad door "${spec}": − must be the last operation on its side (no negatives yet)`);
 }
 
 export const isGate = spec => typeof spec === 'string' && !spec.includes('□');
