@@ -42,71 +42,101 @@ export function scale(f, now) {
   });
 }
 
+// One drawer per effect type: (f, t = ms since the effect began, X/Y = pixel corner of f.at, now).
+function merge(f, t, X, Y) { // a's dots fly over into the result, one at a time so they can be counted
+  const [AX, AY] = px(f.from.x, f.from.y), [fill] = pal(f.from.value);
+  for (let i = 0; i < f.n; i++) {
+    const q = (t - 60 * TS - i * f.st * TS) / (180 * TS); if (q < 0 || q > 1) continue;
+    const ff = face(f.from.value), e = ease(q), [dx0, dy0] = dotPos(i, 0, ff.cy, ff.sp);
+    const x = AX + CELL / 2 + dx0 + (X - AX) * e, y = AY + CELL / 2 + dy0 + (Y - AY) * e - Math.sin(Math.PI * e) * 26;
+    g.fillStyle = fill; circle(x, y, 6); g.fillStyle = INK; circle(x, y, 3.5);
+  }
+  if (t < 300 * TS) { const [OX, OY] = px(f.op.x, f.op.y), q = t / (300 * TS); g.fillStyle = `rgba(255,209,102,${1 - q})`; // operator pops into sparkles
+    for (let i = 0; i < 8; i++) circle(OX + CELL / 2 + Math.cos(i * 0.785) * q * 30, OY + CELL / 2 + Math.sin(i * 0.785) * q * 30, 3.5); }
+}
+
+function carve(f, t, X, Y) {
+  for (let i = 0; i < f.n; i++) { // chips fall away as pebbles
+    const q = (t - i * f.st * TS) / (240 * TS); if (q < 0 || q > 1) continue;
+    const m = f.from.value, ff = face(m), [dx0, dy0] = dotPos(m - f.n + i, 0, ff.cy, ff.sp); // the minuend's last n dots chip off
+    g.fillStyle = `rgba(122,92,67,${1 - q})`; circle(X + CELL / 2 + dx0 * (1 + q), Y + CELL / 2 + dy0 + q * q * 44, ff.r + 1);
+  }
+}
+
+function tickRing(f, t, X, Y) {
+  if (t >= 500 * TS) return;
+  const q = t / (500 * TS); g.globalAlpha = 1 - q;
+  text('+1', X + CELL / 2, Y - 4 - q * 22, 20, C.pad); g.strokeStyle = C.pad; g.lineWidth = 3; g.beginPath(); g.arc(X + CELL / 2, Y + CELL / 2, CELL * (0.4 + q * 0.3), 0, 7); g.stroke(); g.globalAlpha = 1;
+}
+
+function open(f, t, X, Y) { // dots drop into the door's slots, then it slides open
+  if (t >= 600 * TS) return;
+  const drop = 400 * TS, q = Math.max(0, (t - drop) / (200 * TS));
+  g.save(); g.beginPath(); g.rect(X, Y, CELL, CELL); g.clip(); g.globalAlpha = 1 - q;
+  if (typeof f.spec === 'number') {
+    let n = 0; for (let i = 0; i < f.n; i++) if (t > i * f.st * TS + 120 * TS) n++;
+    door(X, Y - q * CELL, f.spec, n);
+    for (let i = 0; i < f.n; i++) { const p = (t - i * f.st * TS) / (120 * TS); if (p < 0 || p > 1) continue;
+      const [x, y] = dotPos(i, X + CELL / 2, Y + 37, 9.4); g.fillStyle = WHITE; circle(x, y - (1 - ease(p)) * 30, 3.5); }
+  } else {
+    door(X, Y - q * CELL, f.spec);
+    for (let i = 0; i < f.n; i++) { const p = (t - i * f.st * TS) / (200 * TS); if (p < 0 || p > 1) continue;
+      const [x, y] = dotPos(i, X + CELL / 2, Y + 24, 6); g.fillStyle = WHITE; circle(x, y + ease(p) * 20, 2.6); }
+  }
+  g.restore();
+}
+
+// Bounce "why" ghosts, drawn in this order (a bounce can carry more than one).
+function deficit(f, t, X, Y) { // deficit ghost: missing units as hollow dots, "why" in dots
+  const rows = Math.ceil(f.missing / 5), [bx, by] = bubble(X, Y, 56, 14 + rows * 10, avoid(f.at), must(f));
+  slots(f.missing, bx + 28, by + 12, 9.4, 3.5, INK);
+}
+
+function socket(f, t, X, Y) { // a door wants a number block: show the empty block-shaped hole
+  const [bx, by] = bubble(X, Y, 60, 60, avoid(f.at), must(f));
+  g.strokeStyle = INK; g.lineWidth = 2.5; g.setLineDash([6, 4]); g.beginPath(); g.roundRect(bx + 8, by + 8, 44, 44, 8); g.stroke(); g.setLineDash([]);
+}
+
+function zeroFill(f, t, X, Y) { // 0 is an object that fills 0 holes: an empty dashed rod lies over the trench
+  const [bx, by] = bubble(X, Y, 128, 34, avoid(f.at), must(f));
+  text('0 fills 0 holes', bx + 64, by + 17, 14, INK);
+  g.strokeStyle = INK; g.lineWidth = 1.5; g.setLineDash([3, 3]); g.strokeRect(X + 9, Y + CELL / 2 - 5, CELL - 18, 10); g.setLineDash([]);
+}
+
+function falseGates(f, t) { // exit refused: the false gates pulse (2 Hz)
+  for (const [x, y] of f.falseGates) {
+    const [GX, GY] = px(x, y), a = reduced ? 1 : 0.55 + 0.45 * Math.sin(t / 80);
+    g.strokeStyle = `rgba(255,209,102,${a})`; g.lineWidth = 5; g.strokeRect(GX - 1, GY - 1, CELL + 2, CELL + 2);
+  }
+}
+
+function tooLong(f, t) { // ghost rod: fits the trench, then `extra` units stick out
+  const q = reduced ? 1 : ease(t / 300), [fill, ink] = pal(f.n);
+  const cells = [...f.cells];
+  for (let i = 1; i <= f.extra; i++) { const [lx, ly] = cells[cells.length - 1] ?? [f.wob.x, f.wob.y]; cells.push([lx + f.dx, ly + f.dy]); }
+  cells.forEach(([cx, cy], i) => {
+    if (i > q * cells.length) return;
+    const [GX, GY] = px(cx, cy), over = i >= f.cells.length, w = CELL - 18;
+    g.globalAlpha = over ? 0.95 : 0.55; rr(GX + 9, GY + 9, w, w, 5, fill); g.globalAlpha = 1;
+    g.strokeStyle = over ? INK : 'rgba(29,31,46,.5)'; g.lineWidth = over ? 2.5 : 1.5; g.setLineDash(over ? [5, 3] : []); g.strokeRect(GX + 9, GY + 9, w, w); g.setLineDash([]);
+    g.fillStyle = ink; circle(GX + CELL / 2, GY + CELL / 2, 4);
+  });
+}
+
+function bounceFx(f, t, X, Y, now) {
+  if (f.missing) deficit(f, t, X, Y);
+  if (f.sides && ['not-equal', 'gate'].includes(f.reason)) scale(f, now);
+  if (f.reason === 'socket') socket(f, t, X, Y);
+  if (f.reason === 'zero-fill') zeroFill(f, t, X, Y);
+  if (f.reason === 'gates') falseGates(f, t);
+  if (f.reason === 'too-long') tooLong(f, t);
+}
+
+const FX = { merge, carve, tick: tickRing, open, bounce: bounceFx };
+
 export function drawFx(now) {
   for (const f of fx) {
     const t = now - f.t0, [X, Y] = f.at ? px(f.at.x, f.at.y) : [0, 0];
-    if (f.type === 'merge') { // a's dots fly over into the result, one at a time so they can be counted
-      const [AX, AY] = px(f.from.x, f.from.y), [fill] = pal(f.from.value);
-      for (let i = 0; i < f.n; i++) {
-        const q = (t - 60 * TS - i * f.st * TS) / (180 * TS); if (q < 0 || q > 1) continue;
-        const ff = face(f.from.value), e = ease(q), [dx0, dy0] = dotPos(i, 0, ff.cy, ff.sp);
-        const x = AX + CELL / 2 + dx0 + (X - AX) * e, y = AY + CELL / 2 + dy0 + (Y - AY) * e - Math.sin(Math.PI * e) * 26;
-        g.fillStyle = fill; circle(x, y, 6); g.fillStyle = INK; circle(x, y, 3.5);
-      }
-      if (t < 300 * TS) { const [OX, OY] = px(f.op.x, f.op.y), q = t / (300 * TS); g.fillStyle = `rgba(255,209,102,${1 - q})`; // operator pops into sparkles
-        for (let i = 0; i < 8; i++) circle(OX + CELL / 2 + Math.cos(i * 0.785) * q * 30, OY + CELL / 2 + Math.sin(i * 0.785) * q * 30, 3.5); }
-    }
-    if (f.type === 'carve') for (let i = 0; i < f.n; i++) { // chips fall away as pebbles
-      const q = (t - i * f.st * TS) / (240 * TS); if (q < 0 || q > 1) continue;
-      const m = f.from.value, ff = face(m), [dx0, dy0] = dotPos(m - f.n + i, 0, ff.cy, ff.sp); // the minuend's last n dots chip off
-      g.fillStyle = `rgba(122,92,67,${1 - q})`; circle(X + CELL / 2 + dx0 * (1 + q), Y + CELL / 2 + dy0 + q * q * 44, ff.r + 1);
-    }
-    if (f.type === 'tick' && t < 500 * TS) { const q = t / (500 * TS); g.globalAlpha = 1 - q;
-      text('+1', X + CELL / 2, Y - 4 - q * 22, 20, C.pad); g.strokeStyle = C.pad; g.lineWidth = 3; g.beginPath(); g.arc(X + CELL / 2, Y + CELL / 2, CELL * (0.4 + q * 0.3), 0, 7); g.stroke(); g.globalAlpha = 1; }
-    if (f.type === 'open' && t < 600 * TS) { // dots drop into the door's slots, then it slides open
-      const drop = 400 * TS, q = Math.max(0, (t - drop) / (200 * TS));
-      g.save(); g.beginPath(); g.rect(X, Y, CELL, CELL); g.clip(); g.globalAlpha = 1 - q;
-      if (typeof f.spec === 'number') {
-        let n = 0; for (let i = 0; i < f.n; i++) if (t > i * f.st * TS + 120 * TS) n++;
-        door(X, Y - q * CELL, f.spec, n);
-        for (let i = 0; i < f.n; i++) { const p = (t - i * f.st * TS) / (120 * TS); if (p < 0 || p > 1) continue;
-          const [x, y] = dotPos(i, X + CELL / 2, Y + 37, 9.4); g.fillStyle = WHITE; circle(x, y - (1 - ease(p)) * 30, 3.5); }
-      } else {
-        door(X, Y - q * CELL, f.spec);
-        for (let i = 0; i < f.n; i++) { const p = (t - i * f.st * TS) / (200 * TS); if (p < 0 || p > 1) continue;
-          const [x, y] = dotPos(i, X + CELL / 2, Y + 24, 6); g.fillStyle = WHITE; circle(x, y + ease(p) * 20, 2.6); }
-      }
-      g.restore();
-    }
-    if (f.type === 'bounce' && f.missing) { // deficit ghost: missing units as hollow dots, "why" in dots
-      const rows = Math.ceil(f.missing / 5), [bx, by] = bubble(X, Y, 56, 14 + rows * 10, avoid(f.at), must(f));
-      slots(f.missing, bx + 28, by + 12, 9.4, 3.5, INK);
-    }
-    if (f.type === 'bounce' && f.sides && ['not-equal', 'gate'].includes(f.reason)) scale(f, now);
-    if (f.type === 'bounce' && f.reason === 'socket') { // a door wants a number block: show the empty block-shaped hole
-      const [bx, by] = bubble(X, Y, 60, 60, avoid(f.at), must(f));
-      g.strokeStyle = INK; g.lineWidth = 2.5; g.setLineDash([6, 4]); g.beginPath(); g.roundRect(bx + 8, by + 8, 44, 44, 8); g.stroke(); g.setLineDash([]);
-    }
-    if (f.type === 'bounce' && f.reason === 'zero-fill') { // 0 is an object that fills 0 holes: an empty dashed rod lies over the trench
-      const [bx, by] = bubble(X, Y, 128, 34, avoid(f.at), must(f));
-      text('0 fills 0 holes', bx + 64, by + 17, 14, INK);
-      g.strokeStyle = INK; g.lineWidth = 1.5; g.setLineDash([3, 3]); g.strokeRect(X + 9, Y + CELL / 2 - 5, CELL - 18, 10); g.setLineDash([]);
-    }
-    if (f.type === 'bounce' && f.reason === 'gates') for (const [x, y] of f.falseGates) { // exit refused: the false gates pulse (2 Hz)
-      const [GX, GY] = px(x, y), a = reduced ? 1 : 0.55 + 0.45 * Math.sin(t / 80);
-      g.strokeStyle = `rgba(255,209,102,${a})`; g.lineWidth = 5; g.strokeRect(GX - 1, GY - 1, CELL + 2, CELL + 2);
-    }
-    if (f.type === 'bounce' && f.reason === 'too-long') { // ghost rod: fits the trench, then `extra` units stick out
-      const q = reduced ? 1 : ease(t / 300), [fill, ink] = pal(f.n);
-      const cells = [...f.cells];
-      for (let i = 1; i <= f.extra; i++) { const [lx, ly] = cells[cells.length - 1] ?? [f.wob.x, f.wob.y]; cells.push([lx + f.dx, ly + f.dy]); }
-      cells.forEach(([cx, cy], i) => {
-        if (i > q * cells.length) return;
-        const [GX, GY] = px(cx, cy), over = i >= f.cells.length, w = CELL - 18;
-        g.globalAlpha = over ? 0.95 : 0.55; rr(GX + 9, GY + 9, w, w, 5, fill); g.globalAlpha = 1;
-        g.strokeStyle = over ? INK : 'rgba(29,31,46,.5)'; g.lineWidth = over ? 2.5 : 1.5; g.setLineDash(over ? [5, 3] : []); g.strokeRect(GX + 9, GY + 9, w, w); g.setLineDash([]);
-        g.fillStyle = ink; circle(GX + CELL / 2, GY + CELL / 2, 4);
-      });
-    }
+    FX[f.type]?.(f, t, X, Y, now);
   }
 }
