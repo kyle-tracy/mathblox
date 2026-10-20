@@ -7,7 +7,7 @@ The math is the physics. Push `[a][+][b]` together to merge, `[a][−][b]` to ca
 
 ## File map
 - `index.html`, `game.js`: page and single module entry (input wiring and boot).
-- `core/`: pure rules and math, no DOM (`world.js` step/parse, `math.js` ops and doors).
+- `core/`: pure rules and math, no DOM (`world.js` step/parse/move, `push.js` push resolution, `math.js` ops and doors).
 - `levels/`: `levels.js` (index, play order) over one file per world: `meadow`, `balance`, `merge`, `carve`, `lanes`, `sandbox`; `showcase.js` (visual-QA rooms, `?showcase`).
 - `render/`: browser layer. `look.js` (canvas, palette, primitives, doors), `draw.js` (board, blocks, axes, player), `fx.js` (effects, scale), `state.js` (level selection, state/undo, event to fx/sound), `audio.js` (tones, mute).
 - `test/`: `node --test test/` (CI: `.github/workflows/test.yml`).
