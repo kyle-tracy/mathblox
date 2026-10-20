@@ -36,6 +36,7 @@ Run `code-review-graph update` first, then:
 Nothing merges to `master` unless:
 1. `node --test test/` passes locally and in CI (`.github/workflows/test.yml`).
 2. Headless screenshots match. For render changes, shoot before and after with
-   `chromium --headless=new --disable-gpu --no-sandbox --window-size=1100,720 --virtual-time-budget=2000 --screenshot=OUT.png "http://localhost:8770/?showcase&level=N&moves=..."`.
-   Static shots must be byte-identical (`cmp`); compare animated ones visually.
+   `chromium --headless=new --disable-gpu --no-sandbox --window-size=1100,720 --virtual-time-budget=2000 --force-prefers-reduced-motion --screenshot=OUT.png "http://localhost:8770/?showcase&level=N&moves=..."`.
+   Static shots must be byte-identical (`cmp`); compare animated ones visually. Keep `--force-prefers-reduced-motion`:
+   without it, even lingering-ghost shots differ run to run. Shoot the baseline twice first to see which shots are stable.
 3. The browser console shows no module errors.
