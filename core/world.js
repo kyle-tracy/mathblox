@@ -1,11 +1,12 @@
 // Pure rules engine: parseLevel(level) -> state, step(state, dir) -> { state, events }.
 // No DOM. Block meaning lives in its attributes; position never changes value.
-import { apply, accepts, sides, tick, checkDoor } from './math.js';
+import { apply, accepts, sides, tick, checkDoor, isGate } from './math.js';
 
 export const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
 
 // Map legend: '#' wall, '.' floor, '@' player, 'E' exit, 'o' trench cell, '^' tick pad (+1, used once),
 // '0'-'9' number, '+' '-' operator, other 'A'-'Z' door (spec in level.doors: a number or an equation like "7 = □+3").
+// level.lanes = { '△': { row: 3 }, '○': { col: 6 } }: a variable whose value is the total of the number blocks in it.
 export function parseLevel(level) {
   const objects = [];
   let player = null, id = 0;
@@ -16,21 +17,50 @@ export function parseLevel(level) {
     else if (/[A-Z]/.test(ch) && ch !== 'E') {
       const spec = level.doors?.[ch];
       if (spec === undefined) throw new Error(`level "${level.name}": door ${ch} has no spec`);
-      checkDoor(spec);
-      objects.push({ id: id++, x, y, kind: 'door', value: spec });
+      checkDoor(spec, Object.keys(level.lanes ?? {}));
+      objects.push({ id: id++, x, y, kind: 'door', value: spec, ...(isGate(spec) && { gate: true }) });
     }
     return '#Eo^'.includes(ch) ? ch : '.';
   }).join(''));
   if (!player) throw new Error(`level "${level.name}" has no player`);
-  return { tiles, player, objects, won: false };
+  return { tiles, player, objects, lanes: level.lanes ?? {}, won: false };
+}
+
+// A lane is a box: its value is the total of the number blocks inside it. Blocks keep their own values.
+export function laneValues(s) {
+  const env = {};
+  for (const [sym, { row, col }] of Object.entries(s.lanes ?? {}))
+  {
+    const inLane = s.objects.filter(o => o.kind !== 'door' && (row !== undefined ? o.y === row : o.x === col));
+    // A lane holding an operator reads "?": a row showing 3 − 2 must not secretly total 5.
+    env[sym] = inLane.some(o => o.kind === 'op') ? NaN : inLane.reduce((t, o) => t + o.value, 0);
+  }
+  return env;
 }
 
 const tileAt = (s, x, y) => s.tiles[y]?.[x] ?? '#';
 const setTile = (s, x, y, ch) => { s.tiles[y] = s.tiles[y].slice(0, x) + ch + s.tiles[y].slice(x + 1); };
-const objAt = (s, x, y) => s.objects.find(o => o.x === x && o.y === y);
+const objAt = (s, x, y) => s.objects.find(o => o.x === x && o.y === y && !o.open); // open gates are passable
 const bounce = (state, reason, at, extra) => ({ state, events: [{ type: 'bounce', reason, at, ...extra }] });
 
 export function step(state, dir) {
+  const res = move(state, dir);
+  if (res.state === state) return res;
+  // Gates are live: open exactly while their equation is true (they can't close on something inside them).
+  const env = laneValues(res.state);
+  for (const g of res.state.objects.filter(o => o.gate)) {
+    const open = accepts(g.value, env) || (g.open && occupied(res.state, g));
+    if (open !== !!g.open) res.events.push({ type: open ? 'open' : 'close', at: { x: g.x, y: g.y }, gate: true, sides: sides(g.value, env) });
+    g.open = open;
+  }
+  return res;
+}
+
+const occupied = (s, g) => (s.player.x === g.x && s.player.y === g.y) || s.objects.some(o => o !== g && o.x === g.x && o.y === g.y);
+// The exit needs every gate's equation true at the same moment: one △ can't be 5 for one gate and 3 for another.
+const gatesTrue = s => { const env = laneValues(s); return s.objects.every(o => !o.gate || accepts(o.value, env)); };
+
+function move(state, dir) {
   if (state.won) return { state, events: [] };
   const [dx, dy] = DIRS[dir];
   const s = structuredClone(state);
@@ -66,18 +96,21 @@ export function step(state, dir) {
   }
 
   const events = [], last = chain[chain.length - 1], here = tileAt(s, cx, cy);
-  if (here === '#') return bounce(state, 'wall', { x: cx, y: cy });
+  if (here === '#' || here === 'E') return bounce(state, 'wall', { x: cx, y: cy }); // blocks can't bury the exit
 
   const door = objAt(s, cx, cy);
   if (door) {
-    if (last.kind !== 'num' || !accepts(door.value, last.value))
-      return bounce(state, 'not-equal', { x: cx, y: cy }, last.kind === 'num' ? { sides: sides(door.value, last.value) } : {});
+    if (door.gate) return bounce(state, 'gate', { x: cx, y: cy }); // gates open themselves; no key fits
+    if (last.kind !== 'num') return bounce(state, 'socket', { x: cx, y: cy }); // a door wants a number, not an operator
+    const env = { ...laneValues(s), '□': last.value };
+    if (!accepts(door.value, env)) return bounce(state, 'not-equal', { x: cx, y: cy }, { sides: sides(door.value, env) });
     s.objects = s.objects.filter(x => x !== door && x !== last); // the = lock consumes the key
     chain.pop();
     events.push({ type: 'open', at: { x: cx, y: cy }, value: last.value });
   } else if (here === 'o') {
     // A block of n unit cubes fills exactly n trench cells; too long to fit bounces.
     if (last.kind !== 'num') return bounce(state, 'wall', { x: cx, y: cy });
+    if (last.value === 0) return bounce(state, 'zero-fill', { x: cx, y: cy }); // 0 is an object that fills 0 holes
     let len = 0;
     while (tileAt(s, cx + dx * len, cy + dy * len) === 'o' && !objAt(s, cx + dx * len, cy + dy * len)) len++;
     if (last.value > len) return bounce(state, 'too-long', { x: cx, y: cy }, { extra: last.value - len });
@@ -100,6 +133,7 @@ export function step(state, dir) {
 }
 
 function walk(s, x, y) {
+  if (tileAt(s, x, y) === 'E' && !gatesTrue(s)) return bounce(s, 'gates', { x, y });
   s.player = { x, y };
   const events = [{ type: 'move' }];
   if (tileAt(s, x, y) === 'E') { s.won = true; events.push({ type: 'win' }); }

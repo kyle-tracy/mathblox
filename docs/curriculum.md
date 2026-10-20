@@ -49,7 +49,7 @@ P5 (polish/retention) adds no new skills. It adds echo (spaced review) levels fo
 - **Mastery evidence:**
   - Ticks a block to a target with no overshoot or undo.
   - Picks the right block from a mixed pile for a gap, on first try, when the faces are dot patterns rather than numerals. This is the subitizing signal.
-  - Measures a gap against axis ticks and brings a beam that fits.
+  - Measures a gap against axis ticks and fills its holes exactly (n fills n cells, measured along the push).
 - **Misconception to surface:**
   - "Count = recite," where the child skips or double-counts units.
   - "Bigger-looking = more." In the twist level a long, thin 4 sits next to a short, fat 5, and only the unit marks decide.
@@ -239,4 +239,31 @@ P5 (polish/retention) adds no new skills. It adds echo (spaced review) levels fo
 2. **The deficit ghost as an open loop.** The bounce leaves a visible "2 missing" outline that the game never explains. It is a planted question that Mirror Caves answers, which turns a limitation into anticipation.
 3. **One quantity, three codes (dual coding).** Every block shows its unit segments, a subitizable dot face (≤ 5, then 5+n), and a consistent Cuisenaire-style color. A 6 looks, counts, and reads as six.
 4. **Echo rooms (spaced retrieval and interleaving).** Every 3–4 new levels, an earlier room returns with one twist, for example the Void socket room now needs a Carve. These are the encounters that count toward mastery.
-5. **Predict, then push.** Gap levels where the kid measures with the axis ticks *before* building, so the bridge either fits or visibly falls short. A committed prediction followed by physical feedback beats being told.
+5. **Predict, then push.** Gap levels where the kid measures with the axis ticks *before* building, so the rod either fills the holes, leaves countable holes, or visibly overhangs. A committed prediction followed by physical feedback beats being told.
+
+### S11 Variables — Variable Lanes (P2.5, after "There and Back")
+- **Prereqs:** S2, S3, S5, S6 (S7 helps).
+- **Mechanic (honest form):**
+  - A lane (`lanes: { '△': { row: 3 } }`) is a named box. Its value is the **sum** of the number blocks inside it. An empty lane is 0, which is the empty sum. A Void adds 0.
+  - Where blocks sit inside the lane doesn't matter. Merging inside a lane keeps the total and carving inside it changes the total, which echoes conservation from S3.
+  - A lane holding any operator block shows **"?"** and no gate can be true. Blocks read as `3 − 2` must never total 5.
+  - A crossing cell counts toward both lanes, once in each sum, as in Kakuro. This is the shared term in △ = a + c, ○ = b + c.
+  - A gate may latch open. A balance-scale readout always shows its *live* truth. When a level has 2 or more gates, the exit needs them **all true at the same moment**.
+- **Content:** a symbol names a number. It has one value at a time, and the same symbol means the same value everywhere. Inverse operations solve for it, and doing the same thing to both sides keeps an equation true.
+- **Mastery evidence** (default rule, plus):
+  - `△ + △` is solved without putting one block in per △.
+  - `10 − △` is solved without first growing △.
+  - A two-gate system is solved without the gates ever being true at different values.
+- **Levels:**
+  - V1 *The Box Counts* `△ = 5` (no 5 block, so 3+2 or 4+1)
+  - V2 *Take It Out* `△ − 2 = 4` (the lane starts with 4,3,2,1 = 10; remove the 4, or the 3 and the 1)
+  - V3 twist *Two Triangles* `△ + △ = 8`
+  - V4 twist *The Shrinking Side* `10 − △ = 3`
+  - V5 combine *Same to Both Sides* `△ + 2 = ○ + 2`, then a □ door `□ = △ − 1`
+  - V6 master *Crossroads* `△ + ○ = 10` and `△ − ○ = 2`, with the lanes crossing
+- **Misconceptions to surface:**
+  - "Letter = object." V3: two 4s give a readout of 8, the gate computes 16, and the scale tips.
+  - "A variable is a place." V5: different blocks in different lanes give equal values.
+  - "Adding more always makes it bigger." V4.
+  - "Each equation can use its own value." V6.
+- **Naming:** keep shapes through P3. Letters (a, b, n) arrive at P4 with `2△ → 2a`, with the shape and letter shown side by side for 3 levels and then faded. Never use x or y before N4, because a row lane *is* the line y = k. Never use object initials such as a for apple.
