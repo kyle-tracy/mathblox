@@ -18,6 +18,12 @@ A game where **the math is the physics**. Prototype: ages 6–9 (2D, browser). T
   - No 3D before the P5 gate.
   - No dependencies without CEO approval.
 - **Commissioner feedback outranks agent predictions.** Every level after L1 requires a choice. Negation is a recurring theme. Keep L13.
+- **Token budget (commissioner, 2026-10-20):**
+  - Solvability only needs *one* win: use a first-win search. Exhaustive searches run only at a gate, only on changed levels, under `timeout`. Never leave solver scripts running.
+  - Read only what your brief names. For the Log, use `tail -n 15 docs/decisions.md` instead of reading the whole file.
+  - Gate re-runs re-check only the levels that changed.
+  - Reports stay under 150 words. Pipe test output through `tail -3`.
+  - The CEO continues a running agent with a message rather than spawning a new one, makes quick rulings itself, and gives mechanical briefs `effort: lower`.
 - **Ownership:**
 
 | Path | Owner |
