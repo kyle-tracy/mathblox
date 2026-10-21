@@ -48,9 +48,10 @@ export function step(state, dir) {
   // Gates are live: open exactly while their equation is true (they can't close on something inside them).
   const env = laneValues(res.state);
   for (const g of res.state.objects.filter(o => o.gate)) {
-    const open = accepts(g.value, env) || (g.open && occupied(res.state, g));
+    const ok = accepts(g.value, env), open = ok || (g.open && occupied(res.state, g));
     if (open !== !!g.open) res.events.push({ type: open ? 'open' : 'close', at: { x: g.x, y: g.y }, gate: true, sides: sides(g.value, env) });
     g.open = open;
+    g.held = open && !ok; // wedged open by a block while false: the renderer draws it strained
   }
   return res;
 }

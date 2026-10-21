@@ -65,3 +65,12 @@ test('crossing lanes: a block at the crossing counts in both', () => {
   const s = parseLevel({ name: 't', map: ['#@..#', '#.4.#', '#...#'], lanes: { '△': { row: 1 }, '○': { col: 2 } } });
   assert.deepEqual(laneValues(s), { '△': 4, '○': 4 });
 });
+
+
+test('a gate wedged open by a block while its equation is false is flagged held', () => {
+  const lvl = { name: 't', map: ['#....#', '#@2A3#', '#....#'], lanes: { '△': { row: 1 } }, doors: { A: '△ = 5' } };
+  const gate = moves => run(lvl, moves).state.objects.find(o => o.gate);
+  assert.ok(gate(['right']).open && !gate(['right']).held, 'true gate is open, not held');
+  const g = gate(['right', 'up', 'right', 'right', 'down']); // pull the 3 out: △ = 2
+  assert.ok(g.open && g.held, 'the 2 wedges it open while △ = 5 is false');
+});

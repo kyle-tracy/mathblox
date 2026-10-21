@@ -75,10 +75,11 @@ export function feedback(e, before) {
       tone(pitch(i * 2), 0.05, 'sine', 0, i * st / 1000);
     }
   }
-  if (e.type === 'bounce' && e.reason !== 'wall') {
+  const exit = e.type === 'bounce' && e.reason === 'wall' && tileAt(state, e.at.x, e.at.y) === 'E'; // a block pushed into E
+  if (e.type === 'bounce' && (e.reason !== 'wall' || exit)) {
     boing();
     const wob = objAt(state, e.at.x, e.at.y) ? e.at : { x: e.at.x - dx, y: e.at.y - dy };
-    const f = { ...e, t0, wob, linger: true };
+    const f = { ...e, t0, wob, linger: !exit, ...(exit && { reason: 'exit' }) };
     if (e.reason === 'too-long') { // trench cells it would cover, read from tiles; the event says how much sticks out
       f.n = objAt(state, wob.x, wob.y)?.value ?? 0; f.cells = [];
       for (let x = e.at.x, y = e.at.y; tileAt(state, x, y) === 'o' && !objAt(state, x, y); x += dx, y += dy) f.cells.push([x, y]);

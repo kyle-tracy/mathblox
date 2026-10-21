@@ -1,18 +1,47 @@
 // Effects layer: merge dots, carve chips, tick ring, door opening, and the lingering 'why' ghosts and scale.
 import { g, cv, CELL, INK, WHITE, C, pal, reduced, TS, px, ease, rr, circle, text, dotPos, face, slots, door, bubble, equation } from './look.js';
-import { state, fx, objAt } from './state.js';
+import { state, orig, fx, objAt } from './state.js';
 import { laneValues } from '../core/world.js';
 
-// Where an equation door's sign hangs: above the door, unless that leaves the canvas or covers more blocks than below.
-export function signBox(o) {
-  const [X, Y] = px(o.x, o.y), lanes = laneValues(state), w = equation(o.value, 0, 0, 17, INK, false, lanes) + 16;
-  const h = [...(o.value.match(/\d+/g) ?? []), ...Object.values(lanes)].some(n => n > 10) ? 54 : 40; // teens need a second ten-frame
-  const x = Math.max(2, Math.min(cv.width - w - 2, X + CELL / 2 - w / 2));
-  const cover = y => state.objects.filter(b => b !== o).filter(b => { // not the player: a sign must not hop as you walk past
-    const [bx, by] = px(b.x, b.y); return x < bx + CELL && bx < x + w && y < by + CELL && by < y + h;
-  }).length + (y < 0 || y + h > cv.height ? 99 : 0);
-  const up = Y - h - 6, down = Y + CELL + 6;
-  return [x, cover(up) <= cover(down) ? up : down, w, h];
+// Where equation doors' signs hang. All signs are placed together, once per state (cached: no frame jitter, and the
+// bubbles' avoid list agrees with what is drawn), in id order so each avoids the ones before it. Candidates: above/below
+// the door, centered or flush left/right, then one row further out (stacked); then smaller fonts. Cost = overlap
+// (in cells) × weight: E, earlier signs 1000; blocks and doors 20; player, trenches, pads 10; lane cells 1.
+const SIZES = [17, 14, 12], boxes = new WeakMap();
+export const signBox = o => (boxes.get(state) ?? layoutSigns(state)).get(o.id);
+// The post from door (X, Y) to its sign box, as a rect [x, y, w, h]: vertical when the sign is above/below, else sideways.
+export function signPost(X, Y, x, y, w, h) {
+  if (x + w <= X || x >= X + CELL) { const l = x >= X + CELL; return [l ? X + CELL - 2 : x + w - 2, Y + CELL / 2 - 2, l ? x - X - CELL + 4 : X - x - w + 4, 4]; }
+  const sx = Math.max(x + 8, Math.min(x + w - 8, X + CELL / 2)), up = y < Y;
+  return [sx - 2, up ? y + h - 2 : Y + CELL - 2, 4, up ? Y - y - h + 4 : y - Y - CELL + 4];
+}
+function layoutSigns(s) {
+  const lanes = laneValues(s), out = new Map(), rects = [], cell = (x, y, wt) => rects.push([...px(x, y), CELL, CELL, wt]);
+  s.tiles.forEach((row, y) => [...row].forEach((t, x) => {
+    if (t === 'E') cell(x, y, 1000); else if ('o^'.includes(orig.tiles[y][x])) cell(x, y, 10);
+  }));
+  Object.values(s.lanes ?? {}).forEach(({ row, col }) => s.tiles.forEach((r, y) => [...r].forEach((t, x) => {
+    if (t !== '#' && (row === undefined ? x === col : y === row)) cell(x, y, 1);
+  })));
+  s.objects.forEach(b => cell(b.x, b.y, 20)); cell(s.player.x, s.player.y, 10);
+  const cost = (x, y, w, h) => (x < 0 || y < 0 || x + w > cv.width || y + h > cv.height ? 1e6 : 0) + rects.reduce((c, [ax, ay, aw, ah, wt]) =>
+    c + wt * Math.max(0, Math.min(x + w, ax + aw) - Math.max(x, ax)) * Math.max(0, Math.min(y + h, ay + ah) - Math.max(y, ay)) / (CELL * CELL), 0);
+  for (const o of s.objects.filter(o => o.kind === 'door' && typeof o.value === 'string').sort((a, b) => a.id - b.id)) {
+    const [X, Y] = px(o.x, o.y), teen = [...(o.value.match(/\d+/g) ?? []), ...Object.values(lanes)].some(n => n > 10);
+    let best, bc = Infinity;
+    SIZES.forEach((sz, si) => {
+      const w = equation(o.value, 0, 0, sz, INK, false, lanes) + 16, h = 13 * sz / 17 + 0.85 * sz + (teen ? 26.5 : 12.5); // dots keep their size
+      const cands = [Y - h - 6, Y + CELL + 6].flatMap(y => [X + CELL / 2 - w / 2, X, X + CELL - w].map(x => [Math.max(2, Math.min(cv.width - w - 2, x)), y, 0]))
+        .concat([[X - w - 6, Y + CELL / 2 - h / 2, 1], [X + CELL + 6, Y + CELL / 2 - h / 2, 1]], // beside the door, a short sideways post
+          [Y - CELL - h - 6, Y + 2 * CELL + 6].flatMap(y => [[Math.max(2, Math.min(cv.width - w - 2, X + CELL / 2 - w / 2)), y, 2]])); // stacked a row out
+      cands.forEach(([x, y, pen], i) => {
+        const p = signPost(X, Y, x, y, w, h), c = cost(x, y, w, h) + cost(...p) + 3 * si + pen + 0.01 * i; // the post must not cross E either
+        if (c < bc) { bc = c; best = [x, y, w, h, sz]; }
+      });
+    });
+    out.set(o.id, best); rects.push([...best.slice(0, 4), 1000]);
+  }
+  boxes.set(s, out); return out;
 }
 const must = f => [[...px(f.wob.x, f.wob.y), CELL, CELL], [...px(state.player.x, state.player.y), CELL, CELL]];
 // What a "why" bubble must not cover: every block, the player, and other doors' signs (the bumped door and its sign may be covered).

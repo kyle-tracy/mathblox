@@ -34,8 +34,9 @@ Lanes (declaration order): `#3fb8c9`, `#c77dff`, `#e0a43a`, a hue family outside
 - **Tick pad `^`**: teal disc with "+1" and one dot. Once used it stays as a grey dashed ring with "+1", so you can see it is spent (undo restores it).
 - **Door, plain**: numeral + n empty white dot slots. **Door, equation**: tokens drawn left to right, `□` is a hollow box (the block you bring) and `-` shows as `−`.
   It always hangs on a sign (the door face shows a big `□`), and **every number on the sign carries its own dots** underneath, each lane shape its live total (or `?`). The goal reads at a glance before any bump, and no sum is computed by the renderer.
-  The sign sits above the door unless it would leave the canvas or cover more blocks than below.
+  Sign placement (`signBox` in fx.js): all signs are laid out together once per state (no frame jitter), in door-id order, each avoiding the ones before it. Candidates: above/below (centered or flush), beside the door (sideways post), one row further out; then fonts 14 and 12. Cost = cells covered by sign + post: E and other signs 1000, blocks/doors 20, player, trenches and pads 10, lane cells 1. A sign never covers E or another sign while any spot avoids them.
 - **Gate** (an equation with no `□`): a portcullis. Shut = purple face with white bars. Open = the bars lift into a strip at the top, the frame turns dashed and the floor shows through (it is passable). Lift/drop takes 200 ms.
+  **Held** (open only because something stands in it while its equation is false): the bars come down a quarter onto the occupant with spiked tips, the frame is solid, and yellow zigzag strain marks sit at both jambs (they tremble, static under reduced motion). Never confusable with a true gate's dashed, clear frame.
 - **Lane**: a tinted stripe with hatching, `—` for rows and `|` for columns, so a crossing cell is cross-hatched and reads as part of both. A tag on the wall cell at the axis edge (rows: x = 0, beside the y-axis; columns: the bottom row, beside the x-axis) reads `△=5` with that many dots, or `△=?` when the lane holds an operator.
 - **Balance scale** (not-equal bump): a plate next to the door with left and right pans for `sides[0]` and `sides[1]`. Each pan holds one dot per unit (5 to a row, teens too) and its numeral.
   The heavier side sinks. A side that can't be built yet (NaN: it would go below 0) shows `?` and **rises**, lighter than anything. A level beam only ever means equal; if both sides are `?` the beam is dashed.
@@ -54,6 +55,7 @@ Lanes (declaration order): `#3fb8c9`, `#c77dff`, `#e0a43a`, a hue family outside
 | bounce `socket` (operator into a door) | hollow dashed block-shaped □ ghost: the door wants a number block | lingers |
 | bounce `zero-fill` | "0 fills 0 holes" plate + empty dashed rod on the trench | lingers |
 | bounce `gate` (key at a gate) | the gate's live balance scale (gates listen to their lanes, not keys) | lingers |
+| block pushed into E (engine: `wall` at an E tile) | boing + block wobble + the star squashes and stretches (skipped under reduced motion) | 400 |
 | bounce `gates` (exit refused) | every false gate pulses a yellow frame at 2 Hz (static under reduced motion) | lingers |
 | gate open / close | bars lift / drop; open = consonant fifth, close = soft two-note step down | 200 |
 | win | 3–4 note jingle + confetti puff | 1500 (level end, per fun-principles §3) |

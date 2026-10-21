@@ -1,7 +1,7 @@
 // Board renderer: tiles, axes, blocks, doors, player; effects come from fx.js.
 import { cv, g, CELL, PAD, reduced, TS, INK, WHITE, C, LANE, pal, px, ease, rr, circle, text, dotPos, face, door, gate, equation } from './look.js';
 import { state, prev, orig, fx, fills, tMove } from './state.js';
-import { drawFx, signBox } from './fx.js';
+import { drawFx, signBox, signPost } from './fx.js';
 import { laneValues } from '../core/world.js';
 
 // A number block, triple-coded: numeral + dot face + unit rod (length ∝ value) + Cuisenaire color.
@@ -29,10 +29,10 @@ export function opBlock(X, Y, op, s) { // round silhouette (numbers are square);
 }
 
 export function sign(o, lanes) { // equations hang on a sign next to the door, every number with its own dots (goal readable before any bump)
-  const [x, y, w, h] = signBox(o), [X, Y] = px(o.x, o.y), cx = X + CELL / 2, up = y < Y;
-  g.fillStyle = C.doorFrame; g.fillRect(cx - 2, up ? y + h - 2 : Y + CELL - 2, 4, up ? Y - y - h + 4 : y - Y - CELL + 4);
+  const [x, y, w, h, sz] = signBox(o);
+  g.fillStyle = C.doorFrame; g.fillRect(...signPost(...px(o.x, o.y), x, y, w, h));
   rr(x, y, w, h, 6, C.sign); g.strokeStyle = C.doorFrame; g.lineWidth = 2; g.stroke();
-  equation(o.value, cx, y + 13, 17, INK, true, lanes);
+  equation(o.value, x + w / 2, y + 13 * sz / 17, sz, INK, true, lanes);
 }
 
 // Lanes: a tinted stripe with hatching (rows —, columns |, so a crossing cell is cross-hatched: in both), plus a tag at the
@@ -57,11 +57,25 @@ function lanes(vals) {
   });
 }
 
+function held(X, Y, now) {
+  const j = reduced ? 0 : Math.sin(now / 35) * 1.2, h = CELL * 0.24; // bars stop a quarter of the way down, trembling
+  g.strokeStyle = C.doorFrame; g.lineWidth = 3; g.strokeRect(X + 3, Y + 3, CELL - 6, CELL - 6);
+  rr(X + 6, Y + 6, CELL - 12, 8, 3, C.door);
+  for (const bx of [16, 29, 42]) { rr(X + bx + j, Y + 6, 6, h, 2, C.door); g.fillStyle = WHITE; g.fillRect(X + bx + 1 + j, Y + 6, 4, h - 4);
+    g.fillStyle = C.door; g.beginPath(); g.moveTo(X + bx + j, Y + 6 + h); g.lineTo(X + bx + 3 + j, Y + 12 + h); g.lineTo(X + bx + 6 + j, Y + 6 + h); g.fill(); } // spikes press down
+  g.strokeStyle = '#ffd166'; g.lineWidth = 2.5; // strain marks: zigzags at both jambs
+  for (const sx of [X + 7, X + CELL - 7]) { g.beginPath(); for (let i = 0; i < 4; i++) g.lineTo(sx + (i % 2 ? 3 : -3), Y + 12 + i * 6); g.stroke(); }
+}
+
 export function tile(t, x, y, now) {
   const [X, Y] = px(x, y), o0 = orig.tiles[y][x];
   g.fillStyle = t === '#' ? C.wall : t === 'E' ? C.exit : C.floor; g.fillRect(X, Y, CELL, CELL);
   g.strokeStyle = C.grid; g.lineWidth = 1; g.strokeRect(X + 0.5, Y + 0.5, CELL, CELL);
-  if (t === 'E') text('★', X + CELL / 2, Y + CELL / 2, CELL * 0.5, WHITE, false);
+  if (t === 'E') { // a block pushed into the exit: the star boings (the engine says 'wall'; state.js tags it 'exit')
+    const f = fx.findLast(f => f.reason === 'exit' && f.at.x === x && f.at.y === y), q = f && !reduced ? (now - f.t0) / 400 : 1;
+    const s = q < 1 ? 1 + 0.3 * Math.sin(Math.PI * q * 3) * (1 - q) : 1;
+    g.save(); g.translate(X + CELL / 2, Y + CELL / 2); g.scale(s, 2 - s); text('★', 0, 0, CELL * 0.5, WHITE, false); g.restore();
+  }
   if (o0 === 'o') { // a dug channel; neighbors join so a run reads as one trench, one unit hole per cell
     const was = (i, j) => orig.tiles[j]?.[i] === 'o', e = 7;
     const x0 = X + (was(x - 1, y) ? 0 : e), x1 = X + CELL - (was(x + 1, y) ? 0 : e), y0 = Y + (was(x, y - 1) ? 0 : e), y1 = Y + CELL - (was(x, y + 1) ? 0 : e);
@@ -117,6 +131,9 @@ export function draw(now) {
     else if (o.kind === 'op') opBlock(X, Y, o.op, s);
     else block(X, Y, o.value, s);
   }
+  // A gate wedged open by whatever stands in it while its equation is false (the engine's own rule, not renderer math):
+  // the bars come down onto the occupant, jagged and straining, frame solid — not the clean dashed look of a true gate.
+  for (const o of state.objects) if (o.held) held(...px(o.x, o.y), now);
   for (const o of state.objects) if (o.kind === 'door' && typeof o.value === 'string') sign(o, vals);
 
   drawFx(now);
