@@ -75,3 +75,12 @@ Mute: the ♪ button or the `M` key. Its state persists (try/catch localStorage)
 - Restart (`⟳` / `R`) is undoable: it goes onto the history like a move.
 - No flashing above 3 Hz. Sound is never required: every cue has a visual twin.
 - Touch targets ≥ 56 px; one step per key press.
+
+## P3 pieces (×, ÷, bundling)
+- **Platform a×b**: one slab, `shape[0]` rows × `shape[1]` cols of unit cubes (one per cell, one dot each), the value on a single tab. No row totals and no `+`, because an array is not repeated addition. A × lays its rows down one at a time, with one note per row.
+- **Ten-rod**: one orange 10-notch bar in one cell, with loose ones beside it. **Pebble**: round, not square, so its silhouette alone tells it apart from a plain 1. **Void**: the dashed 0 block.
+- **Glyphs**: `×` is a turned `+`, and `÷` is a bar with a dot on each side. A share fans out from the dividend's cell, and a rotate swings about the anchor.
+- **Tiles**: an area pit `_` is slate blue (a trench is brown). A pivot `r` is a post with a turn arrow. A bundle pad `b` is an orange pad showing 10 dots and a strap.
+- **Sockets** are dark holes whose outline is the one attribute they read: `|` a dashed rod (shape), `v` a dashed square with 0 (value), `p` a dashed pebble (flag). A refusal shows that same hole in a bubble.
+- **÷0 storm**: a puffy grey cloud with dizzy eyes floats above the 0. It never shows 0 or ∞, has no bolts and never flashes. Its whoosh goes down, never a buzzer, and it is still in reduced motion.
+- **Ghosts**: no-room shows the whole result as dashed cells. A pit shows its empty cells hollow and the overhang solid. Blocked shows bump lines on the stuck cell.

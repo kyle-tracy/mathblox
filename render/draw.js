@@ -1,8 +1,9 @@
 // Board renderer: tiles, axes, blocks, doors, player; effects come from fx.js.
-import { cv, g, CELL, PAD, reduced, TS, INK, WHITE, C, LANE, pal, px, ease, rr, circle, text, dotPos, face, door, gate, equation } from './look.js';
+import { cv, g, CELL, PAD, reduced, TS, INK, WHITE, C, LANE, pal, px, ease, rr, circle, text, dotPos, face, door, gate, equation, rod, pebble, socketGlyph } from './look.js';
 import { state, prev, orig, fx, fills, tMove } from './state.js';
 import { drawFx, signBox, signPost } from './fx.js';
 import { laneValues } from '../core/world.js';
+import { inside } from '../core/push.js';
 
 // A number block, triple-coded: numeral + dot face + unit rod (length ∝ value) + Cuisenaire color.
 // Designed on a 55px face; s scales it. 11-20 stay unit-for-unit: two ten-frames of dots, and the rod wraps onto a second row.
@@ -19,12 +20,34 @@ export function block(X, Y, n, s = 1, alpha = 1) {
   if (n === 0) { g.strokeStyle = ink; g.lineWidth = 1; g.setLineDash([2, 2]); g.strokeRect(4.5, 44, 46, 8); g.setLineDash([]); }
   g.restore();
 }
+// An a×b platform: ONE body, shape[0] rows by shape[1] columns of unit cubes, one cube per board cell, every unit visible.
+// No row totals, no "+": it is an array, never repeated addition. `rows` < shape[0] while a × is still laying rows down.
+export function platform(X, Y, o, s = 1, rows = o.shape[0]) {
+  const [h, w] = o.shape, [fill, ink] = pal(o.value), W = w * CELL, H = h * CELL;
+  g.save(); g.translate(X + W / 2, Y + H / 2); g.scale(s, s); g.translate(-W / 2, -H / 2);
+  rr(3, 6, W - 6, rows * CELL - 6, 10, 'rgba(0,0,0,.18)'); rr(3, 3, W - 6, rows * CELL - 6, 10, 'rgba(29,31,46,.55)');
+  for (let y = 0; y < rows; y++) for (let x = 0; x < w; x++) {
+    rr(x * CELL + 7, y * CELL + 7, CELL - 14, CELL - 14, 6, fill); g.strokeStyle = 'rgba(29,31,46,.6)'; g.lineWidth = 1.5; g.stroke();
+    g.fillStyle = ink; circle(x * CELL + CELL / 2, y * CELL + CELL / 2 + 4, 4);
+  }
+  rr(W / 2 - 17, -6, 34, 22, 8, fill); g.strokeStyle = INK; g.lineWidth = 2; g.stroke(); text(o.value, W / 2, 5, 15, ink); // the value, once
+  g.restore();
+}
+// Every number object goes through here: its attributes pick the picture, never its place.
+export function piece(X, Y, o, s = 1, rows) {
+  if (o.shape) platform(X, Y, o, s, rows);
+  else if (o.tens) rod(X, Y, o.value, o.tens, s);
+  else if (o.pebble) pebble(X, Y, s);
+  else block(X, Y, o.value, s);
+}
 export function opBlock(X, Y, op, s) { // round silhouette (numbers are square); thick + and − glyphs
   const cx = X + CELL / 2, cy = Y + CELL / 2, r = CELL * 0.4 * s;
   g.fillStyle = 'rgba(0,0,0,.18)'; circle(cx, cy + 3, r); g.fillStyle = C.op; circle(cx, cy, r);
   g.strokeStyle = 'rgba(29,31,46,.6)'; g.lineWidth = 2; g.stroke();
   g.fillStyle = INK; const L = r * 1.2, w = r * 0.32;
   if (op === '+') { rr(cx - L / 2, cy - w / 2, L, w, 3, INK); rr(cx - w / 2, cy - L / 2, w, L, 3, INK); }
+  else if (op === '×') { g.save(); g.translate(cx, cy); g.rotate(Math.PI / 4); rr(-L / 2, -w / 2, L, w, 3, INK); rr(-w / 2, -L / 2, w, L, 3, INK); g.restore(); }
+  else if (op === '÷') { rr(cx - L / 2, cy - w / 2, L, w, 3, INK); circle(cx, cy - L * 0.36, w * 0.6); circle(cx, cy + L * 0.36, w * 0.6); } // a bar that splits two dots apart
   else rr(cx - L / 2, cy - w / 2, L, w, 3, INK); // symmetric bar: no arrow, so it never reads as a direction
 }
 
@@ -76,16 +99,33 @@ export function tile(t, x, y, now) {
     const s = q < 1 ? 1 + 0.3 * Math.sin(Math.PI * q * 3) * (1 - q) : 1;
     g.save(); g.translate(X + CELL / 2, Y + CELL / 2); g.scale(s, 2 - s); text('★', 0, 0, CELL * 0.5, WHITE, false); g.restore();
   }
-  if (o0 === 'o') { // a dug channel; neighbors join so a run reads as one trench, one unit hole per cell
-    const was = (i, j) => orig.tiles[j]?.[i] === 'o', e = 7;
+  if (o0 === 'o' || o0 === '_') { // a dug channel (o, brown) or an area pit (_, slate blue); neighbors join so a run reads as one hole, one unit per cell
+    const was = (i, j) => orig.tiles[j]?.[i] === o0, e = 7, pit = o0 === '_';
     const x0 = X + (was(x - 1, y) ? 0 : e), x1 = X + CELL - (was(x + 1, y) ? 0 : e), y0 = Y + (was(x, y - 1) ? 0 : e), y1 = Y + CELL - (was(x, y + 1) ? 0 : e);
-    g.fillStyle = C.trench; g.fillRect(x0, y0, x1 - x0, y1 - y0); g.fillStyle = C.trenchDeep; g.fillRect(x0, y0, x1 - x0, 5);
+    g.fillStyle = pit ? C.pit : C.trench; g.fillRect(x0, y0, x1 - x0, y1 - y0); g.fillStyle = pit ? C.pitDeep : C.trenchDeep; g.fillRect(x0, y0, x1 - x0, 5);
     const f = fills.get(`${x},${y}`), k = t === '.' && f ? (now - f.t) / (150 * TS) : -1;
     if (k >= 0) { // filled: the block's units now lie in the trench, one unit cube per cell
       const s = 1 + 0.3 * (1 - ease(k)), w = (CELL - 18) * s, [fill, ink] = pal(f.n);
       rr(X + CELL / 2 - w / 2, Y + CELL / 2 - w / 2, w, w, 5, fill); g.strokeStyle = 'rgba(29,31,46,.6)'; g.lineWidth = 2; g.stroke();
       g.fillStyle = ink; circle(X + CELL / 2, Y + CELL / 2, 4);
-    } else { g.strokeStyle = '#c9a98a'; g.lineWidth = 2; g.setLineDash([5, 4]); g.strokeRect(X + 15, Y + 15, CELL - 30, CELL - 30); g.setLineDash([]); }
+    } else { g.strokeStyle = pit ? '#9fc3dd' : '#c9a98a'; g.lineWidth = 2; g.setLineDash([5, 4]); g.strokeRect(X + 15, Y + 15, CELL - 30, CELL - 30); g.setLineDash([]); }
+  }
+  if (o0 === 'r') { // pivot post: a fat post with a turning arrow around it
+    const cx = X + CELL / 2, cy = Y + CELL / 2;
+    g.fillStyle = C.wall; circle(cx, cy, 11); g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.arc(cx, cy, 21, -2.6, 1.9); g.stroke();
+    const a = 1.9, ax = cx + 21 * Math.cos(a), ay = cy + 21 * Math.sin(a); g.fillStyle = INK;
+    g.beginPath(); g.moveTo(ax - 8, ay - 3); g.lineTo(ax + 5, ay - 6); g.lineTo(ax + 1, ay + 7); g.fill();
+  }
+  if (o0 === 'b') { // bundle pad (it stays): ten loose units on it are tied into one rod
+    rr(X + 6, Y + 6, CELL - 12, CELL - 12, 8, '#ffe1b3'); g.strokeStyle = '#b86e00'; g.lineWidth = 2; g.setLineDash([5, 3]); g.stroke(); g.setLineDash([]);
+    g.fillStyle = '#b86e00'; for (let i = 0; i < 10; i++) circle(X + 19 + (i % 2) * 7, Y + 14 + Math.floor(i / 2) * 9, 2.6);
+    g.fillRect(X + 13, Y + 30, 20, 3); text('10', X + 45, Y + 32, 13, '#b86e00'); // the strap
+  }
+  if ('|vp'.includes(o0)) { // one-cell socket: a dark hole whose outline is the attribute it reads
+    rr(X + 5, Y + 5, CELL - 10, CELL - 10, 8, C.hole);
+    const f = fills.get(`${x},${y}`);
+    if (t === '.' && f) piece(X, Y, o0 === '|' ? { value: 10, tens: 1 } : o0 === 'v' ? { value: 0 } : { value: 1, pebble: true }, 0.8); // plugged
+    else socketGlyph(o0, X, Y);
   }
   if (o0 === '^') { // +1 pad; once used it stays as a grey dashed ring so you can see it is spent
     const cx = X + CELL / 2, cy = Y + CELL / 2;
@@ -118,7 +158,8 @@ export function draw(now) {
   };
   const objs = [...state.objects].sort((a, b) => !!b.open - !!a.open); // open gates first: whatever stands in one draws on top
   for (const o of objs) {
-    const p = from(o.id) ?? o, f = fx.find(f => f.wob && f.wob.x === o.x && f.wob.y === o.y && now - f.t0 < 400 * TS);
+    const sp = fx.find(f => f.ids?.includes(o.id)), p = from(o.id) ?? sp?.src ?? o; // spawned parts fan out from the operand
+    const f = fx.find(f => f.wob && inside(o, f.wob.x, f.wob.y) && now - f.t0 < 400 * TS);
     let x = p.x + (o.x - p.x) * k, y = p.y + (o.y - p.y) * k, s = 1;
     if (f && !reduced) {
       const t = (now - f.t0) / 400;
@@ -129,7 +170,12 @@ export function draw(now) {
     if (o.gate) gate(X, Y, lift(o));
     else if (o.kind === 'door') door(X, Y, o.value);
     else if (o.kind === 'op') opBlock(X, Y, o.op, s);
-    else block(X, Y, o.value, s);
+    else {
+      const rows = sp?.type === 'multiply' && o.shape && !reduced ? Math.max(1, Math.ceil(o.shape[0] * Math.min(1, (now - sp.t0) / (300 * TS)))) : undefined;
+      const turn = fx.find(f => f.type === 'rotate' && f.at.x === o.x && f.at.y === o.y), q = turn && !reduced ? ease((now - turn.t0) / (250 * TS)) : 1;
+      g.save(); if (q < 1) { g.translate(X + CELL / 2, Y + CELL / 2); g.rotate((q - 1) * Math.PI / 2); g.translate(-X - CELL / 2, -Y - CELL / 2); } // swings about its anchor
+      piece(X, Y, o, s, rows); g.restore();
+    }
   }
   // A gate wedged open by whatever stands in it while its equation is false (the engine's own rule, not renderer math):
   // the bars come down onto the occupant, jagged and straining, frame solid — not the clean dashed look of a true gate.

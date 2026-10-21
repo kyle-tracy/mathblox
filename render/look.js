@@ -14,7 +14,7 @@ export const FONT = 'Verdana, "DejaVu Sans", sans-serif'; // 1 has a base, 7 has
 export const INK = '#1d1f2e', WHITE = '#ffffff';
 export const C = { floor: '#f4efe4', wall: '#5b6475', grid: '#e2dacb', axis: '#3a3f4b', op: '#dfe3ea', door: '#5b3aa8',
   doorFrame: '#3e2777', exit: '#06d6a0', player: '#ef476f', trench: '#7a5c43', trenchDeep: '#5a4231',
-  pad: '#1f7a6d', sign: '#f1e2c2', big: '#efe9dc' };
+  pad: '#1f7a6d', sign: '#f1e2c2', big: '#efe9dc', pit: '#2f5d7c', pitDeep: '#244a63', hole: '#3a3f4b' };
 // Lane tints (by declaration order): a hue family the value palette doesn't use. Never the only cue: rows hatch —, columns hatch |.
 export const LANE = ['#3fb8c9', '#c77dff', '#e0a43a'];
 // Cuisenaire-inspired, checked for deuteranopia/protanopia/tritanopia (min ΔE ≥ 12). [fill, ink]; index = value.
@@ -93,4 +93,40 @@ export function bubble(X, Y, w, h, avoid = [], must = []) {
   const [bx, by] = cands.reduce((best, c) => (hit(c) < hit(best) ? c : best));
   rr(bx, by, w, h, 8, 'rgba(255,255,255,.94)'); g.strokeStyle = 'rgba(29,31,46,.35)'; g.lineWidth = 1.5; g.stroke();
   return [bx, by];
+}
+
+// P3 pieces. A ten-rod is one body: a single 10-long bar (one notch per unit) in 10's colour, the loose ones beside it.
+// ponytail: `tens` rods + leftover cubes fit one cell up to 29; place value (P6) needs a real flat.
+export function rod(X, Y, value, tens, s = 1) {
+  g.save(); g.translate(X + CELL / 2, Y + CELL / 2); g.scale(s, s); g.translate(-CELL / 2, -CELL / 2);
+  rr(4, 7, 56, 55, 10, 'rgba(0,0,0,.18)'); rr(4, 4, 56, 55, 10, PAL[1][0]); g.strokeStyle = 'rgba(29,31,46,.6)'; g.lineWidth = 2; g.stroke();
+  for (let i = 0; i < tens; i++) bar(10 + i * 13, 8, 10, 48, PAL[10][0]);
+  g.fillStyle = INK; const ones = value - 10 * tens; // the leftover units, drawn loose: they are not bundled
+  for (let i = 0; i < ones; i++) g.fillRect(12 + tens * 13 + Math.floor(i / 5) * 8, 50 - (i % 5) * 7, 6, 6);
+  text(value, 47, 15, 14, INK);
+  g.restore();
+}
+export function bar(x, y, w, h, fill, dash = false, ink = INK) { // a rod of 10 unit segments
+  g.lineWidth = 1.5; g.strokeStyle = ink;
+  if (dash) g.setLineDash([3, 2]); else { g.fillStyle = fill; g.fillRect(x, y, w, h); }
+  g.strokeRect(x, y, w, h); for (let k = 1; k < 10; k++) { g.beginPath(); g.moveTo(x, y + k * h / 10); g.lineTo(x + w, y + k * h / 10); g.stroke(); }
+  g.setLineDash([]);
+}
+// A pebble: a remainder unit, loose. Round (not square like a plain 1) so the silhouette alone tells them apart.
+export function pebble(X, Y, s = 1, dash = false) {
+  const cx = X + CELL / 2, cy = Y + CELL / 2;
+  g.save(); g.translate(cx, cy); g.scale(s, s);
+  if (!dash) { g.fillStyle = 'rgba(0,0,0,.18)'; g.beginPath(); g.ellipse(0, 4, 18, 14, 0, 0, 7); g.fill(); g.fillStyle = PAL[1][0]; }
+  g.beginPath(); g.ellipse(0, 0, 18, 14, 0, 0, 7); if (!dash) g.fill();
+  g.strokeStyle = INK; g.lineWidth = 2; if (dash) g.setLineDash([4, 3]); g.stroke(); g.setLineDash([]);
+  if (!dash) { text(1, 0, -5, 12, INK); g.fillStyle = INK; circle(0, 6, 3); }
+  g.restore();
+}
+// The hole a one-cell socket shows is the one attribute it reads: '|' the rod's shape, 'v' the value 0, 'p' a pebble.
+export function socketGlyph(ch, X, Y, ink = WHITE) {
+  const cx = X + CELL / 2, cy = Y + CELL / 2;
+  g.strokeStyle = ink; g.fillStyle = ink;
+  if (ch === '|') bar(cx - 5, Y + 8, 10, CELL - 16, null, true, ink);
+  if (ch === 'v') { g.lineWidth = 2; g.setLineDash([4, 3]); g.strokeRect(cx - 17, cy - 17, 34, 34); g.setLineDash([]); text(0, cx, cy + 1, 20, ink); }
+  if (ch === 'p') { g.lineWidth = 2; g.setLineDash([4, 3]); g.beginPath(); g.ellipse(cx, cy, 18, 14, 0, 0, 7); g.stroke(); g.setLineDash([]); circle(cx, cy, 3); }
 }

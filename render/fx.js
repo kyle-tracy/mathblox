@@ -1,7 +1,8 @@
 // Effects layer: merge dots, carve chips, tick ring, door opening, and the lingering 'why' ghosts and scale.
-import { g, cv, CELL, INK, WHITE, C, pal, reduced, TS, px, ease, rr, circle, text, dotPos, face, slots, door, bubble, equation } from './look.js';
+import { g, cv, CELL, INK, WHITE, C, pal, reduced, TS, px, ease, rr, circle, text, dotPos, face, slots, door, bubble, equation, socketGlyph } from './look.js';
 import { state, orig, fx, objAt } from './state.js';
 import { laneValues } from '../core/world.js';
+import { cells } from '../core/push.js';
 
 // Where equation doors' signs hang. All signs are placed together, once per state (cached: no frame jitter, and the
 // bubbles' avoid list agrees with what is drawn), in id order so each avoids the ones before it. Candidates: above/below
@@ -23,7 +24,7 @@ function layoutSigns(s) {
   Object.values(s.lanes ?? {}).forEach(({ row, col }) => s.tiles.forEach((r, y) => [...r].forEach((t, x) => {
     if (t !== '#' && (row === undefined ? x === col : y === row)) cell(x, y, 1);
   })));
-  s.objects.forEach(b => cell(b.x, b.y, 20)); cell(s.player.x, s.player.y, 10);
+  s.objects.forEach(b => cells(b).forEach(([x, y]) => cell(x, y, 20))); cell(s.player.x, s.player.y, 10);
   const cost = (x, y, w, h) => (x < 0 || y < 0 || x + w > cv.width || y + h > cv.height ? 1e6 : 0) + rects.reduce((c, [ax, ay, aw, ah, wt]) =>
     c + wt * Math.max(0, Math.min(x + w, ax + aw) - Math.max(x, ax)) * Math.max(0, Math.min(y + h, ay + ah) - Math.max(y, ay)) / (CELL * CELL), 0);
   for (const o of s.objects.filter(o => o.kind === 'door' && typeof o.value === 'string').sort((a, b) => a.id - b.id)) {
@@ -45,7 +46,7 @@ function layoutSigns(s) {
 }
 const must = f => [[...px(f.wob.x, f.wob.y), CELL, CELL], [...px(state.player.x, state.player.y), CELL, CELL]];
 // What a "why" bubble must not cover: every block, the player, and other doors' signs (the bumped door and its sign may be covered).
-const avoid = at => [...state.objects.filter(o => o.x !== at.x || o.y !== at.y).map(o => [...px(o.x, o.y), CELL, CELL]),
+const avoid = at => [...state.objects.filter(o => o.x !== at.x || o.y !== at.y).flatMap(o => cells(o).map(c => [...px(...c), CELL, CELL])),
   [...px(state.player.x, state.player.y), CELL, CELL],
   ...state.objects.filter(o => typeof o.value === 'string' && (o.x !== at.x || o.y !== at.y)).map(signBox)]; // its own sign may hide: the bubble says the same, live
 
@@ -152,7 +153,44 @@ function tooLong(f, t) { // ghost rod: fits the trench, then `extra` units stick
   });
 }
 
+// Ghost cells: where a result would go (no-room, blocked turn) or the pit cells left empty, as hollow dashed units.
+function ghostCells(cs, solid = false) {
+  for (const [x, y] of cs ?? []) { const [GX, GY] = px(x, y);
+    if (solid) { g.globalAlpha = 0.55; rr(GX + 7, GY + 7, CELL - 14, CELL - 14, 6, C.big); g.globalAlpha = 1; }
+    g.strokeStyle = INK; g.lineWidth = 2; g.setLineDash([5, 3]); g.strokeRect(GX + 7, GY + 7, CELL - 14, CELL - 14); g.setLineDash([]);
+    g.fillStyle = INK; circle(GX + CELL / 2, GY + CELL / 2, 3); }
+}
+function stuck(f, t, X, Y) { // the cell a body bumps: two short bump lines on it, plus where a turn would have swung
+  ghostCells(f.ghost); g.strokeStyle = INK; g.lineWidth = 3;
+  for (const d of [-8, 8]) { g.beginPath(); g.moveTo(X + CELL / 2 + d, Y + 12); g.lineTo(X + CELL / 2 + d * 1.6, Y + CELL - 12); g.stroke(); }
+}
+function want(f, t, X, Y) { // a socket refused: the bubble shows the one thing that fits it
+  const [bx, by] = bubble(X, Y, CELL, CELL, avoid(f.at), must(f)), ch = { 'not-rod': '|', 'not-void': 'v', 'not-pebble': 'p' }[f.reason];
+  socketGlyph(ch, bx, by, INK);
+}
+// ÷0: a silly little whirlwind over the 0. Dividing by nothing has no answer, so no number appears: no 0, no ∞, no bolts.
+// Calm (no flashing); it spins slowly once and rests, and in reduced motion it is still.
+function storm(f, t, X, Y) {
+  const k = reduced ? 1 : ease(t / 300), spin = reduced ? 0 : Math.min(t, 900) / 300, cx = X + CELL / 2, cy = Y - 16; // floats above the 0, never covering it
+  g.save(); g.globalAlpha = k; g.fillStyle = '#c9ccd6';
+  for (const [dx, dy, r] of [[-14, 4, 12], [0, -4, 15], [15, 3, 12], [0, 8, 12]]) circle(cx + dx, cy + dy, r); // puffy cloud
+  g.strokeStyle = INK; g.lineWidth = 1.8;
+  for (const e of [-7, 7]) { g.beginPath(); for (let a = 0; a < 12; a += 0.4) g.lineTo(cx + e + Math.cos(a + spin) * a * 0.35, cy + Math.sin(a + spin) * a * 0.35); g.stroke(); } // dizzy eyes
+  g.beginPath(); g.arc(cx, cy + 9, 4, 0.2, Math.PI - 0.2); g.stroke(); // a small "oh"
+  g.fillStyle = INK; for (let i = 0; i < 6; i++) { const a = i * 1.05 + spin * 2; circle(cx + Math.cos(a) * 30, cy + Math.sin(a) * 14, 2.4); } // swirl of dust
+  g.restore();
+}
+function bundleFx(f, t, X, Y) { // ten loose dots slide into one column, then the strap snaps on
+  if (t >= 300 * TS) return;
+  const q = ease(t / (300 * TS)); g.fillStyle = INK;
+  for (let i = 0; i < 10; i++) { const [dx, dy] = dotPos(i, 0, -8, 9); circle(X + CELL / 2 + dx * (1 - q), Y + CELL / 2 + dy * (1 - q) + (i * 4.8 - 22) * q, 3); }
+}
 function bounceFx(f, t, X, Y, now) {
+  if (f.reason === 'storm') storm(f, t, X, Y);
+  if (f.reason === 'no-room') ghostCells(f.ghost, true);
+  if (f.reason === 'pit') { ghostCells(f.ghost); ghostCells(f.overhang, true); }
+  if (f.reason === 'blocked') stuck(f, t, X, Y);
+  if (['not-rod', 'not-void', 'not-pebble'].includes(f.reason)) want(f, t, X, Y);
   if (f.missing) deficit(f, t, X, Y);
   if (f.sides && ['not-equal', 'gate'].includes(f.reason)) scale(f, now);
   if (f.reason === 'socket') socket(f, t, X, Y);
@@ -161,7 +199,7 @@ function bounceFx(f, t, X, Y, now) {
   if (f.reason === 'too-long') tooLong(f, t);
 }
 
-const FX = { merge, carve, tick: tickRing, open, bounce: bounceFx };
+const FX = { merge, carve, tick: tickRing, open, bundle: bundleFx, bounce: bounceFx };
 
 export function drawFx(now) {
   for (const f of fx) {

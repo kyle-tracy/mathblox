@@ -77,4 +77,24 @@ export const SHOWCASE = [
     lanes: { '△': { row: 4 }, '○': { col: 7 }, '◇': { row: 7 } },
     doors: { A: 3, B: '△ = 7', C: '○ = 9', D: '□ = ◇ + 1' },
   },
+  {
+    // moves=rddrddrddrrrdllldr: 2×3 platform, 7÷3 shares + pebble, 0÷2 Voids, 9+1 bundled to a rod, then 5÷0 storm (lingers).
+    name: 'P3 Parts',
+    skill: 'QA: platform, ×÷ glyphs, shares, pebble, Voids, rod, bundle pad, pit, pivot, sockets, storm',
+    map: [
+      '##############',
+      '#@2×3.....__.#',
+      '#.........__.#',
+      '#.7÷3........#',
+      '#...........r#',
+      '#.0÷2........#',
+      '#............#',
+      '#.9+1b...|vp.#',
+      '#............#',
+      '#.5÷0.......E#',
+      '##############',
+    ],
+    platforms: [{ x: 7, y: 4, rows: 2, cols: 2 }],
+    doors: {},
+  },
 ];
