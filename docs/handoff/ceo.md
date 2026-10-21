@@ -49,3 +49,4 @@ Read this first after a restart. Then read `docs/INDEX.md` and the Log in `docs/
 ## Gotchas
 - Agents share one working tree. A Testo branch checkout moved HEAD under me once. Before merging, check `git branch --show-current`, or give agents `isolation: "worktree"`.
 - Never `pkill -f`. Kill the server only by `$SRV`.
+- **Token and CPU cost:** the exhaustive dead-end checks (up to 3M states, 10 s to 30 min each) are what burn tokens and CPU. Testo's re-run 2 used about 132k tokens over 1 h 44 m, mostly re-running and waiting on these. From now on, run `SLOW=1` once per gate on the changed levels only. Agents use `timeout` and must not leave background solver scripts running after they report.
