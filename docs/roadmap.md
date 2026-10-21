@@ -113,3 +113,11 @@ Each phase ends at a **gate**. If a gate fails, we iterate instead of moving on.
 - Open `index.html` in a browser (`python3 -m http.server`) and play the 3 M0 levels end to end.
 - Testo's solver confirms every level is solvable and reports the shortest solution.
 - Matho and Psycho review the M0 build and record their verdicts in `docs/decisions.md`.
+
+## Future ideas (not scheduled)
+- **Level 0 and below: foundations** (commissioner, 2026-10-20). An optional world that comes *before* L1. It plays the fundamentals of discrete math and leads straight into L1, like a simplified Principia Mathematica that keeps only what a player actually needs. It would build up from:
+  - **L−2, Logic:** true and false, NOT, AND, OR, if-then. NOT carries the negation theme to the very bottom.
+  - **L−1, Sets:** grouping things, belonging to a group, the empty set.
+  - **L0, Number:** matching two groups one-to-one shows what "same number" means, then successor, which is Tick. Its exit is L1.
+
+  It's the same content as the Axiom Core endgame, seen from the other side, so the two could share one world that players can enter from either end. Before scheduling it, Matho has to check that it works for ages 6–9, and Psycho that it's fun rather than a lecture.
