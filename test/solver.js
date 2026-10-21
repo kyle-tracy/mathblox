@@ -3,7 +3,7 @@
 import { step, DIRS } from '../core/world.js';
 
 export const key = s => `${s.player.x},${s.player.y}|${s.tiles.join('')}|` + // tiles change: trenches fill, pads get used
-  s.objects.map(o => `${o.kind}${o.value ?? o.op}${o.open ? '!' : ''}@${o.x},${o.y}`).sort().join(';');
+  s.objects.map(o => `${o.kind}${o.value ?? o.op}${o.shape ?? ''}${o.tens ?? ''}${o.open ? '!' : ''}@${o.x},${o.y}`).sort().join(';');
 
 export function solve(start, maxStates = 200000, ban = []) {
   const seen = new Set([key(start)]);

@@ -17,3 +17,15 @@ Source: `docs/curriculum.md` §6. Core today is 222 lines, and every object is a
 **Recommendation: real footprints, line-only pushing.** Area is real: a platform covers a×b cells, pits read its footprint, and its shape is an attribute. What I'm simplifying is the physics: a push moves only the bodies on the player's line, with no push trees. None of the 19 slots needs an off-line shove. Full push trees would be **L** (set-based moves, cycle checks, multi-chain resolution order) with no P3 payoff. A one-cell token with a picture of an array would be fake area, and the CEO ruled that out. Total: two M items and three S items, about one build pass, plus law tests: × commutes in value, rotate keeps value, ÷ conserves q·b + r = a, ÷0 never resolves, step traces for every old level unchanged.
 
 **Flags.** Testo: the solver key `o.value ?? o.op` treats a 3×4 and a 4×3 at the same anchor as the same state, so add `shape` and `tens`, plus the no-room validator. Arto: `render/state.js` has its own single-cell `objAt`, and the renderer tweens by id. Matho: (1) a platform in a lane (my proposal: it counts once if any cell is in the lane); (2) 12+2 with a platform operand: resolve to a 1×1 block of 14, or bounce? I won't bounce a sum that is valid in the naturals without your ruling; (3) "door 10 as a rod" would be a door reading representation, which breaks "doors read value", so it probably needs a rod socket. Worldo: leave spawn room on every route.
+
+## Built (2026-10-20): glyphs and events
+Map glyphs: `×` `÷` are operators, `_` is an area-pit cell, `r` is a pivot post, `b` is a bundle pad (it stays after use), and `|` is a rod socket. `level.platforms: [{x, y, rows, cols}]` pre-places arrays, and their map cells are `.`. Block attributes are `shape: [rows, cols]` (anchored top-left; a missing shape means 1×1), `tens`, and `pebble`.
+New events are `multiply`, `share` (both carry `ids` of the spawned blocks, and the first id is the right-hand operand's), `rotate`, `pit` (`cells`), `bundle`, and `socket`. New bounce reasons are `no-room` (`ghost` cells), `storm`, `pit` (`ghost` and `overhang` cells), `blocked`, `not-rod`, `mixed`, and `shape`.
+
+## Render needs (Arto)
+1. `render/state.js` `objAt` is single-cell. Use `inside()` from `core/push.js`, or footprints break hit-tests and wobbles.
+2. Draw a platform as `shape[0]` rows × `shape[1]` cols of unit cells from its anchor. Never draw it as a tower or as repeated addition.
+3. Draw a ten-rod (`tens: 1`) as one rod in one cell, with rod + ones for `tens` plus extra value. Draw pebbles (`pebble: true`) as loose single units.
+4. Tween spawned blocks from the operand cells using `ids`. A `rotate` swaps the footprint in place.
+5. Bounce ghosts: `no-room` and `pit` ghost/overhang cells, the `storm` effect (never shown as 0 or ∞), `blocked` at the stuck cell, and `not-rod`.
+6. Tiles: pit `_`, pivot post `r`, bundle pad `b`, rod socket `|`.
