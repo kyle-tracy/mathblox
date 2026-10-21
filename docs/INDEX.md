@@ -1,4 +1,7 @@
 # Docs index: read only what your task needs
+
+**After a restart, read `docs/handoff/ceo.md` first.**
+
 | Task | Read |
 |---|---|
 | Any task (start here) | `docs/vision.md` (27 lines) and `docs/decisions.md` (current rules, ≤60 lines) |
