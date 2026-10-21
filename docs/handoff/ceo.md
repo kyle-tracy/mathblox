@@ -13,7 +13,10 @@ Read this first after a restart. Then read `docs/INDEX.md` and the Log in `docs/
   - Psycho and Matho re-run 2: PASS WITH FIXES, nothing blocking
 - 27 levels. The default test suite is green: 94 pass, 0 fail, 0 todo. Master is pushed to github.com/kyle-tracy/mathblox.
 
-## In flight at restart
+## Update at wrap-up
+Worldo batch #2 has been committed: L4, L5, L9, L16, L17, L18 and L24 are fixed. **Still open:** L19 and L20 dead first pushes, and the L26 text. L14 has 3 dead first pushes, which the CEO exempted. See `docs/handoff/worldo.md`.
+
+## In flight at restart (historical)
 - **Worldo:** fix batch #2. Its notes are in `docs/handoff/worldo.md`. Its uncommitted edits may be in `levels/` and `test/regress.test.js`. Run `git status`: if the tests pass, commit; if not, finish from the notes.
   - the dead first pushes above
   - L17: swap the 2 for a 3, with door B `7 = □+3`

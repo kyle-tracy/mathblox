@@ -11,7 +11,7 @@ const play = (l, moves) => [...moves].reduce((s, m) => step(s, { u: 'up', d: 'do
 // No first push may lose the level (P2: L10/L13's push straight at the door; P2 re-run #2 made it all levels). Every
 // push the player can make before any other push is tried, and the level must stay winnable after it. `todo` = known
 // open dead end (gate-p2-testo-rerun2.md); delete the name from FIRST_PUSH_TODO once the level is fixed.
-const FIRST_PUSH_TODO = ['Mind the Gap', 'Short by One', 'Many Ways to Eight', 'Turn It Around', 'One Family', 'The Box Counts', 'Take It Out', 'Same to Both Sides'];
+const FIRST_PUSH_TODO = ['Turn It Around', 'The Box Counts', 'Take It Out'];
 const deadFirstPushes = l => {
   const s0 = parseLevel(l), seen = new Set([key(s0)]), walks = [s0], dead = [];
   for (const s of walks) for (const d of ['up', 'down', 'left', 'right']) {
@@ -27,7 +27,7 @@ const deadFirstPushes = l => {
   return dead;
 };
 // ponytail: these take 10 s to 30 min each (exhausting dead ends, big lane graphs); they run only with SLOW=1 (the gate run).
-const HEAVY = [...FIRST_PUSH_TODO, 'The Shrinking Side', 'Big Box', 'Crossroads', 'Sandbox'];
+const HEAVY = [...FIRST_PUSH_TODO, 'The Shrinking Side', 'Big Box', 'Crossroads', 'Sandbox', 'One Family', 'Same to Both Sides'];
 for (const l of LEVELS) test(`"${l.name}": every first push keeps the level winnable`,
   { todo: FIRST_PUSH_TODO.includes(l.name), skip: HEAVY.includes(l.name) && !process.env.SLOW && 'heavy: SLOW=1 node --test test/' }, () => assert.deepEqual(deadFirstPushes(l), [], 'dead-end first pushes'));
 
