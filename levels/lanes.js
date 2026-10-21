@@ -149,7 +149,7 @@ export default [
     skill: 'S11 V6: △ + ○ = 10 and △ − ○ = 2, crossing lanes',
     beat: 'master',
     misconception: '"each equation can use its own value": △=4, ○=6 (4 pushed into the row) opens A, and B reads ? vs 2; △=8, ○=2 (the 2 on the crossing) opens A, and B reads 6 vs 2',
-    choice: '△ = 6 and ○ = 4 is the only pair that opens both gates; build ○ = 4 from the 4 or from 3+1',
+    choice: '△ = 6 and ○ = 4 is the only pair that opens both gates, but many fillings make it: △ from the 6 or 2+4, ○ from the 4 or 3+1, or a 4 on the crossing counted in both lanes (△ = 2+4, ○ = 4)',
     map: [
       '#######',
       '#@....#',

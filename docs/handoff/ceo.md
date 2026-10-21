@@ -4,7 +4,7 @@ Read this first after a restart. Then read `docs/INDEX.md` and the Log in `docs/
 
 ## Where we are
 - **Phase:** P2 (2D vertical slice). Gate status: **failed twice** (run 1 PASS WITH FIXES; re-run 1 FAIL; re-run 2 FAIL). The commissioner was notified per the emergency rule on 2026-10-20. The commissioner didn't need to act.
-- **Only blocker left:** dead first pushes. A single first push makes the level unwinnable in L4, L5, L9, L24 (13–30% of random walkers) and in L16, L19, L20 (≤1%). Check: `SLOW=1 node --test test/regress.test.js` (`deadFirstPushes`, `FIRST_PUSH_TODO`, `HEAVY`).
+- **P2 gate PASSED (2026-10-20, tag p2-gate).** The commissioner dropped the dead-first-push rule ("Baba Is You isn't afraid of bad first moves"). Next: plan P3.
 - **Everything else passes:**
   - ≥2 math-distinct routes from L2 on (L14 exempt)
   - cheese
