@@ -31,7 +31,7 @@ When a rule changes, edit it here and add a Log entry at the bottom: `- YYYY-MM-
 - Authoring limits: maps ≤ 12 rows; each level < 200k solver states. [Worldo]
 - Numbers ≤ 10 through P2 unless Matho overrides. [Psycho]
 - Never raise math and push complexity in the same level; every new verb gets a 1-wide intro; no level needs a block swap to rebuild an expression. [Psycho]
-- "Two roads" for intros and rests: spawn between a bait road and a true road; the bait ends in a harmless bounce; the true side varies. [Worldo]
+- Every level from L2 on has ≥2 winning routes that differ in math (values or ops, not order or placement); a bait road may sit on top and ends in a harmless bounce. Corridor levels use a T: two true roads plus an up-arm bait. [CEO, Worldo]
 - No cheese: with each `teaches` event banned, the solver must exhaust the level without a win. A capped search throws; it never reads as "unsolvable". [Testo]
 
 ## Feedback and fun
@@ -56,3 +56,5 @@ When a rule changes, edit it here and add a Log entry at the bottom: `- YYYY-MM-
 - 2026-10-20 [CEO] L14 Turn It Around (the commissioner's favorite) stays a hard Master level. Fix its 2-move `dl` corner trap without flattening the puzzle; with free undo, a walk20 trap rate above 50% is accepted for this level. "≤200k" means the solver's states to a win, not the full state graph.
 - 2026-10-20 [CEO] Gate P2 counts this re-run as its 1st FAIL (run 1 was PASS WITH FIXES). A 2nd FAIL notifies the commissioner.
 - 2026-10-20 [Arto] Door signs are placed together per state with weighted avoidance (E and other signs never; blocks, player, trenches and pads avoided). Held gates look wedged. Pushing a block into the exit boings. The engine's step() owns the gate's `held` flag, so the renderer does no math. — P2 re-run §5
+- 2026-10-20 [Worldo] P2 fix batch: every level L2–L26 except L14 now has ≥2 math-distinct routes (Sandbox exempt; L14 Turn It Around still has 2 routes that differ only in operand order, because both doors pin their keys, 10 and 2, and any extra block bypasses the room-B rebuild); mirror corridors became T-shapes (two true roads + bait arm); L10/L13 lock their sum in a walled pocket that only a merge/carve can move, so no first push is fatal; L14 opens (5,1) to remove the `dl` corner trap; new lane levels Into the Box (1-wide V1 intro), Big Box (rest after V3) and Two Triangles Again (empty-lane V3 echo); L16 relabelled practice. — CEO choice ruling and the P2 re-run fixes.
+- 2026-10-20 [CEO] L14 Turn It Around is exempt from the two-routes rule. Its choice is the turn-around itself: which side of the + gets rebuilt. A second route would bypass the room-B rebuild the commissioner loved. Accept its order-only routes and the `dr` trap.

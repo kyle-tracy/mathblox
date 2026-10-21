@@ -3,16 +3,21 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseLevel, step, laneValues } from '../core/world.js';
 import { LEVELS } from '../levels/levels.js';
-import { solve } from './solver.js';
+import { solve, key } from './solver.js';
 
 const lvl = name => LEVELS.find(l => l.name === name);
 const play = (l, moves) => [...moves].reduce((s, m) => step(s, { u: 'up', d: 'down', l: 'left', r: 'right' }[m]).state, parseLevel(l));
 
-// The natural first push (straight at the door, like L1 and L11) must not lose the level. Fix in levels/ (Worldo).
-for (const [name, moves] of [['Nothing Changes', 'uuur'], ['The Missing Part', 'uuur']])
-  test(`"${name}": first push ${moves} keeps the level winnable`, { todo: 'P2 rerun: still a dead state, Worldo' }, () => {
-    assert.ok(solve(play(lvl(name), moves)), `${moves} is a dead end`);
-  });
+// No first push may lose the level (the P2 traps were L10/L13's push straight at the door). Every push the player can
+// make before any other push is tried, and the level must stay winnable after it.
+for (const name of ['Nothing Changes', 'The Missing Part']) test(`"${name}": every first push keeps the level winnable`, () => {
+  const s0 = parseLevel(lvl(name)), seen = new Set([key(s0)]), walks = [s0];
+  for (const s of walks) for (const d of ['up', 'down', 'left', 'right']) {
+    const { state, events } = step(s, d);
+    if (events.some(e => e.type === 'push')) assert.ok(solve(state), `first push ${d} from ${s.player.x},${s.player.y} is a dead end`);
+    else if (events[0].type === 'move' && !seen.has(key(state))) { seen.add(key(state)); walks.push(state); }
+  }
+});
 
 // Lane cheese: the win must come from the intended lane totals, with every gate true at once.
 const WANT = { 'The Box Counts': { '△': 5 }, 'Take It Out': { '△': 6 }, 'Two Triangles': { '△': 4 },
