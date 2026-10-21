@@ -16,3 +16,5 @@ date | agent | task | est | actual | note
 2026-10-20 | Axio | P3 core build | - | 88k |
 2026-10-20 | Axio | socket/identity follow-up | - | 8k | continued the running agent (95.6k cumulative)
 2026-10-20 | Arto | P3 render | - | ? | stopped by the spend limit partway through; uncommitted edits in render/
+2026-10-21 | Arto | P3 render (all runs) | 40k (finish) | 96k cumulative | interrupted twice; the restarts re-read context
+2026-10-21 | Budgeto | estimate 5 tasks | - | 13k | P3 remainder estimated at 309k
