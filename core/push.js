@@ -1,6 +1,6 @@
 // Push resolution for core/world.js move(): what a pushed chain does when it calculates, meets a door, or fills a trench.
 // Pure, no DOM. Imports only math.js (no cycle with world.js); `lanes` is laneValues(s), passed in by the caller.
-import { apply, accepts, sides, tick, rotate, bundle, isRod } from './math.js';
+import { apply, accepts, sides, tick, rotate, bundle, SOCKETS } from './math.js';
 
 export const tileAt = (s, x, y) => s.tiles[y]?.[x] ?? '#';
 export const setTile = (s, x, y, ch) => { s.tiles[y] = s.tiles[y].slice(0, x) + ch + s.tiles[y].slice(x + 1); };
@@ -110,10 +110,10 @@ export function fillPit(state, s, chain, dx, dy, events) {
   return null;
 }
 
-// A rod socket ('|') reads representation: only a lone ten-rod fits, not ten loose cubes.
+// A one-cell socket ('|' rod, 'v' Void, 'p' pebble) takes a block only if its one attribute matches.
 export function fillSocket(state, s, chain, cx, cy, events) {
-  const last = chain[chain.length - 1];
-  if (last.kind !== 'num' || !isRod(last)) return bounce(state, 'not-rod', { x: cx, y: cy });
+  const last = chain[chain.length - 1], [name, fits] = SOCKETS[tileAt(s, cx, cy)];
+  if (last.kind !== 'num' || !fits(last)) return bounce(state, `not-${name}`, { x: cx, y: cy });
   setTile(s, cx, cy, '.');
   s.objects = s.objects.filter(x => x !== last);
   chain.pop();

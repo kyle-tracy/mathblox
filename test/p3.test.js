@@ -49,6 +49,28 @@ test('÷ laws: (a÷b)·b + r = a, r < b, ÷1 is identity, ÷0 storms, 0÷n gives
   assert.equal(OPS['÷'](B(6), platform(1, 2)).ok, false, 'the divisor is a single block');
 });
 
+test('identities are true identities: a platform ×1, 1× and ÷1 keep value and shape (CEO ruling)', () => {
+  for (const r of N.slice(1)) for (const c of N.slice(1)) {
+    const p = platform(r, c);
+    assert.deepEqual(OPS['×'](p, B(1)).out, [p]);
+    assert.deepEqual(OPS['×'](B(1), p).out, [p]);
+    assert.deepEqual(OPS['÷'](p, B(1)).out, [p]);
+  }
+  const r = run({ name: 't', map: ['#######', '#@....#', '#.....#', '#######'], platforms: [{ x: 2, y: 1, rows: 2, cols: 2 }] }, []);
+  r.state.objects.push({ id: 9, x: 4, y: 1, kind: 'op', op: '÷' }, { id: 10, x: 5, y: 1, kind: 'num', value: 1 });
+  r.state.tiles[1] = '#@......#'; r.state.tiles[2] = '#.......#'; r.state.tiles[0] = r.state.tiles[3] = '#########';
+  assert.deepEqual(nums(step(r.state, 'right').state).map(o => [o.x, o.value, o.shape]), [[2, 4, [2, 2]]], 'pushed, 2×2 ÷ 1 is still the 2×2');
+});
+
+test('each socket reads one attribute: | a ten-rod, v the value 0, p the pebble flag; plain numbers fail v and p', () => {
+  assert.ok(run({ name: 't', map: ['#######', '#@3-3v#', '#######'] }, ['right', 'right', 'right']).events.some(e => e.type === 'socket'), 'a Void fills a Void socket');
+  assert.equal(run({ name: 't', map: ['#####', '#@3v#', '#####'] }, ['right']).events[0].reason, 'not-void');
+  assert.equal(run({ name: 't', map: ['#####', '#@1p#', '#####'] }, ['right']).events[0].reason, 'not-pebble', 'a plain 1 is not a pebble');
+  const peb = run({ name: 't', map: ['##########', '#@7÷2...p#', '##########'] }, ['right', 'right', 'right', 'right', 'right']);
+  assert.ok(peb.events.some(e => e.type === 'socket' && e.value === 1), 'the remainder pebble fits the pebble socket');
+  assert.equal(run({ name: 't', map: ['#####', '#@0p#', '#####'] }, ['right']).events[0].reason, 'not-pebble');
+});
+
 test('bundling keeps the value; + carries tens; pebbles are plain once merged', () => {
   assert.deepEqual(bundle(B(10)), { value: 10, tens: 1 });
   assert.deepEqual(bundle(platform(2, 5)), { value: 10, tens: 1 });
@@ -134,6 +156,7 @@ test('[a][÷][b] shares along the push line; small÷big resolves; ÷0 storms; 0�
   assert.equal(v('#@0÷0..#')[0].events[0].reason, 'storm');
   assert.deepEqual(v('#@0÷3..#')[1], ['0', '0', '0']);
   assert.deepEqual(v('#@6÷1..#')[1], ['6']);
+  assert.deepEqual(nums(v('#@6÷1..#')[0].state).map(o => [o.id, o.x]), [[2, 4]], '6÷1 lands in the divisor cell with its id');
   assert.equal(v('#@2×3+1..#')[0].events[0].reason, 'mixed');
   assert.equal(v('#..2+3×1@#', 'left')[0].events[0].reason, 'mixed');
 });

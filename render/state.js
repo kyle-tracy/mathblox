@@ -1,6 +1,7 @@
 // Level selection, game state + undo history, and turning step() events into effects and sounds.
 // Never computes a math result: every value comes from the state or the events step() returns.
 import { step, parseLevel, DIRS } from '../core/world.js';
+import { inside } from '../core/push.js';
 import { LEVELS } from '../levels/levels.js';
 import { SHOWCASE } from '../levels/showcase.js';
 import { cv, CELL, PAD } from './look.js';
@@ -51,7 +52,7 @@ export function undo() {
 
 export const stagger = (n, total) => Math.min(40, total / Math.max(1, n)); // ms between counted dots; keeps effects ≤600ms
 
-export const objAt = (s, x, y) => s.objects.find(o => o.x === x && o.y === y);
+export const objAt = (s, x, y) => s.objects.find(o => inside(o, x, y)); // footprints; open gates still match
 export const tileAt = (s, x, y) => s.tiles[y]?.[x] ?? '#';
 
 export function feedback(e, before) {
@@ -67,6 +68,17 @@ export function feedback(e, before) {
     if (e.type === 'merge') { for (let i = 0; i < n; i++) tone(pitch(i * 2), 0.05, 'triangle', 0, (240 + i * st) / 1000); tone(pitch(e.value), 0.15, 'sine', 0, 0.42); }
     else { for (let i = 0; i < n; i++) tone(pitch(14 - i * 2), 0.04, 'square', 0, i * st / 1000); tone(pitch(e.value + 5), 0.08, 'triangle', 0, 0.45); }
   }
+  if (e.type === 'multiply' || e.type === 'share') { // spawned blocks fan out from the left operand's cell; ids[0] slides from the right's
+    const src = before.objects.find(o => o.kind === 'num' && !state.objects.some(s => s.id === o.id)), n = e.ids.length;
+    fx.push({ type: e.type, at: e.at, ids: e.ids, src, t0 });
+    if (e.type === 'multiply') { const [r] = state.objects.find(o => o.id === e.ids[0]).shape ?? [1]; // one note per row as the rows lay down
+      for (let i = 0; i < r; i++) tone(pitch(i * 3), 0.07, 'triangle', 0, i * 0.07); tone(pitch(e.value), 0.18, 'sine', 0, r * 0.07); }
+    else for (let i = 0; i < n; i++) tone(pitch(12 - i), 0.05, 'triangle', 0, i * 0.04); // a fair-share patter, falling
+  }
+  if (e.type === 'rotate') { fx.push({ type: 'rotate', at: e.at, t0, wob: e.at }); tone(pitch(e.value), 0.12, 'sine', 120); }
+  if (e.type === 'bundle') { fx.push({ type: 'bundle', at: e.at, t0, wob: e.at }); for (let i = 0; i < 10; i++) tone(pitch(i), 0.03, 'square', 0, i * 0.02); tone(pitch(17), 0.12, 'triangle', 0, 0.22); }
+  if (e.type === 'pit') e.cells.forEach(([x, y], i) => { fills.set(`${x},${y}`, { n: e.value, t: t0 + i * 25 }); tone(pitch(i), 0.05, 'sine', 0, i * 0.025); });
+  if (e.type === 'socket') { fills.set(`${e.at.x},${e.at.y}`, { n: e.value, t: t0 }); [0, 7].forEach(n => tone(pitch(e.value + n), 0.2, 'sine')); }
   if (e.type === 'tick') { fx.push({ type: 'tick', at: e.at, t0, wob: e.at }); tone(pitch(e.value), 0.08, 'triangle', 300); }
   if (e.type === 'fill') {
     const [dx, dy] = DIRS[e.dir], st = stagger(e.value, 400);
@@ -77,7 +89,7 @@ export function feedback(e, before) {
   }
   const exit = e.type === 'bounce' && e.reason === 'wall' && tileAt(state, e.at.x, e.at.y) === 'E'; // a block pushed into E
   if (e.type === 'bounce' && (e.reason !== 'wall' || exit)) {
-    boing();
+    boing(); if (e.reason === 'storm') tone(520, 0.6, 'sine', -400, 0.08); // a silly wind-down whoosh, never a buzzer
     const wob = objAt(state, e.at.x, e.at.y) ? e.at : { x: e.at.x - dx, y: e.at.y - dy };
     const f = { ...e, t0, wob, linger: !exit, ...(exit && { reason: 'exit' }) };
     if (e.reason === 'too-long') { // trench cells it would cover, read from tiles; the event says how much sticks out

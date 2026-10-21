@@ -9,8 +9,12 @@ export const rotate = b => (b.shape ? { ...b, shape: [b.shape[1], b.shape[0]] } 
 // Ten loose units become one ten-rod; the value never changes. Unbundling is P6.
 export const bundle = b => (b.value === 10 && !b.tens ? { value: 10, tens: 1 } : null);
 export const isRod = b => b.value === 10 && b.tens === 1 && !b.shape;
+// Each socket reads one attribute (CEO ruling): '|' a ten-rod, 'v' the value 0, 'p' the pebble flag.
+export const SOCKETS = { '|': ['rod', isRod], v: ['void', b => b.value === 0 && !b.shape], p: ['pebble', b => !!b.pebble] };
 
 const done = (event, out) => ({ ok: true, event, out });
+// An identity's result: the operand's math attributes only (never its id or place).
+const same = b => ({ value: b.value, ...(b.shape && { shape: b.shape }), ...(b.pebble && { pebble: true }) });
 // −, × and ÷ on a ten-rod would unbundle it, and unbundling is P6, so they bounce.
 const rodIn = (a, b) => a.tens || b.tens;
 export const OPS = {
@@ -19,12 +23,15 @@ export const OPS = {
   // Naturals only until negatives unlock: you can't carve more than is there.
   '-': (a, b) => (rodIn(a, b) ? { ok: false, reason: 'bundled' } : b.value > a.value ? { ok: false, reason: 'too-much', missing: b.value - a.value } : done('carve', [{ value: a.value - b.value }])),
   // A platform times a number would be a solid (3D): not before P5.
-  '×': (a, b) => (rodIn(a, b) ? { ok: false, reason: 'bundled' } : a.shape || b.shape ? { ok: false, reason: 'shape' } : done('multiply', [platform(a.value, b.value)])),
+  // ×1 and 1× are true identities: a platform keeps its shape.
+  '×': (a, b) => (rodIn(a, b) ? { ok: false, reason: 'bundled' } : a.shape && b.value === 1 && !b.shape ? done('multiply', [same(a)])
+    : b.shape && a.value === 1 && !a.shape ? done('multiply', [same(b)]) : a.shape || b.shape ? { ok: false, reason: 'shape' } : done('multiply', [platform(a.value, b.value)])),
   // Share a among b: b equal blocks of q plus r whole pebbles. 3÷6 = six Voids + 3 pebbles; ÷0 never resolves.
   '÷': (a, b) => {
     if (rodIn(a, b)) return { ok: false, reason: 'bundled' };
     if (b.shape) return { ok: false, reason: 'shape' };
     if (b.value === 0) return { ok: false, reason: 'storm' };
+    if (b.value === 1) return done('share', [same(a)]); // ÷1 is a true identity: shape and value kept
     const q = Math.floor(a.value / b.value), r = a.value % b.value;
     return done('share', [...Array(b.value)].map(() => ({ value: q })).concat([...Array(r)].map(() => ({ value: 1, pebble: true }))));
   },
