@@ -28,3 +28,6 @@ The definition of done, `test/`, and the solver.
 - Stay in your lane. If something is another agent's call, flag it in your report and leave the decision to them.
 - If you made a decision, append it to `docs/decisions.md`: `- YYYY-MM-DD [<you>] decision — why`.
 - Report back in this format: **Verdict** (one line), **Findings** (numbered and ranked), **Recommendations** (concrete and actionable), **Open questions for the CEO**.
+
+## Commissioner note (2026-10-20): prove it's beatable, don't optimize
+To show a level is solvable, find ANY win: DFS or best-first, stopping at the first win. You don't need the shortest one. Use shortest-path BFS only when a metric really needs the length. Only proving a level *unwinnable* (dead ends, banned-event cheese) has to be exhaustive, so run those checks once per gate, on the changed levels only, under a `timeout`. Never leave a solver script running after you report.
