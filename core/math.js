@@ -11,15 +11,18 @@ export const bundle = b => (b.value === 10 && !b.tens ? { value: 10, tens: 1 } :
 export const isRod = b => b.value === 10 && b.tens === 1 && !b.shape;
 
 const done = (event, out) => ({ ok: true, event, out });
+// −, × and ÷ on a ten-rod would unbundle it, and unbundling is P6, so they bounce.
+const rodIn = (a, b) => a.tens || b.tens;
 export const OPS = {
-  // A sum is one plain block (a platform's shape is lost, its value kept); only + carries tens.
+  // A sum is one plain block (a platform's shape is lost, its value kept); + carries tens.
   '+': (a, b) => { const tens = (a.tens ?? 0) + (b.tens ?? 0); return done('merge', [{ value: a.value + b.value, ...(tens && { tens }) }]); },
   // Naturals only until negatives unlock: you can't carve more than is there.
-  '-': (a, b) => (b.value > a.value ? { ok: false, reason: 'too-much', missing: b.value - a.value } : done('carve', [{ value: a.value - b.value }])),
+  '-': (a, b) => (rodIn(a, b) ? { ok: false, reason: 'bundled' } : b.value > a.value ? { ok: false, reason: 'too-much', missing: b.value - a.value } : done('carve', [{ value: a.value - b.value }])),
   // A platform times a number would be a solid (3D): not before P5.
-  '×': (a, b) => (a.shape || b.shape ? { ok: false, reason: 'shape' } : done('multiply', [platform(a.value, b.value)])),
+  '×': (a, b) => (rodIn(a, b) ? { ok: false, reason: 'bundled' } : a.shape || b.shape ? { ok: false, reason: 'shape' } : done('multiply', [platform(a.value, b.value)])),
   // Share a among b: b equal blocks of q plus r whole pebbles. 3÷6 = six Voids + 3 pebbles; ÷0 never resolves.
   '÷': (a, b) => {
+    if (rodIn(a, b)) return { ok: false, reason: 'bundled' };
     if (b.shape) return { ok: false, reason: 'shape' };
     if (b.value === 0) return { ok: false, reason: 'storm' };
     const q = Math.floor(a.value / b.value), r = a.value % b.value;

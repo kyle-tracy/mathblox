@@ -20,7 +20,7 @@ Source: `docs/curriculum.md` §6. Core today is 222 lines, and every object is a
 
 ## Built (2026-10-20): glyphs and events
 Map glyphs: `×` `÷` are operators, `_` is an area-pit cell, `r` is a pivot post, `b` is a bundle pad (it stays after use), and `|` is a rod socket. `level.platforms: [{x, y, rows, cols}]` pre-places arrays, and their map cells are `.`. Block attributes are `shape: [rows, cols]` (anchored top-left; a missing shape means 1×1), `tens`, and `pebble`.
-New events are `multiply`, `share` (both carry `ids` of the spawned blocks, and the first id is the right-hand operand's), `rotate`, `pit` (`cells`), `bundle`, and `socket`. New bounce reasons are `no-room` (`ghost` cells), `storm`, `pit` (`ghost` and `overhang` cells), `blocked`, `not-rod`, `mixed`, and `shape`.
+New events are `multiply`, `share` (both carry `ids` of the spawned blocks, and the first id is the right-hand operand's), `rotate`, `pit` (`cells`), `bundle`, and `socket`. New bounce reasons are `bundled` (−, × or ÷ on a ten-rod), `no-room` (`ghost` cells), `storm`, `pit` (`ghost` and `overhang` cells), `blocked`, `not-rod`, `mixed`, and `shape`.
 
 ## Render needs (Arto)
 1. `render/state.js` `objAt` is single-cell. Use `inside()` from `core/push.js`, or footprints break hit-tests and wobbles.

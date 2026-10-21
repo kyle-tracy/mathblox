@@ -55,6 +55,7 @@ test('bundling keeps the value; + carries tens; pebbles are plain once merged', 
   assert.equal(bundle(B(9)), null);
   assert.equal(bundle({ value: 10, tens: 1 }), null, 'a rod is already bundled');
   assert.deepEqual(OPS['+']({ value: 10, tens: 1 }, B(3)).out, [{ value: 13, tens: 1 }], 'rod + 3');
+  for (const op of ['-', '×', '÷']) assert.equal(OPS[op]({ value: 13, tens: 1 }, B(3)).reason, 'bundled', `${op} on a rod would unbundle (P6)`);
   assert.deepEqual(OPS['+']({ value: 1, pebble: true }, { value: 1, pebble: true }).out, [B(2)]);
   assert.deepEqual(OPS['+'](platform(3, 4), B(2)).out, [B(14)], 'platform + number is a 1×1 sum (CEO ruling 2)');
 });
