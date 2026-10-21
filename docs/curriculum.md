@@ -274,4 +274,41 @@ P5 (polish/retention) adds no new skills. It adds echo (spaced review) levels fo
   - "Different symbols must be different numbers" (Küchemann). V5: different blocks in different lanes give equal values. △ = 1+4 on the sealed shelf, and ○ = 5 or 3+2. The miss to log is "the 2 alone into ○" (○ + 2 read as "put a 2 in"), which shows 7 vs 4.
   - "Adding more always makes it bigger." V4.
   - "Each equation can use its own value." V6.
-- **Naming:** keep shapes through P3. Letters (a, b, n) arrive at P4 with `2△ → 2a`, with the shape and letter shown side by side for 3 levels and then faded. Never use x or y before N4, because a row lane *is* the line y = k. Never use object initials such as a for apple.
+- **Naming (S11):** keep shapes through P3. Letters (a, b, n) arrive at P4 with `2△ → 2a`, with the shape and letter shown side by side for 3 levels and then faded. Never use x or y before N4, because a row lane *is* the line y = k. Never use object initials such as a for apple.
+
+## 6. P3 plan: × and ÷ (Array Fields, Sharing Grove)
+**Honesty rules.** `a×b` = a rows of b, read along the visible axes. A platform's shape (`rows`, `cols`) and value (`rows·cols`) are both attributes: pits read shape, doors and lanes read value. × is never animated or labelled as repeated addition. Block values stay ≤ 10, so dividends above 10 are platforms; products ≤ 20, drawn unit-for-unit until bundling. Mixed {+,−}/{×,÷} chains still bounce, so each op gets its own door. Pits are sized so that no two platforms can fill one (split arrays are S10, P4). Quotitive "pack" division is deferred to P4; P3 shares only.
+
+| # | Skill | Misconception to surface | Axio builds (one line) |
+|---|---|---|---|
+| 1 | S8 array as area | "× builds a taller tower", "× is lots of +" | `[a][×][b]` → one multi-cell platform `{rows:a, cols:b}`, pushed as one body; area pits take an exact shape fit, else bounce with ghost or overhang cells |
+| 2 | S7× rotate | "3×4 and 4×3 are different amounts" | pivot post: pushing a platform into it swaps `rows`↔`cols`, value unchanged (`rotate` event) |
+| 3 | ×0 | "4×0 = 4" | `a×0` / `0×a` → the existing Void block (never vanishes) |
+| 4 | ×1 | "× always makes bigger"; then "longer-looking = more" (1×6 strip vs 2×4) | none: `1×n` is a platform `{1,n}` with value n |
+| 5 | n÷1 | "÷ always makes smaller" | none: falls out of Share |
+| 6 | S9 share, remainder pebbles | "remainder is a decimal" (7÷2 = 3.1); "÷ commutes"; "can't divide small by big" | `[a][÷][b]` → b blocks of value q plus r pebbles `{value:1, pebble:true}`, total conserved; meaning on the blocks, layout is Axio's; `a<b` resolves to b Voids + a pebbles (never bounces) |
+| 7 | ÷0 void storm | "5÷0 = 0", "0÷5 is impossible" | `[a][÷][0]` (incl. 0÷0) emits `storm` and bounces; never resolves, never "∞"; `0÷n` → n Voids |
+| 8 | N1a bundling, ten-rods | "bundling changes the amount"; "more pieces = more" (9 cubes vs 1 rod) | bundle pad: a value-10 block or platform becomes a ten-rod `{value:10, unit:10}`; merges show rod + ones |
+
+**Levels** (slot IDs; Worldo assigns L numbers after L27 Sandbox). Each slot: two math-distinct winning routes, both using the slot's verb.
+| Slot | Beat | Skill | Routes | Negation / note |
+|---|---|---|---|---|
+| P3-1 | intro | S8 | door 12: 3×4 or 2×6 | platform is flat, not a tower |
+| P3-2 | practice | S8 | pit 3×4 or pit 2×5 (two roads) | short platform shows ghost cells |
+| P3-3 | intro | S7× | rotate 4×3 into 3×4 gap, or 5×2 into 2×5 gap | |
+| P3-4 | twist | S7× | a 6×2 fits no turn of the 3×4 pit but opens door 12; or build 3×4 for the pit | pits read shape, doors read value |
+| P3-5 | intro | ×0 | Void socket: 4×0 or 0×3 | the field collapses to Void |
+| P3-6 | intro | ×1 | door 6 via 6×1, or door 4 via 1×4 | |
+| P3-7 | twist | ×1, S1 | door 8: 2×4 or 1×8; bait 1×6 strip looks longest | thin-4/fat-5 ruling |
+| P3-8 | combine | ×0, ×1 | `6×□ = 6` and `□ = 5×0`, two key pairs | both-sides doors |
+| P3-9 | echo | S8, S11 | gate `△ × 3 = 12`: △ = 4 or 3+1 | lanes are variables |
+| P3-10 | intro | S9 | door 4: 12-platform ÷ 3, or 8 ÷ 2 | ÷ undoes × (inverse) |
+| P3-11 | intro | n÷1 | door 7 via 7÷1, or door 8 via 8÷1 | ÷ didn't shrink it |
+| P3-12 | practice | S9 | door 3 + pebble socket: 7÷2 or 10÷3 | pebble is a whole unit |
+| P3-13 | twist | S9 | door 2: 6÷3, or 3÷6 (6 Voids + 3 pebbles), merge 1+1 | order matters; small ÷ big resolves |
+| P3-14 | twist | ÷0 | Void socket: 0÷5 or 0×4; bait road `5÷0` storms | undefined, not 0 |
+| P3-15 | rest | S8 | door 10: 2×5 or 10÷1 (interleaved) | |
+| P3-16 | combine | S9, S11 | gates `△ × 2 = ○`, lanes crossing: (3,6), (4,8) or (5,10) | different symbols, maybe different values |
+| P3-17 | intro | N1a | door 10 as a rod: bundle a 2×5 platform or a merged 6+4 | value kept, unit changes |
+| P3-18 | twist | N1a | door 13: rod + 3 or rod + 2+1; bait 9 loose cubes | more pieces ≠ more |
+| P3-19 | master | all | three doors, one per op (×, ÷, bundle), ≥2 fillings each; ÷0 bait storms | big celebration |
