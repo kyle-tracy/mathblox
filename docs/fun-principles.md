@@ -14,12 +14,19 @@ Score each criterion 1–5. Gate pass = no criterion below 3, and a mean of 3.5 
 | **Frustration risk** (5 = low risk) | Deadlocks, unclear failure, punishing restarts | Failures readable, undo works | Failure is funny and teaches; no state costs more than one undo |
 | **Replay pull** | Done and gone | Would replay to show someone | Asks for "one more"; pokes at things that aren't required |
 
+**Agency anchors (P2 on):**
+- 2: one true road plus bait.
+- 3: two or more true roads that swap numbers inside the same idea (4−4 vs 5−5).
+- 4: routes that differ in op or structure (one block vs two, carve vs merge, a different door).
+- 5: open-ended.
+- L14 is scored on its turn-around choice.
+
 Also record for each level: is the hard part the **math** or the **pushing**? (It should be the math. See §7.)
 
 ## 2. Pacing rules
 Every new idea follows the cadence, one idea per level, 5+ levels per skill (Worldo lays them out):
 
-1. **Introduce**: the new thing is the only thing. One solution, almost no space, can't fail in a confusing way. Success in under 30 s.
+1. **Introduce**: the new thing is the only thing. Almost no space, can't fail in a confusing way, success in under 30 s. From L2 on, the level still needs ≥2 routes that differ in math (CEO, 2026-10-20). L1 is the only level with one forced solution.
 2. **Practice**: same idea, 2–3 levels, new numbers, slightly more room. Still one idea.
 3. **Twist**: the idea is used in an unexpected way (e.g. − where order matters; a decoy block you must *not* use).
 4. **Combine**: the new idea plus one older idea. Never two new ideas at once.

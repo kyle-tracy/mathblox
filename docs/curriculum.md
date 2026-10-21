@@ -117,7 +117,8 @@ P5 (polish/retention) adds no new skills. It adds echo (spaced review) levels fo
   - Solves `7 = 3 + □` by carving 3 from a 7 rather than ticking up from 3.
 - **Misconception to surface:**
   - "Undo is the opposite operation."
-  - "Each fact is a separate thing to memorize." The twist ("One Family") has three doors, one per family member as the key: `3+4 = □` (7), `7 − 3 = □` (4), `7 = □+4` (3, the missing-addend form of 7 − 4). Doors consume keys, so three blocks allow at most three doors. Each sign shows the other two members. The fourth fact, 4+3, is S7's job (L14 `6+4 = □`).
+  - "Each fact is a separate thing to memorize." One Family (L16, now a **practice** beat) has three doors, one per family member as the key: `3+4 = □` (7), `7 − 3 = □` (4), `7 = □+4` (3, the missing-addend form of 7 − 4). Doors consume keys, so three blocks allow at most three doors. Each sign shows the other two members. The fourth fact, 4+3, is S7's job (L14 `6+4 = □`). One win needs two doors; opening all three is allowed.
+  - **P2 has no S6 twist level.** S6 is a P2 seed. Its visible failure in P2 is L13's wrong-part bounce (7−5 gives 5 vs 7). The required twist, an Undo-locked round trip, is P4's job.
 - **Verb:** Merge and Carve as a round trip. In P4 a reversing machine runs any chain backward.
 
 ### S7 Commutativity (and associativity) (P2 discovery, P3 for ×)
@@ -251,20 +252,26 @@ P5 (polish/retention) adds no new skills. It adds echo (spaced review) levels fo
   - A gate may latch open. A balance-scale readout always shows its *live* truth. When a level has 2 or more gates, the exit needs them **all true at the same moment**.
 - **Content:** a symbol names a number. It has one value at a time, and the same symbol means the same value everywhere. Inverse operations solve for it, and doing the same thing to both sides keeps an equation true.
 - **Mastery evidence** (default rule, plus):
-  - `△ + △` is solved without putting one block in per △. V3 starts with both 4s pre-placed (an incorrect worked example), so V3 only logs "fixed the shown error on the first move". The evidence comes from an empty-lane echo (P3 echo room). There the observable misconception is pushing the second 4 in after the gate has opened.
+  - `△ + △` is solved without putting one block in per △. V3 starts with both 4s pre-placed (an incorrect worked example), so V3 only logs "fixed the shown error on the first move". The evidence comes from the empty-lane echo L25 *Two Triangles Again*:
+    - Miss: the △ total reaches 8 (16 vs 8) at any point.
+    - Pass: a first-try win where the △ total never goes above 4.
+    - A 2+2 win counts as route diversity only. On its own it can't be told apart from "one small block per △".
   - `10 − △` is solved with no block pushed back out of △. Bringing the 3 alone (7 vs 3) counts as a miss.
   - Lanes must not hold operator blocks until "?" (unknown) and "below 0" render differently. Today both are NaN, and the scale would make an unknown side rise.
   - A two-gate system is solved without the gates ever being true at different values.
-- **Levels:**
-  - V1 *The Box Counts* `△ = 5` (no 5 block, so 3+2 or 4+1)
-  - V2 *Take It Out* `△ − 2 = 4` (the lane starts with 4,3,2,1 = 10; remove the 4, or the 3 and the 1)
-  - V3 twist *Two Triangles* `△ + △ = 8`
-  - V4 twist *The Shrinking Side* `10 − △ = 3`
-  - V5 combine *Same to Both Sides* `△ + 2 = ○ + 2`, then a □ door `□ = △ − 1`
-  - V6 master *Crossroads* `△ + ○ = 10` and `△ − ○ = 2`, with the lanes crossing
+- **Levels** (L18–L26, in play order; Sandbox is L27):
+  - L18 V1 intro *Into the Box* `△ = 5`, 1-wide (3+2 or 4+1)
+  - L19 V1 *The Box Counts* `△ = 5` (no 5 block, so 3+2 or 4+1)
+  - L20 V2 *Take It Out* `△ − 2 = 4` (the lane starts with 4,3,2,1 = 10; remove the 4, or the 3 and the 1)
+  - L21 V3 twist *Two Triangles* `△ + △ = 8` (take one 4 out, or swap both 4s for 2+2)
+  - L22 rest *Big Box* `△ = 9` (6+3 or 5+4)
+  - L23 V4 twist *The Shrinking Side* `10 − △ = 3` (3+4 or 5+2)
+  - L24 V5 combine *Same to Both Sides* `△ + 2 = ○ + 2`, then a □ door `□ = △ − 1` (○ = 5 or 3+2)
+  - L25 V3 echo *Two Triangles Again* `△ + △ = 8`, empty lane (the evidence level, see above)
+  - L26 V6 master *Crossroads* `△ + ○ = 10` and `△ − ○ = 2`, with the lanes crossing. Five fillings are arithmetically possible, including the shared crossing (△ = 2 + 4 with the 4 on the crossing, ○ = 4).
 - **Misconceptions to surface:**
   - "Letter = object." V3: two 4s give a readout of 8, the gate computes 16, and the scale tips.
-  - "Different symbols must be different numbers" (Küchemann). V5: different blocks in different lanes give equal values, △ = 3+2 = ○ = 5.
+  - "Different symbols must be different numbers" (Küchemann). V5: different blocks in different lanes give equal values. △ = 1+4 on the sealed shelf, and ○ = 5 or 3+2. The miss to log is "the 2 alone into ○" (○ + 2 read as "put a 2 in"), which shows 7 vs 4.
   - "Adding more always makes it bigger." V4.
   - "Each equation can use its own value." V6.
 - **Naming:** keep shapes through P3. Letters (a, b, n) arrive at P4 with `2△ → 2a`, with the shape and letter shown side by side for 3 levels and then faded. Never use x or y before N4, because a row lane *is* the line y = k. Never use object initials such as a for apple.
