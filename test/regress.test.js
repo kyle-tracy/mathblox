@@ -8,19 +8,31 @@ import { solve, key } from './solver.js';
 const lvl = name => LEVELS.find(l => l.name === name);
 const play = (l, moves) => [...moves].reduce((s, m) => step(s, { u: 'up', d: 'down', l: 'left', r: 'right' }[m]).state, parseLevel(l));
 
-// No first push may lose the level (the P2 traps were L10/L13's push straight at the door). Every push the player can
-// make before any other push is tried, and the level must stay winnable after it.
-for (const name of ['Nothing Changes', 'The Missing Part']) test(`"${name}": every first push keeps the level winnable`, () => {
-  const s0 = parseLevel(lvl(name)), seen = new Set([key(s0)]), walks = [s0];
+// No first push may lose the level (P2: L10/L13's push straight at the door; P2 re-run #2 made it all levels). Every
+// push the player can make before any other push is tried, and the level must stay winnable after it. `todo` = known
+// open dead end (gate-p2-testo-rerun2.md); delete the name from FIRST_PUSH_TODO once the level is fixed.
+const FIRST_PUSH_TODO = ['Mind the Gap', 'Short by One', 'Many Ways to Eight', 'Turn It Around', 'One Family', 'The Box Counts', 'Take It Out', 'Same to Both Sides'];
+const deadFirstPushes = l => {
+  const s0 = parseLevel(l), seen = new Set([key(s0)]), walks = [s0], dead = [];
   for (const s of walks) for (const d of ['up', 'down', 'left', 'right']) {
     const { state, events } = step(s, d);
-    if (events.some(e => e.type === 'push')) assert.ok(solve(state), `first push ${d} from ${s.player.x},${s.player.y} is a dead end`);
-    else if (events[0].type === 'move' && !seen.has(key(state))) { seen.add(key(state)); walks.push(state); }
+    if (state.won) continue;
+    if (events.some(e => e.type !== 'move' && e.type !== 'bounce')) {
+      if (seen.has('P' + key(state))) continue;
+      seen.add('P' + key(state));
+      let ok; try { ok = solve(state, 3e6) !== null; } catch { ok = false; } // cap hit counts as not proven winnable
+      if (!ok) dead.push(`${d} from ${s.player.x},${s.player.y}`);
+    } else if (events[0]?.type === 'move' && !seen.has(key(state))) { seen.add(key(state)); walks.push(state); }
   }
-});
+  return dead;
+};
+// ponytail: these take 10 s to 30 min each (exhausting dead ends, big lane graphs); they run only with SLOW=1 (the gate run).
+const HEAVY = [...FIRST_PUSH_TODO, 'The Shrinking Side', 'Big Box', 'Crossroads', 'Sandbox'];
+for (const l of LEVELS) test(`"${l.name}": every first push keeps the level winnable`,
+  { todo: FIRST_PUSH_TODO.includes(l.name), skip: HEAVY.includes(l.name) && !process.env.SLOW && 'heavy: SLOW=1 node --test test/' }, () => assert.deepEqual(deadFirstPushes(l), [], 'dead-end first pushes'));
 
 // Lane cheese: the win must come from the intended lane totals, with every gate true at once.
-const WANT = { 'The Box Counts': { '△': 5 }, 'Take It Out': { '△': 6 }, 'Two Triangles': { '△': 4 },
+const WANT = { 'Into the Box': { '△': 5 }, 'Big Box': { '△': 9 }, 'Two Triangles Again': { '△': 4 }, 'The Box Counts': { '△': 5 }, 'Take It Out': { '△': 6 }, 'Two Triangles': { '△': 4 },
   'The Shrinking Side': { '△': 7 }, 'Same to Both Sides': { '△': 5, '○': 5 }, Crossroads: { '△': 6, '○': 4 } };
 for (const [name, want] of Object.entries(WANT)) test(`"${name}" is won with the intended lane totals`, () => {
   const path = solve(parseLevel(lvl(name)));
