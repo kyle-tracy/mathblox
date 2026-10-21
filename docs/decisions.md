@@ -5,7 +5,7 @@ When a rule changes, edit it here and add a Log entry at the bottom: `- YYYY-MM-
 ## Vision and authority
 - Ages 6–9 prototype, 2D browser; the architecture must scale to linear algebra in space. No 3D before the P5 gate. [Commissioner]
 - A block's meaning lives in its attributes, never its location. The visible axes are a frame of reference. [Commissioner]
-- Commissioner feedback outranks agent predictions: every level after L1 requires a choice; negation (− order, bounces, ghosts, inverses) is a near-constant theme; keep L13. [Commissioner]
+- Commissioner feedback outranks agent predictions: every level after L1 must make the player think. The answer is never "just walk, because nothing else is possible". This does NOT require two routes or two endings. Each level forces a different way of thinking (variety over self-similarity); negation (− order, bounces, ghosts, inverses) is a near-constant theme; keep L13. [Commissioner]
 - Commissioner is hands-off (emergencies only, local push notification). The repo is public. [Commissioner]
 
 ## Stack and repo
@@ -75,3 +75,4 @@ When a rule changes, edit it here and add a Log entry at the bottom: `- YYYY-MM-
 - 2026-10-20 [CEO] P3 socket and identity rulings: (1) every socket declares the one attribute it reads: shape for platform and rod sockets, value 0 for a Void socket, the pebble flag for a pebble socket. A plain 1×1 number never satisfies a Void or pebble socket. (2) Identities are true identities: a platform ÷1 or ×1 keeps its value *and* its shape. (3) A rod − 3 bounces in P3, since unbundling is P6. Same domain rule as 3 − 5.
 - 2026-10-20 [Axio] Implemented the CEO socket/identity rulings: one-cell sockets are a table in `math.js` (`SOCKETS`: `|` ten-rod, `v` value 0, `p` pebble flag; bounce `not-<name>`). A platform ×1, 1× or ÷1 returns the same shape and value. A plain a×1 still builds the [a,1] array (curriculum P3-6). — one attribute per socket, so no plain number cheeses a Void or pebble socket.
 - 2026-10-20 [CEO] A plain 6 × 1 builds a 6×1 strip, which is honest: 6 rows of 1. The ×1 identity is about value; the shape is the array you made. Only an existing platform ×1 keeps its shape unchanged.
+- 2026-10-21 [Commissioner] "Choice" was misread. It means the solution is never "just press right because nothing else is possible" (except L1), NOT ≥2 routes or endings. The ≥2-math-distinct-routes rule (2026-10-20 [CEO]) is withdrawn. Variety over self-similar levels: each level forces a different way of thinking. A new agent, Budgeto, estimates and logs token cost (docs/budget.md).

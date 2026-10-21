@@ -17,7 +17,8 @@ A game where **the math is the physics**. Prototype: ages 6–9 (2D, browser). T
   - No dark patterns.
   - No 3D before the P5 gate.
   - No dependencies without CEO approval.
-- **Commissioner feedback outranks agent predictions.** Every level after L1 requires a choice. Negation is a recurring theme. Keep L13.
+- **Commissioner feedback outranks agent predictions.** After L1, no level is solved by "just press right, there's nothing else to do"; this is about thinking, not about having two routes. Variety beats self-similar levels: each level must make you think in a way the others don't. Negation is a recurring theme. Keep L13.
+- **Commissioner meta-pattern (read before designing anything):** the commissioner keeps correcting checklists we built out of their taste: "shortest solution" became "just beatable", "no dead first push" became "bad first moves are fine", and "a choice" became "two routes". Metrics are smoke alarms, not goals. Design for the new thought each level forces. Let players fail and explore, as in Baba Is You. When a rule produces sameness or cost, question the rule.
 - **Token budget (commissioner, 2026-10-20):**
   - Solvability only needs *one* win: use a first-win search. Exhaustive searches run only at a gate, only on changed levels, under `timeout`. Never leave solver scripts running.
   - Read only what your brief names. For the Log, use `tail -n 15 docs/decisions.md` instead of reading the whole file.
@@ -35,6 +36,7 @@ A game where **the math is the physics**. Prototype: ages 6–9 (2D, browser). T
 | repo layout, git, tooling, backend | Archo |
 | `curriculum.md` | Matho |
 | `fun-principles.md` | Psycho |
+| `budget.md` (token estimates and ledger) | Budgeto |
 
   Agent charters are in `.claude/agents/`.
 - **Rules code:** keep it pure, with no DOM. The renderer never does math; it reads state and events from `step()`.

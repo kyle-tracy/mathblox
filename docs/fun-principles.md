@@ -26,7 +26,7 @@ Also record for each level: is the hard part the **math** or the **pushing**? (I
 ## 2. Pacing rules
 Every new idea follows the cadence, one idea per level, 5+ levels per skill (Worldo lays them out):
 
-1. **Introduce**: the new thing is the only thing. Almost no space, can't fail in a confusing way, success in under 30 s. From L2 on, the level still needs ≥2 routes that differ in math (CEO, 2026-10-20). L1 is the only level with one forced solution.
+1. **Introduce**: the new thing is the only thing. Almost no space, can't fail in a confusing way, success in under 30 s. From L2 on, the player must think, not just walk; two routes are not required (commissioner, 2026-10-21). L1 is the only level that can be a forced walk.
 2. **Practice**: same idea, 2–3 levels, new numbers, slightly more room. Still one idea.
 3. **Twist**: the idea is used in an unexpected way (e.g. − where order matters; a decoy block you must *not* use).
 4. **Combine**: the new idea plus one older idea. Never two new ideas at once.

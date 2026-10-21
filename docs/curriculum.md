@@ -290,7 +290,7 @@ P5 (polish/retention) adds no new skills. It adds echo (spaced review) levels fo
 | 7 | ÷0 void storm | "5÷0 = 0", "0÷5 is impossible" | `[a][÷][0]` (incl. 0÷0) emits `storm` and bounces; never resolves, never "∞"; `0÷n` → n Voids |
 | 8 | N1a bundling, ten-rods | "bundling changes the amount"; "more pieces = more" (9 cubes vs 1 rod) | bundle pad: a value-10 block or platform becomes a ten-rod `{value:10, unit:10}`; merges show rod + ones |
 
-**Levels** (slot IDs; Worldo assigns L numbers after L27 Sandbox). Each slot: two math-distinct winning routes, both using the slot's verb.
+**Levels** (slot IDs; Worldo assigns L numbers after L27 Sandbox). Each slot forces its own kind of thinking with the slot's verb. Two routes are not required, but slots that are near-copies of each other get merged or cut (commissioner, 2026-10-21).
 | Slot | Beat | Skill | Routes | Negation / note |
 |---|---|---|---|---|
 | P3-1 | intro | S8 | door 12: 3×4 or 2×6 | platform is flat, not a tower |
