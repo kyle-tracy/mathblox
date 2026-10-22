@@ -1,57 +1,44 @@
-# Handoff, 2026-10-20 (session restart)
+# CEO handoff, 2026-10-22 (fresh session, not a resume)
 
-Read this first after a restart. Then read `docs/INDEX.md` and the Log in `docs/decisions.md`.
+Read this, then `docs/vision.md` and `tail -n 25 docs/decisions.md`. Read nothing else until a task needs it. The older history is in git (`git log`) and `docs/archive/`.
 
 ## Where we are
-- **Phase:** P2 (2D vertical slice). Gate status: **failed twice** (run 1 PASS WITH FIXES; re-run 1 FAIL; re-run 2 FAIL). The commissioner was notified per the emergency rule on 2026-10-20. The commissioner didn't need to act.
-- **P2 gate PASSED (2026-10-20, tag p2-gate).** The commissioner dropped the dead-first-push rule ("Baba Is You isn't afraid of bad first moves"). Next: plan P3.
-- **Everything else passes:**
-  - ≥2 math-distinct routes from L2 on (L14 exempt)
-  - cheese
-  - signs never cover E or each other
-  - walk20 ≤50%
-  - Psycho and Matho re-run 2: PASS WITH FIXES, nothing blocking
-- 27 levels. The default test suite is green: 94 pass, 0 fail, 0 todo. Master is pushed to github.com/kyle-tracy/mathblox.
+- **The direction changed (commissioner, 2026-10-21).** The puzzles are now the tutorial. The goal is an **open-world survival-craft** built from math blocks. The commissioner said: "build a bit chaotically, keep good game design; let QC and testing kill bad ideas."
+- **The engine (core/)** is calculator-precise:
+  - + and × give the same result in either push direction; − and ÷ read in order.
+  - Negatives are real (3−5 = −2).
+  - Values are exact rationals (`core/value.js`).
+  - `level.div` sets how a division shows: `remainder` (the default), `fraction`, or `decimal`.
+  - Standard precedence applies in chains and doors.
+  - Results sit at the operand cells, and the player always steps forward after a push.
+  - Bounces happen only for no-room, `not-whole` into a trench, or ÷0 (the storm).
+- **Puzzles:** 22 levels plus Sandbox (cut from 39 by Qualito's audit). Each one stores a `solution` that the tests replay, so room size is never capped by the solver.
+- **Craft prototype** at `?craft` (`core/craft.js`, `craft/play.js`):
+  - Ground heights are numbers; pits fill from any side, and overfilling leaves a hill.
+  - A bag that holds 2, a fire for warmth, and turn-based day and night.
+  - Dozing off keeps your blocks.
+  - Spawns regrow at dawn.
+  - A "?" creature at dusk wears an equation; tame it with the right value and it doubles your bag.
+  - Arto has drawn all of this, plus negatives (hollow faces) and fractions (pie dots).
+- **Tests:** 86 pass. Everything is pushed to master (github.com/kyle-tracy/mathblox).
+- **The studio is paused.** No agents are running.
 
-## Update at wrap-up
-Worldo batch #2 has been committed: L4, L5, L9, L16, L17, L18 and L24 are fixed. **Still open:** L19 and L20 dead first pushes, and the L26 text. L14 has 3 dead first pushes, which the CEO exempted. See `docs/handoff/worldo.md`.
+## Next (when the commissioner says go)
+1. Craft: hills and positive blocks look the same. Axio adds a terrain attribute, then Arto draws it.
+2. Commissioner playtest of `?craft` and the 22 levels. Their feedback outranks everything.
+3. The next Craft beats, from `docs/craft-loop.md`:
+   - the Mirror Lands (x<0, anti-blocks)
+   - recipes as balance scales
+   - trees that Tick each day
+   - harvest by ÷ (ages 8+)
+   - Psycho's ideas: a helper pet, blueprint ghosts, a Number Museum, couch co-op, rule shrines
+4. The puzzle levels no longer use ten-rod sockets or tick pads. Reuse them in Craft or delete them.
 
-## In flight at restart (historical)
-- **Worldo:** fix batch #2. Its notes are in `docs/handoff/worldo.md`. Its uncommitted edits may be in `levels/` and `test/regress.test.js`. Run `git status`: if the tests pass, commit; if not, finish from the notes.
-  - the dead first pushes above
-  - L17: swap the 2 for a 3, with door B `7 = □+3`
-  - text fixes in L16/L26
-  - vary L19's layout
-  - L18's bottom pocket
-
-## Next steps, in order
-1. Finish Worldo's batch, then run a narrow re-check with Testo:
-   - `SLOW=1` first-push check
-   - routes, cheese, signs and walk20 on the changed levels only
-2. If it's green, tag `p2-gate` and push the tag.
-3. Plan P3 (× and ÷), from the plan file `~/.claude/plans/you-are-the-math-twinkly-cake.md` §3:
-   - arrays as area, never repeated addition
-   - ×0, ×1, n÷1
-   - share with remainder pebbles
-   - ÷0 as a void storm
-   - bundling and ten-rods
-   - Keep negation and ≥2 routes in every level.
-4. P4 watch list for the real-kid playtest:
-   - predict vs guess on two-road levels
-   - where kids give up in L14 and the lanes
-   - negation in L1–L10, which has no − block before S5
-
-## Agent notes
-- Testo: `docs/gates/gate-p2-testo-rerun2.md`. Tooling: test/solver.js, test/regress.test.js.
-- Matho: `docs/gates/gate-p2-matho-rerun2.md`. curriculum.md has been renumbered to 27 levels.
-- Psycho: `docs/gates/gate-p2-psycho-rerun2.md`. Agency on graded levels is 3.76. Open item: L19 repeats L18.
-- Arto: the style guide covers `layoutSigns` (render/fx.js), held gates and the exit boing. Optional: draw "?" (unknown) and "below 0" differently before any operator goes into a lane.
-- Axio: core sets `held` on gates in `step()`. Nothing is open.
-- Archo: nothing is open.
-
-## Gotchas
-- Agents share one working tree. A Testo branch checkout moved HEAD under me once. Before merging, check `git branch --show-current`, or give agents `isolation: "worktree"`.
-- Never `pkill -f`. Kill the server only by `$SRV`.
-- **Token and CPU cost:** the exhaustive dead-end checks (up to 3M states, 10 s to 30 min each) are what burn tokens and CPU. Testo's re-run 2 used about 132k tokens over 1 h 44 m, mostly re-running and waiting on these. From now on, run `SLOW=1` once per gate on the changed levels only. Agents use `timeout` and must not leave background solver scripts running after they report.
-- **Commissioner note for Testo:** we only need proof that a level is beatable, not the best solution. Use a first-win search such as DFS or best-first for solvability and for first-push checks (each push just needs any win). Keep exhaustive search for proving dead ends. See `.claude/agents/testo.md`.
-- Open (paused): hills vs. positive blocks look identical in Craft — needs a terrain attribute from Axio
+## How to work (cheap)
+- One agent per task, with a tight brief and a report under 150 words. Continue a finished agent with SendMessage instead of re-spawning it.
+- Make quick rulings myself, then log them.
+- After each agent finishes, Qualito judges the result. Qualito may be the cheapest agent to run.
+- Commit with `git add <paths>`, never `-a`: agents share the working tree.
+- Log each agent's token cost in `docs/budget.md`.
+- Screenshots: start `python3 -m http.server 8772` with run_in_background and a timeout, then run chromium headless (the recipe is in `docs/workflow.md`). Never `pkill -f`.
+- **When the commissioner says "wrap up":** rewrite this file, update memory, push, and give them a fresh-session start prompt. Resuming a long context costs more than a fresh session that reads this file.
