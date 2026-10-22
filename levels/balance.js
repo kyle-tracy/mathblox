@@ -1,23 +1,6 @@
-// Balance (Worldo): S2 equality, the = lock (L6-L8).
+// Balance (Worldo): S2 equality, the = lock (L2).
 // Imported in play order by levels/levels.js; schema notes are there.
 export default [
-  {
-    name: 'Both Sides Weigh',
-    skill: 'S2 lock, target on the left',
-    beat: 'introduce',
-    misconception: '"= means the answer comes next": the up road\'s 8 (6+2) tips the scale 6 vs 10',
-    choice: 'two true roads: the 4 for 6 = □+2 or the 5 for 7 = □+2; the up road (the 8) is bait',
-    map: [
-      '#############',
-      '######E######',
-      '######.######',
-      '######C######',
-      '######8######',
-      '#EB.5.@.4.AE#',
-      '#############',
-    ],
-    doors: { A: '6 = □+2', B: '7 = □+2', C: '6 = □+2' },
-  },
   {
     name: 'The Answer Is Not Next',
     skill: 'S2 lock twist: 7 = □+3',
@@ -33,24 +16,5 @@ export default [
       '###########',
     ],
     doors: { A: '7 = □+3', B: '7 = □+2' },
-  },
-  {
-    name: 'Tip the Scale',
-    skill: 'S2 both sides + S1 echo',
-    beat: 'rest',
-    misconception: '"□+4 means bring a 4": the plain 4 at the top door shows 7 vs 8 (and bounces back out); tick first',
-    choice: 'two true roads: tick the 2 to 3 for 2+5 = □+4, or tick the 4 to 5 for 2+5 = □+2',
-    map: [
-      '##########',
-      '#.....####',
-      '#...^.A.E#',
-      '#.2...####',
-      '#@..4.####',
-      '#...^.B.E#',
-      '#.....####',
-      '##########',
-    ],
-    doors: { A: '2+5 = □+4', B: '2+5 = □+2' },
-    teaches: ['tick'],
   },
 ];

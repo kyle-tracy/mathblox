@@ -9,7 +9,7 @@ const lvl = name => LEVELS.find(l => l.name === name);
 const play = (l, moves) => [...moves].reduce((s, m) => step(s, { u: 'up', d: 'down', l: 'left', r: 'right' }[m]).state, parseLevel(l));
 
 // Lane cheese: the win must come from the intended lane totals, with every gate true at once.
-const WANT = { 'Into the Box': { '△': 5 }, 'Big Box': { '△': 9 }, 'Two Triangles Again': { '△': 4 }, 'The Box Counts': { '△': 5 }, 'Take It Out': { '△': 6 }, 'Two Triangles': { '△': 4 },
+const WANT = { 'Two Triangles Again': { '△': 4 }, 'The Box Counts': { '△': 5 }, 'Take It Out': { '△': 6 },
   'The Shrinking Side': { '△': 7 }, 'Same to Both Sides': { '△': 5, '○': 5 }, Crossroads: { '△': 6, '○': 4 } };
 for (const [name, want] of Object.entries(WANT)) test(`"${name}" is won with the intended lane totals`, () => {
   const path = solve(parseLevel(lvl(name)));

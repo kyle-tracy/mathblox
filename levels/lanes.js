@@ -1,25 +1,7 @@
-// Lanes (Worldo): S11 Variable Lanes, 1-wide intro + V1-V6 + a rest and a V3 echo (L18-L26).
+// Lanes (Worldo): S11 Variable Lanes V1, V2, V4, V5, V3, V6 (L6-L11).
 // Imported in play order by levels/levels.js; schema notes are there.
 export default [
   // S11 Variable Lanes (P2.5). A lane's value is the total of the number blocks in it; gates are live.
-  {
-    name: 'Into the Box',
-    skill: 'S11 V1 intro (1-wide): a lane is a box whose value is the total inside, △ = 5',
-    beat: 'introduce',
-    misconception: '"△ is one block": there is no 5, so two blocks must share the box; push a block on through to take it back out',
-    choice: 'which two blocks drop into the △ row: 3+2 or 4+1',
-    map: [
-      '##############',
-      '#@..........##',
-      '###3#2#4#1#.##',
-      '###.#.#.#.#.AE',
-      '###.#.#.#.#.##',
-      '###.........##',
-      '##############',
-    ],
-    lanes: { '△': { row: 3 } },
-    doors: { A: '△ = 5' },
-  },
   {
     name: 'The Box Counts',
     skill: 'S11 V1: a lane is a named total, △ = 5',
@@ -30,6 +12,7 @@ export default [
       '###########',
       '#@.......AE',
       '#.3.2.4.1##',
+      '#........##',
       '#........##',
       '#........##',
       '###########',
@@ -48,44 +31,11 @@ export default [
       '#........##',
       '#.4.3.2.1##',
       '#@.......AE',
+      '#........##',
       '###########',
     ],
     lanes: { '△': { row: 2 } },
     doors: { A: '△ - 2 = 4' },
-  },
-  {
-    name: 'Two Triangles',
-    skill: 'S11 V3: △ + △ = 8 (same symbol, same value)',
-    beat: 'twist',
-    misconception: '"letter = object": one 4 per △ makes △ = 8 and the scale reads 16 vs 8',
-    choice: 'take one 4 out, or swap both 4s for the two 2s',
-    map: [
-      '##########',
-      '#@......##',
-      '#..2.2..##',
-      '#.4..4..##',
-      '#.......AE',
-      '##########',
-    ],
-    lanes: { '△': { row: 3 } },
-    doors: { A: '△ + △ = 8' },
-  },
-  {
-    name: 'Big Box',
-    skill: 'S11 V1/V2 rest: △ = 9 with big blocks',
-    beat: 'rest',
-    misconception: '"△ is one block": there is no 9; 6+5 shows 11 vs 9, push one back out',
-    choice: 'two true fillings for △ = 9: 6+3 or 5+4',
-    map: [
-      '############',
-      '#@........AE',
-      '#.6.3.5.4..#',
-      '#..........#',
-      '#..........#',
-      '############',
-    ],
-    lanes: { '△': { row: 3 } },
-    doors: { A: '△ = 9' },
   },
   {
     name: 'The Shrinking Side',
@@ -99,6 +49,7 @@ export default [
       '#.3.4.2.5#',
       '#........#',
       '#.......AE',
+      '#........#',
       '##########',
     ],
     lanes: { '△': { row: 3 } },
@@ -129,7 +80,7 @@ export default [
   },
   {
     name: 'Two Triangles Again',
-    skill: 'S11 V3 echo: △ + △ = 8 with an empty lane (one block per △ evidence)',
+    skill: 'S11 V3: △ + △ = 8 with an empty lane (same symbol, same value)',
     beat: 'practice',
     misconception: '"letter = object" (one block per △): a 4 for each △ makes △ = 8 and the scale reads 16 vs 8',
     choice: 'what goes in the empty △ row: one 4, or 2+2',
