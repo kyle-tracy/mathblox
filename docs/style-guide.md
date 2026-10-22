@@ -84,3 +84,13 @@ Mute: the ♪ button or the `M` key. Its state persists (try/catch localStorage)
 - **Sockets** are dark holes whose outline is the one attribute they read: `|` a dashed rod (shape), `v` a dashed square with 0 (value), `p` a dashed pebble (flag). A refusal shows that same hole in a bubble.
 - **÷0 storm**: a puffy grey cloud with dizzy eyes floats above the 0. It never shows 0 or ∞, has no bolts and never flashes. Its whoosh goes down, never a buzzer, and it is still in reduced motion.
 - **Ghosts**: no-room shows the whole result as dashed cells. A pit shows its empty cells hollow and the overhang solid. Blocked shows bump lines on the stuck cell.
+
+## Exact values and Craft (2026-10-21)
+- **Anti-block (−n)**: n's face punched out. It is a cream dent with a rim in n's colour, a shaded top lip and no drop shadow. It has hollow ring dots and a hollow rod at the very spots n's dots and rod sit, so a 2 drops into a −2's holes. The numeral uses a true `−`. It never uses a dashed outline, which stays the Void's.
+- **Exact non-whole (`show`)**: a neutral face with the whole units as dots and rod segments, plus one pie-slice dot and a partial rod segment, so length stays ∝ value. `fraction` stacks the numerator over the denominator. `decimal` reads `3.5` / `0.3̅` (formatted by `core/value.js`). The default remainder mode stays shares + round pebbles.
+- **not-whole** (trench or fire): the bubble shows what fits, one solid unit cube with one dot.
+- **Craft land**: a −n pit is n ledges stepping down, with n hollow unit rings (the anti-block's language). A + block sits on an earth mound, so it reads as raised land (a hill is just the block left standing).
+- **Fire**: warmth is the flame's height, the glow's reach and one ember dot per unit (HUD too). Feeding flares it and throws sparks.
+- **Time**: a sun or crescent moon, plus a day track (amber day, blue night, white dot = now). The last 8 day moves turn the field amber, and night is a blue shade with a clear circle as wide as the warmth.
+- **Creature**: a purple `?` blob that glances aside, with its equation on a post sign (dots under each number). A hop arcs it to its new spot and leaves a puff. A tame sends up hearts, and the pet smiles.
+- **Craft bumps** linger until the next input: the bumped piece wobbles, no-room shows the full ghost result, and a full bag flashes its frame once.

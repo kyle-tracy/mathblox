@@ -1,5 +1,5 @@
 // Effects layer: merge dots, carve chips, tick ring, door opening, and the lingering 'why' ghosts and scale.
-import { g, cv, CELL, INK, WHITE, C, pal, reduced, TS, px, ease, rr, circle, text, dotPos, face, slots, door, bubble, equation, socketGlyph } from './look.js';
+import { g, cv, CELL, INK, WHITE, C, PAL, pal, reduced, TS, px, ease, rr, circle, text, dotPos, face, slots, door, bubble, equation, socketGlyph } from './look.js';
 import { state, orig, fx, objAt } from './state.js';
 import { laneValues } from '../core/world.js';
 import { cells } from '../core/push.js';
@@ -48,7 +48,7 @@ const must = f => [[...px(f.wob.x, f.wob.y), CELL, CELL], [...px(state.player.x,
 // What a "why" bubble must not cover: every block, the player, and other doors' signs (the bumped door and its sign may be covered).
 const avoid = at => [...state.objects.filter(o => o.x !== at.x || o.y !== at.y).flatMap(o => cells(o).map(c => [...px(...c), CELL, CELL])),
   [...px(state.player.x, state.player.y), CELL, CELL],
-  ...state.objects.filter(o => typeof o.value === 'string' && (o.x !== at.x || o.y !== at.y)).map(signBox)]; // its own sign may hide: the bubble says the same, live
+  ...state.objects.filter(o => o.kind === 'door' && typeof o.value === 'string' && (o.x !== at.x || o.y !== at.y)).map(signBox)]; // its own sign may hide: the bubble says the same, live
 
 // Balance scale for a not-equal bump: the heavier side of the = sinks. sides come from the engine.
 // Balance scale for a not-equal bump: the heavier side of the = sinks. sides come from the engine.
@@ -86,9 +86,10 @@ function merge(f, t, X, Y) { // a's dots fly over into the result, one at a time
 }
 
 function carve(f, t, X, Y) {
-  for (let i = 0; i < f.n; i++) { // chips fall away as pebbles
+  const m = f.from.value, n = Math.min(f.n, m); // 3 − 5 chips off all 3 dots; the result shows the 2 holes left
+  for (let i = 0; i < n; i++) { // chips fall away as pebbles
     const q = (t - i * f.st * TS) / (240 * TS); if (q < 0 || q > 1) continue;
-    const m = f.from.value, ff = face(m), [dx0, dy0] = dotPos(m - f.n + i, 0, ff.cy, ff.sp); // the minuend's last n dots chip off
+    const ff = face(m), [dx0, dy0] = dotPos(m - n + i, 0, ff.cy, ff.sp); // the minuend's last n dots chip off
     g.fillStyle = `rgba(122,92,67,${1 - q})`; circle(X + CELL / 2 + dx0 * (1 + q), Y + CELL / 2 + dy0 + q * q * 44, ff.r + 1);
   }
 }
@@ -154,7 +155,7 @@ function tooLong(f, t) { // ghost rod: fits the trench, then `extra` units stick
 }
 
 // Ghost cells: where a result would go (no-room, blocked turn) or the pit cells left empty, as hollow dashed units.
-function ghostCells(cs, solid = false) {
+export function ghostCells(cs, solid = false) {
   for (const [x, y] of cs ?? []) { const [GX, GY] = px(x, y);
     if (solid) { g.globalAlpha = 0.55; rr(GX + 7, GY + 7, CELL - 14, CELL - 14, 6, C.big); g.globalAlpha = 1; }
     g.strokeStyle = INK; g.lineWidth = 2; g.setLineDash([5, 3]); g.strokeRect(GX + 7, GY + 7, CELL - 14, CELL - 14); g.setLineDash([]);
@@ -167,6 +168,12 @@ function stuck(f, t, X, Y) { // the cell a body bumps: two short bump lines on i
 function want(f, t, X, Y) { // a socket refused: the bubble shows the one thing that fits it
   const [bx, by] = bubble(X, Y, CELL, CELL, avoid(f.at), must(f)), ch = { 'not-rod': '|', 'not-void': 'v', 'not-pebble': 'p' }[f.reason];
   socketGlyph(ch, bx, by, INK);
+}
+// not-whole: −2 or 7/2 can't fill a hole or burn. The bubble shows what fits: one whole unit, a solid dot in a solid cube.
+export function wantWhole(X, Y, avoidR = [], mustR = []) {
+  const [bx, by] = bubble(X, Y, CELL, CELL, avoidR, mustR);
+  rr(bx + 14, by + 14, CELL - 28, CELL - 28, 5, PAL[1][0]); g.strokeStyle = INK; g.lineWidth = 2.5; g.strokeRect(bx + 14, by + 14, CELL - 28, CELL - 28);
+  g.fillStyle = INK; circle(bx + CELL / 2, by + CELL / 2, 5);
 }
 // ÷0: a silly little whirlwind over the 0. Dividing by nothing has no answer, so no number appears: no 0, no ∞, no bolts.
 // Calm (no flashing); it spins slowly once and rests, and in reduced motion it is still.
@@ -197,6 +204,7 @@ function bounceFx(f, t, X, Y, now) {
   if (f.reason === 'zero-fill') zeroFill(f, t, X, Y);
   if (f.reason === 'gates') falseGates(f, t);
   if (f.reason === 'too-long') tooLong(f, t);
+  if (f.reason === 'not-whole') wantWhole(X, Y, avoid(f.at), must(f));
 }
 
 const FX = { merge, carve, tick: tickRing, open, bundle: bundleFx, bounce: bounceFx };

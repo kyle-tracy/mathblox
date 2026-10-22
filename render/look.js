@@ -20,7 +20,7 @@ export const LANE = ['#3fb8c9', '#c77dff', '#e0a43a'];
 // Cuisenaire-inspired, checked for deuteranopia/protanopia/tritanopia (min ΔE ≥ 12). [fill, ink]; index = value.
 export const PAL = [['#e9e5dc', INK], ['#fbfaf5', INK], ['#f4826a', INK], ['#9be08a', INK], ['#e7a6dc', INK], ['#f7e35a', INK],
   ['#24785a', WHITE], ['#3d4152', WHITE], ['#8a5a2b', WHITE], ['#4f9be8', INK], ['#ff9f1c', INK]];
-export const pal = n => (n <= 10 ? PAL[n] : [C.big, INK]);
+export const pal = n => PAL[n] ?? [C.big, INK]; // teens, fractions and negatives: neutral (anti-blocks pick their rim in draw.js)
 
 export const px = (x, y) => [PAD + x * CELL, y * CELL];
 export const ease = t => 1 - (1 - Math.min(1, Math.max(0, t))) ** 3;

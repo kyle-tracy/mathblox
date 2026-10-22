@@ -1,10 +1,11 @@
 // Craft prototype view + input (?craft). Crude on purpose: Arto polishes later.
 // Never does math: every value, height and warmth comes from core/craft.js state and events.
-import { cv, g, CELL, INK, WHITE, C, rr, circle, text } from '../render/look.js';
-import { piece, opBlock } from '../render/draw.js';
+import { cv, g, CELL, INK, WHITE, C, rr, circle, text, dotPos, equation, reduced, TS } from '../render/look.js';
+import { piece, opBlock, label } from '../render/draw.js';
+import { ghostCells, wantWhole } from '../render/fx.js';
 import { tone, pitch, boing, muted, setMute, muteBtn } from '../render/audio.js';
-import { isNat } from '../core/value.js';
-import { newCraft, step, heightAt, bagSize, isNight, dayOf, movesToSwitch } from '../core/craft.js';
+import { isNat, parts } from '../core/value.js';
+import { newCraft, step, heightAt, bagSize, isNight, dayOf, movesToSwitch, DAY, NIGHT } from '../core/craft.js';
 
 const VW = 15, VH = 9, PAD = 40, HUD = 70; // view in cells; margins for the axes and the HUD
 let s = newCraft(), history = [], msg = '', msgT = 0;
@@ -16,11 +17,15 @@ say('Push blocks together to do math. Feed the fire at 0. Space picks up / puts 
 const SAY = { 'bag-full': 'Your bag is full.', 'not-whole': 'Only whole numbers burn.',
   'zero-fill': '0 is nothing: it can\'t burn or fill.', socket: 'The fire wants a number.', empty: 'Nothing to put down.', storm: '÷ 0: a storm! Nothing happens.' };
 function act(a) {
+  bump = null;
   const r = step(s, a);
   if (r.state !== s && r.events[0]?.type !== 'bounce') { history.push(s); s = r.state; }
   else if (r.state !== s) s = r.state; // turned to face a wall: no time, no undo entry needed
   for (const e of r.events) {
-    if (e.type === 'bounce') { boing(); if (SAY[e.reason]) say(SAY[e.reason]); }
+    if (e.type === 'bounce') { boing(); if (SAY[e.reason]) say(SAY[e.reason]);
+      const [dx, dy] = a === 'grab' ? [0, 0] : { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }[a], hit = r.state.objects.find(o => o.x === e.at.x && o.y === e.at.y);
+      bump = { ...e, t0: performance.now(), wob: hit && !hit.mimic ? e.at : { x: e.at.x - dx, y: e.at.y - dy } }; }
+    if (['feed', 'hop', 'tame'].includes(e.type)) fxs.push({ ...e, t0: performance.now() }); if (fxs.length > 8) fxs.shift();
     if (e.type === 'push') tone(110, 0.06, 'sine');
     if (e.type === 'merge' || e.type === 'carve' || e.type === 'multiply' || e.type === 'share') tone(pitch(isNat(e.value) ? e.value : 0), 0.18, 'triangle');
     if (e.type === 'feed') { for (let i = 0; i < e.value; i++) tone(pitch(i * 2), 0.05, 'sawtooth', -40, i * 0.03); say(`The fire eats ${e.value}. Warmth ${e.heat}!`); }
@@ -38,66 +43,129 @@ function act(a) {
 const undo = () => { if (history.length) s = history.pop(); };
 const restart = () => { history.push(s); s = newCraft(); };
 
+// ponytail: one lingering bump (cleared by the next input) plus short one-shot effects; a real fx table if Craft grows.
+let bump = null;
+const fxs = [], T = ms => ms * TS, age = f => performance.now() - f.t0;
+const hearts = (x, y, q) => { for (const d of [-14, 0, 14]) { const hx = x + d, hy = y - 10 - q * 30 - Math.abs(d); g.fillStyle = `rgba(239,71,111,${1 - q})`;
+  circle(hx - 3, hy, 4); circle(hx + 3, hy, 4); g.beginPath(); g.moveTo(hx - 7, hy + 1); g.lineTo(hx, hy + 9); g.lineTo(hx + 7, hy + 1); g.fill(); } };
+function flame(cx, by, h, w) { // a teardrop flame: outer orange, inner yellow
+  for (const [k, c] of [[1, '#ff9f1c'], [0.6, '#ffd166']]) {
+    g.fillStyle = c; g.beginPath(); g.moveTo(cx, by - h * k);
+    g.quadraticCurveTo(cx + w * k, by - h * k * 0.35, cx, by); g.quadraticCurveTo(cx - w * k, by - h * k * 0.35, cx, by - h * k); g.fill();
+  }
+}
+function sun(cx, cy, night) {
+  if (night) { g.fillStyle = '#f1e2c2'; circle(cx, cy, 11); g.fillStyle = '#2b2d42'; circle(cx + 6, cy - 4, 10); return; } // a crescent moon
+  g.strokeStyle = '#ffd166'; g.lineWidth = 2.5; g.fillStyle = '#ffd166'; circle(cx, cy, 8);
+  for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; g.beginPath(); g.moveTo(cx + Math.cos(a) * 11, cy + Math.sin(a) * 11); g.lineTo(cx + Math.cos(a) * 15, cy + Math.sin(a) * 15); g.stroke(); }
+}
+// A pit is dug land: one ledge and one hollow unit hole per unit of depth, so a −3 is three steps down with three holes.
+function pit(X0, Y0, h) {
+  const [p, q] = parts(h), m = Math.abs(p) / q, n = Math.ceil(m), step = Math.min(7, 24 / n);
+  for (let k = 0; k < n; k++) { const e = 2 + k * step, sh = 1 - 0.16 * Math.min(k, 5);
+    g.fillStyle = `rgb(${122 * sh | 0},${92 * sh | 0},${67 * sh | 0})`; g.fillRect(X0 + e, Y0 + e, CELL - 2 * e, CELL - 2 * e);
+    g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(X0 + e, Y0 + e, CELL - 2 * e, 3); } // each ledge's shadowed lip
+  g.strokeStyle = '#f1e2c2'; g.lineWidth = 2;
+  for (let i = 0; i < n; i++) { const [x, y] = dotPos(i, X0 + CELL / 2, Y0 + CELL / 2 + 6, 10);
+    g.beginPath(); if (i === n - 1 && m < n) { g.moveTo(x, y); g.arc(x, y, 4, -Math.PI / 2, -Math.PI / 2 + (m - i) * 2 * Math.PI); g.closePath(); } else g.arc(x, y, 4, 0, 7); g.stroke(); }
+  text(label(h), X0 + CELL / 2, Y0 + 14, 13, WHITE);
+}
+// The shy creature: a "?" blob with peeking eyes, its equation on a sign above (every number with its dots).
+function creature(cx, cy, spec) {
+  g.fillStyle = 'rgba(0,0,0,.25)'; g.beginPath(); g.ellipse(cx, cy + 24, 18, 5, 0, 0, 7); g.fill();
+  g.fillStyle = '#8e7dff'; g.beginPath(); g.ellipse(cx, cy + 6, 21, 19, 0, 0, 7); g.fill(); g.strokeStyle = INK; g.lineWidth = 2; g.stroke();
+  text('?', cx, cy + 12, 22, WHITE);
+  g.fillStyle = WHITE; for (const d of [-8, 8]) circle(cx + d, cy - 6, 5); g.fillStyle = INK; for (const d of [-8, 8]) circle(cx + d + 2, cy - 5, 2.5); // glancing aside: shy
+  const w = equation(spec, 0, 0, 14, INK, false, {}) + 14, sy = cy - 62;
+  g.fillStyle = C.doorFrame; g.fillRect(cx - 2, sy + 30, 4, 20); // its sign post
+  rr(cx - w / 2, sy, w, 38, 6, C.sign); g.strokeStyle = C.doorFrame; g.lineWidth = 2; g.stroke();
+  equation(spec, cx, sy + 11, 14, INK, true, {});
+}
+
 function draw(now) {
   const W = s.tiles[0].length, cam = Math.max(0, Math.min(W - VW, s.player.x - 7));
   const X = x => PAD + (x - cam) * CELL, Y = y => HUD + y * CELL;
+  const wob = (x, y) => { // the bumped piece shakes (a rubbery no, never a buzzer)
+    if (!bump || reduced || age(bump) > 400 || !bump.wob || bump.wob.x !== x || bump.wob.y !== y) return 0;
+    return Math.sin(age(bump) / 25) * 5 * (1 - age(bump) / 400);
+  };
   g.fillStyle = '#2b2d42'; g.fillRect(0, 0, cv.width, cv.height);
   for (let y = 0; y < VH; y++) for (let x = cam; x < cam + VW; x++) {
-    const t = s.tiles[y][x];
-    const pit = heightAt(s, x, y) !== 0;
-    g.fillStyle = pit ? C.trench : t === '#' ? C.wall : C.floor; g.fillRect(X(x), Y(y), CELL, CELL);
+    const t = s.tiles[y][x], h = heightAt(s, x, y);
+    g.fillStyle = t === '#' && !h ? C.wall : C.floor; g.fillRect(X(x), Y(y), CELL, CELL);
+    if (h) pit(X(x), Y(y), h);
     g.strokeStyle = C.grid; g.lineWidth = 1; g.strokeRect(X(x) + 0.5, Y(y) + 0.5, CELL, CELL);
-    if (pit) { g.fillStyle = C.trenchDeep; g.fillRect(X(x), Y(y), CELL, 6); text(String(heightAt(s, x, y)).replace('-', '−'), X(x) + CELL / 2, Y(y) + CELL / 2, 18, WHITE); }
   }
   // Axes: camp is the origin (a frame of reference; labels count cells from camp, y up).
   g.strokeStyle = C.axis; g.lineWidth = 2; g.setLineDash([6, 4]);
   g.beginPath(); g.moveTo(PAD, Y(s.camp.y) + CELL / 2); g.lineTo(cv.width, Y(s.camp.y) + CELL / 2);
   if (s.camp.x >= cam && s.camp.x < cam + VW) { g.moveTo(X(s.camp.x) + CELL / 2, HUD); g.lineTo(X(s.camp.x) + CELL / 2, HUD + VH * CELL); }
   g.stroke(); g.setLineDash([]);
-  // The fire at camp: flames grow with its warmth (a number the core keeps).
-  const fx = X(s.camp.x) + CELL / 2, fy = Y(s.camp.y) + CELL / 2, h = Math.min(34, 16 + s.fire * 3);
+  // The fire at camp: its warmth (a number the core keeps) is the flame's height, the glow's reach and that many embers.
+  const fx = X(s.camp.x) + CELL / 2, fy = Y(s.camp.y) + CELL / 2, feed = fxs.find(f => f.type === 'feed' && age(f) < T(500));
+  const flare = feed && !reduced ? 8 * Math.sin(Math.PI * age(feed) / T(500)) : 0, reach = Math.min(260, 40 + s.fire * 14);
+  const glow = g.createRadialGradient(fx, fy, 8, fx, fy, reach); glow.addColorStop(0, 'rgba(255,159,28,.35)'); glow.addColorStop(1, 'rgba(255,159,28,0)');
   g.fillStyle = C.floor; g.fillRect(X(s.camp.x), Y(s.camp.y), CELL, CELL);
-  rr(fx - 24, fy + 14, 48, 10, 4, '#8a5a2b');
-  g.fillStyle = '#ff9f1c'; circle(fx, fy + 8 - h / 3, h * 0.8); g.fillStyle = '#ffd166'; circle(fx, fy + 6, h * 0.5);
-  text(s.fire, fx, fy + 6, 18, INK);
+  g.fillStyle = glow; g.fillRect(fx - reach, fy - reach, reach * 2, reach * 2);
+  rr(fx - 24, fy + 18, 48, 8, 4, '#8a5a2b'); g.save(); g.translate(fx, fy + 22); g.rotate(0.3); rr(-22, -4, 44, 8, 4, '#6b4420'); g.restore();
+  const fh = Math.min(54, 22 + s.fire * 4) + flare; flame(fx, fy + 20, fh, 14 + Math.min(10, s.fire));
+  g.fillStyle = '#ffd166'; for (let i = 0; i < Math.min(20, s.fire); i++) circle(fx - 27 + (i % 10) * 6, fy + 30 + Math.floor(i / 10) * 0, 2); // embers, one per warmth
+  text(s.fire, fx, fy + 20 - fh * 0.3, 15, INK);
+  if (feed && !reduced) for (let i = 0; i < 6; i++) { const q = age(feed) / T(500); g.fillStyle = `rgba(255,209,102,${1 - q})`; circle(fx + Math.cos(i) * 18 * q, fy - 10 - q * 30 - i * 3, 2.5); } // sparks fly up
   for (const o of s.objects) if (o.x >= cam - 3 && o.x < cam + VW) {
     if (o.mimic) continue; // drawn over the night shade
-    if (o.kind === 'op') opBlock(X(o.x), Y(o.y), o.op, 1);
-    else if (isNat(o.value) && o.value <= 20) piece(X(o.x), Y(o.y), o);
-    else { rr(X(o.x) + 5, Y(o.y) + 5, CELL - 10, CELL - 10, 10, '#c9d6ea'); text(String(o.value).replace('-', '−'), X(o.x) + CELL / 2, Y(o.y) + CELL / 2, 18, INK); }
+    const ox = X(o.x) + wob(o.x, o.y), oy = Y(o.y);
+    if (o.kind === 'op') opBlock(ox, oy, o.op, 1);
+    else { if (!o.shape && parts(o.value)[0] > 0) { g.fillStyle = 'rgba(122,92,67,.45)'; g.beginPath(); g.ellipse(ox + CELL / 2, oy + CELL - 6, 29, 7, 0, 0, 7); g.fill(); } // a + block stands up from the land like a hill
+      piece(ox, oy, o); }
   }
   // Player, with a nose toward the facing direction (what Space picks up).
   const px = X(s.player.x) + CELL / 2, py = Y(s.player.y) + CELL / 2, d = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }[s.facing];
   g.fillStyle = C.player; circle(px, py, CELL * 0.33); circle(px + d[0] * 20, py + d[1] * 20, 7);
   g.fillStyle = WHITE; for (const k of [-1, 1]) circle(px + k * 9, py - 5, 6);
   g.fillStyle = INK; for (const k of [-1, 1]) circle(px + k * 9 + d[0] * 2, py - 4 + d[1] * 2, 3);
-  // Night: everything dims except a glow around the fire.
-  if (isNight(s.t)) {
+  // Light: night is a deep blue shade with a clear circle as wide as the fire's warmth; the last moves of day turn amber.
+  const night = isNight(s.t), left = movesToSwitch(s.t);
+  if (night) {
     const grad = g.createRadialGradient(fx, fy, 20, fx, fy, 60 + s.fire * 18);
-    grad.addColorStop(0, 'rgba(10,14,40,0)'); grad.addColorStop(1, 'rgba(10,14,40,.6)');
+    grad.addColorStop(0, 'rgba(10,14,40,0)'); grad.addColorStop(1, 'rgba(10,14,40,.62)');
     g.fillStyle = grad; g.fillRect(PAD, HUD, VW * CELL, VH * CELL);
-  }
+  } else if (left <= 8) { g.fillStyle = `rgba(255,120,40,${0.03 * (9 - left)})`; g.fillRect(PAD, HUD, VW * CELL, VH * CELL); } // dusk is coming
+  // Bump explanations (they stay until the next input): no-room shows where the whole result would go; not-whole shows what fits.
+  if (bump?.reason === 'no-room') { g.save(); g.translate(X(0) - 44, HUD); ghostCells(bump.ghost, true); g.restore(); }
+  if (bump?.reason === 'not-whole') wantWhole(X(bump.at.x), Y(bump.at.y), [], [[X(s.player.x), Y(s.player.y), CELL, CELL]]);
   // The shy creature (a "?" wearing its equation) and, once tamed, your helper.
   for (const o of s.objects) if (o.mimic && o.x >= cam && o.x < cam + VW) {
-    const cx = X(o.x) + CELL / 2, cy = Y(o.y) + CELL / 2;
-    g.fillStyle = '#8e7dff'; circle(cx, cy + 4, 22); text('?', cx, cy + 4, 24, WHITE);
-    rr(cx - 34, cy - 40, 68, 22, 8, C.sign); text(o.value, cx, cy - 29, 14, INK);
+    const hop = fxs.find(f => f.type === 'hop' && age(f) < T(450)), q = hop && !reduced ? Math.min(1, age(hop) / T(450)) : 1;
+    let cx = X(o.x) + CELL / 2, cy = Y(o.y) + CELL / 2;
+    if (hop && q < 1) { cx = X(hop.at.x) + CELL / 2 + (cx - X(hop.at.x) - CELL / 2) * q; cy = Y(hop.at.y) + CELL / 2 + (cy - Y(hop.at.y) - CELL / 2) * q - Math.sin(Math.PI * q) * 50; }
+    if (hop && age(hop) < T(450)) { const p = Math.min(1, age(hop) / T(450)); g.fillStyle = `rgba(201,204,214,${1 - p})`; // a puff where it sat
+      for (const [dx, dy] of [[-12, 0], [0, -6], [12, 0]]) circle(X(hop.at.x) + CELL / 2 + dx * (1 + p), Y(hop.at.y) + CELL / 2 + 18 + dy, 9); }
+    creature(cx, cy, o.value);
   }
-  if (s.pet) { const cx = X(s.pet.x) + CELL / 2, cy = Y(s.pet.y) + CELL / 2; g.fillStyle = '#8e7dff'; circle(cx, cy + 8, 16); g.fillStyle = WHITE; circle(cx - 6, cy + 4, 4); circle(cx + 6, cy + 4, 4); }
+  if (s.pet) { const cx = X(s.pet.x) + CELL / 2, cy = Y(s.pet.y) + CELL / 2; g.fillStyle = '#8e7dff'; circle(cx, cy + 8, 16); g.fillStyle = WHITE; circle(cx - 6, cy + 4, 4); circle(cx + 6, cy + 4, 4);
+    g.fillStyle = INK; circle(cx - 6, cy + 5, 2); circle(cx + 6, cy + 5, 2); g.strokeStyle = INK; g.lineWidth = 1.5; g.beginPath(); g.arc(cx, cy + 10, 5, 0.3, Math.PI - 0.3); g.stroke(); } // a happy face
+  const tame = fxs.find(f => f.type === 'tame' && age(f) < T(600));
+  if (tame) hearts(X(tame.at.x) + CELL / 2, Y(tame.at.y) + CELL / 2, reduced ? 0.3 : age(tame) / T(600));
   g.fillStyle = '#f4efe4'; g.fillRect(0, HUD + VH * CELL, cv.width, PAD); g.fillRect(0, HUD, PAD, VH * CELL);
   for (let x = cam; x < cam + VW; x++) text(x - s.camp.x, X(x) + CELL / 2, HUD + VH * CELL + 20, 14, C.axis, x === s.camp.x);
   for (let y = 0; y < VH; y++) text(s.camp.y - y, PAD / 2, Y(y) + CELL / 2, 14, C.axis, y === s.camp.y);
-  // HUD: day, warmth, bag, message.
-  const night = isNight(s.t), left = movesToSwitch(s.t);
-  text(`${night ? '☾ Night' : '☀ Day'} ${dayOf(s.t)}`, 70, 20, 18, WHITE);
-  text(night ? `${left} moves to dawn` : `${left} moves to dusk`, 70, 46, 13, '#c9d6ea', false);
-  text(`🔥 ${s.fire}`, 190, 30, 22, '#ffd166');
-  text('bag', 270, 30, 14, '#c9d6ea', false);
+  // HUD: sun or moon and a day track (amber day, blue night, a dot for now), warmth as a flame with one ember per unit, the bag.
+  g.fillStyle = '#2b2d42'; g.fillRect(0, 0, cv.width, HUD);
+  sun(24, 24, night); text(`Day ${dayOf(s.t)}`, 80, 22, 17, WHITE);
+  const tw = 120, dayW = tw * (DAY - NIGHT) / DAY, at = tw * (s.t % DAY) / DAY;
+  rr(16, 44, dayW, 10, 4, '#ffd166'); rr(16 + dayW, 44, tw - dayW, 10, 4, '#3a4a8a');
+  g.fillStyle = WHITE; circle(16 + at, 49, 6); g.strokeStyle = INK; g.lineWidth = 2; g.stroke();
+  text(night ? `${left} to dawn` : `${left} to dusk`, 80, 63, 10, '#c9d6ea', false);
+  flame(172, 50, 34, 13); text(s.fire, 172, 40, 13, INK);
+  g.fillStyle = '#ffd166'; for (let i = 0; i < Math.min(20, s.fire); i++) { const [ex, ey] = dotPos(i, 210, 18, 7); circle(ex, ey, 2.6); }
+  text('bag', 262, 30, 14, '#c9d6ea', false);
   for (let i = 0; i < bagSize(s); i++) {
     const bx = 290 + i * 54, o = s.bag[i];
     g.strokeStyle = '#c9d6ea'; g.lineWidth = 2; g.strokeRect(bx, 8, 50, 50);
-    if (o) { g.save(); g.translate(bx - 0.6, 7.4); g.scale(0.8, 0.8); if (o.kind === 'op') opBlock(0, 0, o.op, 1); else if (isNat(o.value) && o.value <= 20 && !o.shape) piece(0, 0, o); else text(String(o.value).replace('-', '−'), CELL / 2, CELL / 2, 20, WHITE); g.restore(); }
+    if (o) { g.save(); g.translate(bx - 0.6, 7.4); g.scale(0.8, 0.8); if (o.kind === 'op') opBlock(0, 0, o.op, 1); else if (!o.shape) piece(0, 0, o); else text(label(o.value), CELL / 2, CELL / 2, 20, WHITE); g.restore(); }
   }
+  if (bump?.reason === 'bag-full' && !reduced && age(bump) < 400) { g.strokeStyle = '#ffd166'; g.lineWidth = 3; g.strokeRect(288, 6, bagSize(s) * 54, 54); } // the full bag flashes once
   if (msg && now - msgT < 5000) text(msg, (420 + cv.width) / 2, 32, 14, WHITE, false);
   requestAnimationFrame(draw);
 }

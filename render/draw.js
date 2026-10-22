@@ -1,24 +1,47 @@
 // Board renderer: tiles, axes, blocks, doors, player; effects come from fx.js.
-import { cv, g, CELL, PAD, reduced, TS, INK, WHITE, C, LANE, pal, px, ease, rr, circle, text, dotPos, face, door, gate, equation, rod, pebble, socketGlyph } from './look.js';
+import { cv, g, CELL, PAD, reduced, TS, INK, WHITE, C, LANE, pal, px, ease, rr, circle, text, FONT, dotPos, face, door, gate, equation, rod, pebble, socketGlyph } from './look.js';
 import { state, prev, orig, fx, fills, tMove } from './state.js';
 import { drawFx, signBox, signPost } from './fx.js';
 import { laneValues } from '../core/world.js';
 import { inside } from '../core/push.js';
+import { parts, decimal } from '../core/value.js';
 
 // A number block, triple-coded: numeral + dot face + unit rod (length ∝ value) + Cuisenaire color.
 // Designed on a 55px face; s scales it. 11-20 stay unit-for-unit: two ten-frames of dots, and the rod wraps onto a second row.
-export function block(X, Y, n, s = 1, alpha = 1) {
-  const [fill, ink] = pal(n), u = (CELL * 0.86 * s) / 55, f = face(n);
+// An anti-block (−n) is the same face punched out: a dent in n's colour rim, hollow dots and a hollow rod at the very spots
+// n's dots and rod sit, so a 2 would drop into a −2's holes. An exact non-whole value (`show`: 'fraction' or 'decimal')
+// shows its whole units plus one partial dot (a pie slice) and a partial rod segment, so length stays ∝ value.
+export function block(X, Y, n, s = 1, alpha = 1, show) {
+  const [p, q] = parts(n), neg = p < 0, m = Math.abs(p) / q, whole = Math.floor(m), part = m - whole, k = whole + (part > 0); // drawing only: how many dots
+  const [fill, ink] = q > 1 ? [C.big, INK] : pal(whole), u = (CELL * 0.86 * s) / 55, f = face(k), big = k > 10;
   g.save(); g.globalAlpha = alpha; g.translate(X + CELL / 2 - 27.5 * u, Y + CELL / 2 - 27.5 * u); g.scale(u, u);
-  rr(0, 3, 55, 55, 10, 'rgba(0,0,0,.18)'); rr(0, 0, 55, 55, 10, fill);
+  if (neg) { rr(0, 0, 55, 55, 10, fill); rr(4, 4, 47, 47, 7, C.floor); rr(4, 4, 47, 5, 4, 'rgba(0,0,0,.2)'); } // sunken: shade at the top lip, no drop shadow
+  else { rr(0, 3, 55, 55, 10, 'rgba(0,0,0,.18)'); rr(0, 0, 55, 55, 10, fill); }
+  g.beginPath(); g.roundRect(0, 0, 55, 55, 10);
   g.strokeStyle = 'rgba(29,31,46,.6)'; g.lineWidth = 2; if (n === 0) g.setLineDash([4, 3]); g.stroke(); g.setLineDash([]);
-  const big = n > 10;
-  text(n, 27.5, big ? 9 : 13, big ? 14 : 19, ink);
-  g.fillStyle = ink;
-  for (let i = 0; i < n; i++) { const [x, y] = dotPos(i, 27.5, 27.5 + f.cy, f.sp); circle(x, y, f.r); }
-  for (let i = 0; i < n; i++) g.fillRect(4.5 + (i % 10) * 4.6, big ? 44.5 + Math.floor(i / 10) * 4.5 : 44, 3.6, big ? 3.5 : 8);
+  const c = neg ? INK : ink, dot = (x, y, r, a = 1) => { // a full or partial unit dot: filled, or a ring with a slice outline when negative
+    g.beginPath(); if (a < 1) g.moveTo(x, y); g.arc(x, y, r, -Math.PI / 2, -Math.PI / 2 + a * 2 * Math.PI); if (a < 1) g.closePath();
+    if (neg) { g.lineWidth = 1.6; g.stroke(); } else g.fill();
+    if (a < 1) { g.lineWidth = 1; g.beginPath(); g.arc(x, y, r, 0, 7); g.stroke(); } // the whole it is part of
+  };
+  if (k > 20) { text(label(n, show), 27.5, 27.5, 15, c); g.restore(); return; } // ponytail: dots stop at 20, like the teens
+  if (show !== 'decimal' && q > 1 && !big) { // a stacked fraction: numerator over denominator
+    text(String(p).replace('-', '−'), 27.5, 6.5, 10, c); g.fillStyle = c; g.fillRect(19, 12, 17, 1.6); text(q, 27.5, 18, 10, c);
+  } else fitText(label(n, show), 27.5, big ? 9 : 13, big ? 14 : 19, c, 48);
+  g.fillStyle = c; g.strokeStyle = c;
+  for (let i = 0; i < k; i++) { const [x, y] = dotPos(i, 27.5, 27.5 + f.cy, f.sp); dot(x, y, f.r + (neg ? (big ? -0.5 : 0.3) : 0), i < whole ? 1 : part); }
+  for (let i = 0; i < k; i++) {
+    const x = 4.5 + (i % 10) * 4.6, y = big ? 44.5 + Math.floor(i / 10) * 4.5 : 44, w = 3.6 * (i < whole ? 1 : part), h = big ? 3.5 : 8;
+    g.lineWidth = 1; if (neg) g.strokeRect(x + 0.5, y + 0.5, Math.max(1, w - 1), h - 1); else g.fillRect(x, y, w, h);
+  }
   if (n === 0) { g.strokeStyle = ink; g.lineWidth = 1; g.setLineDash([2, 2]); g.strokeRect(4.5, 44, 46, 8); g.setLineDash([]); }
   g.restore();
+}
+// How a value reads: −2 with a true minus, 7/2, or 3.5 / 0.3̅ in 'decimal' mode (formatting lives in core/value.js).
+export const label = (n, show) => String(show === 'decimal' ? decimal(n) : n).replace('-', '−');
+function fitText(s, x, y, size, color, max) {
+  g.font = `bold ${size}px ${FONT}`; const w = g.measureText(s).width;
+  text(s, x, y, w > max ? size * max / w : size, color);
 }
 // An a×b platform: ONE body, shape[0] rows by shape[1] columns of unit cubes, one cube per board cell, every unit visible.
 // No row totals, no "+": it is an array, never repeated addition. `rows` < shape[0] while a × is still laying rows down.
@@ -38,7 +61,7 @@ export function piece(X, Y, o, s = 1, rows) {
   if (o.shape) platform(X, Y, o, s, rows);
   else if (o.tens) rod(X, Y, o.value, o.tens, s);
   else if (o.pebble) pebble(X, Y, s);
-  else block(X, Y, o.value, s);
+  else block(X, Y, o.value, s, 1, o.show);
 }
 export function opBlock(X, Y, op, s) { // round silhouette (numbers are square); thick + and − glyphs
   const cx = X + CELL / 2, cy = Y + CELL / 2, r = CELL * 0.4 * s;
