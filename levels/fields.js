@@ -4,6 +4,7 @@
 export default [
   {
     name: 'Same Two Numbers',
+    solution: 'rdddrldrdruuuulurrrrrrrr',
     skill: 'S8 intro: a×b is a flat a-by-b field (A1)',
     beat: 'introduce',
     misconception: '"× is just a bigger +": 3+4 is one 7-block that bounces off the 4-tall gap; only 4×3 bridges it',
@@ -22,6 +23,7 @@ export default [
   },
   {
     name: 'Turn to Pass',
+    solution: 'ddrrrurddddddddr',
     skill: 'S7× intro: a turned field keeps its amount (A2)',
     beat: 'introduce',
     misconception: '"a turned field is a different amount": the 2×4 only fits the 2-wide gap turned to 4×2, and door 8 still opens',
@@ -45,6 +47,7 @@ export default [
   },
   {
     name: 'The Low Tunnel',
+    solution: 'dddrrrrrrrrrrrrrrr',
     skill: 'S8 twist: shape and amount are separate truths; area, not length (A3 + A5)',
     beat: 'twist',
     misconception: '"if it does not fit, it is the wrong number": the 3-tall 3×4 jams the 2-tall tunnel; 2×6 is also 12 and slides through. "longer-looking is more": the 1×6 strip spans 6 ticks of the x-axis and fits the tunnel, but it is a 6: door 12 reads 6 vs 12, and the strip slid down the low lane is eaten by the side door 6 (so it never plugs the tunnel)',
@@ -65,6 +68,7 @@ export default [
   },
   {
     name: 'Nothing Times',
+    solution: 'drrrurrdulldrurdddddd',
     skill: '×0 intro: 4×0 is the Void, 4+0 is 4 (A4)',
     beat: 'introduce',
     misconception: '"×0 leaves it alone, like +0": bringing the 4 to the 4×0 door shows 0 vs 4 on the scale',
@@ -84,6 +88,7 @@ export default [
   },
   {
     name: 'Weighing a Field',
+    solution: 'drrrurdddrrdddrrrr',
     skill: 'S8 + S11 echo: a lane reads a field’s value (A6)',
     beat: 'echo',
     misconception: '"a lane counts blocks (or cells)": the 2×2 field counts 4 in △, and at the crossing it counts 4 in ○ too',
@@ -105,6 +110,7 @@ export default [
   },
   {
     name: 'Three of Nine',
+    solution: 'rrdruudllluurrrrrrrrrrrr',
     skill: 'S9 intro: a÷b shares into b equal blocks (A7)',
     beat: 'introduce',
     misconception: '"÷ makes one smaller thing": 9÷3 bursts into three 3s and the road eats all three (a 6-hole trench and door 3); the 2 gives 4, 4 and a pebble, and the second 4 overhangs the 2 holes left',
@@ -122,6 +128,7 @@ export default [
   },
   {
     name: 'Keep the Pebble',
+    solution: 'rrurrrdulldrurddddldrrrr',
     skill: 'S9 practice: a remainder is a whole pebble (A9)',
     beat: 'practice',
     misconception: '"a leftover is a decimal, or trash": 7÷2 gives 3, 3 and one pebble; only the pebble plugs the hole',
@@ -140,6 +147,7 @@ export default [
   },
   {
     name: 'Small Shared by Big',
+    solution: 'rurrrrrrrdulldrurddddd',
     skill: 'S9 twist: 3÷6 resolves to six Voids and three pebbles (A10)',
     beat: 'twist',
     misconception: '"you cannot share a small number by a big one": 3÷6 works; swapping to 6÷3 gives two 3s that fit neither the pebble hole nor door 0',
@@ -158,6 +166,7 @@ export default [
   },
   {
     name: 'No Answer',
+    solution: 'luuururdrddlldlulurrrrrrrrrr',
     skill: '÷0 twist: n÷0 storms, 0÷n is n Voids (A11)',
     beat: 'twist',
     misconception: '"÷0 = 0": the column reads 4÷0, and pushing it storms (nothing changes, nothing is lost); the one 0 plugs one Void hole and leaves two empty, so share it: 0÷4 makes the four Voids the three holes and door 0 need',
@@ -175,6 +184,7 @@ export default [
   },
   {
     name: 'Ten in One',
+    solution: 'ddddrrrrdddddddd',
     skill: 'N1a: bundling keeps the amount and changes the shape (A12)',
     beat: 'introduce',
     misconception: '"bundling changes the amount" and "more pieces = more": the 2×5 rides the pad into one ten-rod that fits the 1-wide shaft; the bigger-looking 3×3 is only 9',
@@ -200,6 +210,7 @@ export default [
   },
   {
     name: 'Every Hole Names Its Kind',
+    solution: 'rrdlddruulurrrrrrrrrrr',
     skill: 'master: each hole reads one attribute (pebble flag, value, length, Void); work backward to the line (A13)',
     beat: 'master',
     misconception: '"the goal tells you the number to build": the road asks, in order, for a pebble, a 3 (door), three cubes (trench) and a Void; a wrong block at the front bounces off its hole (not-pebble, not-void, too-long)',

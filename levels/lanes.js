@@ -4,6 +4,7 @@ export default [
   // S11 Variable Lanes (P2.5). A lane's value is the total of the number blocks in it; gates are live.
   {
     name: 'The Box Counts',
+    solution: 'rdurrdurrrrrr',
     skill: 'S11 V1: a lane is a named total, △ = 5',
     beat: 'practice',
     misconception: '"△ is one block": there is no 5, so the box needs 3+2 or 4+1; 3+4 shows 7 vs 5, push one back out',
@@ -22,6 +23,7 @@ export default [
   },
   {
     name: 'Take It Out',
+    solution: 'rudrrrrrrrr',
     skill: 'S11 V2: △ − 2 = 4, solve by removing',
     beat: 'practice',
     misconception: '"to solve, add": the lane starts at 10 (8 vs 4); taking blocks out is the move',
@@ -39,6 +41,7 @@ export default [
   },
   {
     name: 'The Shrinking Side',
+    solution: 'rdurrdrddrrrr',
     skill: 'S11 V4: 10 − △ = 3',
     beat: 'twist',
     misconception: '"adding more makes it bigger": putting the 3 in shows 7 vs 3; more in △ makes 10 − △ smaller',
@@ -57,6 +60,7 @@ export default [
   },
   {
     name: 'Same to Both Sides',
+    solution: 'drrdrrurdddddd',
     skill: 'S11 V5: △ + 2 = ○ + 2, then □ = △ − 1',
     beat: 'combine',
     misconception: '"different symbols must be different numbers": △ is 1+4 on the sealed shelf and ○ must be 5 too; filling ○ with the room\'s 4+1 spends the 4 the door needs',
@@ -80,6 +84,7 @@ export default [
   },
   {
     name: 'Two Triangles Again',
+    solution: 'rdurrrrrrrrr',
     skill: 'S11 V3: △ + △ = 8 with an empty lane (same symbol, same value)',
     beat: 'practice',
     misconception: '"letter = object" (one block per △): a 4 for each △ makes △ = 8 and the scale reads 16 vs 8',
@@ -97,6 +102,7 @@ export default [
   },
   {
     name: 'Crossroads',
+    solution: 'rdurrrdlldlddrddddd',
     skill: 'S11 V6: △ + ○ = 10 and △ − ○ = 2, crossing lanes',
     beat: 'master',
     misconception: '"each equation can use its own value": △=4, ○=6 (4 pushed into the row) opens A, and B reads ? vs 2; △=8, ○=2 (the 2 on the crossing) opens A, and B reads 6 vs 2',

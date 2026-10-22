@@ -3,6 +3,7 @@
 export default [
   {
     name: 'Sandbox',
+    solution: 'ululllluurrrr',
     skill: 'free play (S1, S3, S4) with spare blocks; exit key by the door',
     beat: 'rest',
     misconception: 'none: no goal beyond play',

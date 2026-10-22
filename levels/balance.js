@@ -3,6 +3,7 @@
 export default [
   {
     name: 'The Answer Is Not Next',
+    solution: 'drdldrrrrrrrr',
     skill: 'S2 lock twist: 7 = □+3',
     beat: 'twist',
     misconception: '"= means the answer comes next": building 7+3=10 tips the scale (7 vs 13)',

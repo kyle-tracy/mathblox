@@ -3,6 +3,7 @@
 export default [
   {
     name: 'Nothing Changes',
+    solution: 'dddrrulurrrrrrurddldrrr',
     skill: 'S4 Void: a + 0 = a',
     beat: 'twist',
     misconception: '"adding always makes bigger" / "zero is nothing": the 5 is stuck behind its + in the nook; 0+5 frees it as a 5 that opens the 5-door, while 2+5 frees a 7 (7 vs 5)',

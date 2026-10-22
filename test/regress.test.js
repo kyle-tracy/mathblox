@@ -12,7 +12,7 @@ const play = (l, moves) => [...moves].reduce((s, m) => step(s, { u: 'up', d: 'do
 const WANT = { 'Two Triangles Again': { '△': 4 }, 'The Box Counts': { '△': 5 }, 'Take It Out': { '△': 6 },
   'The Shrinking Side': { '△': 7 }, 'Same to Both Sides': { '△': 5, '○': 5 }, Crossroads: { '△': 6, '○': 4 } };
 for (const [name, want] of Object.entries(WANT)) test(`"${name}" is won with the intended lane totals`, () => {
-  const path = solve(parseLevel(lvl(name)));
+  const path = [...lvl(name).solution].map(c => ({ u: 'up', d: 'down', l: 'left', r: 'right' })[c]);
   const before = play(lvl(name), path.slice(0, -1).map(d => d[0]).join(''));
   assert.deepEqual(laneValues(before), want);
 });

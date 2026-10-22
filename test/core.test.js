@@ -85,11 +85,14 @@ test('position never changes a block value', () => {
   assert.equal(r.state.objects[0].value, 5);
 });
 
+// Replays the stored intended solution so room size never matters; BFS only if a level has none.
+const D = { u: 'up', d: 'down', l: 'left', r: 'right' };
 for (const lvl of LEVELS) test(`level "${lvl.name}" is solvable`, () => {
-  const path = solve(parseLevel(lvl));
+  const path = lvl.solution ? [...lvl.solution].map(c => D[c]) : solve(parseLevel(lvl));
   assert.ok(path, 'no solution');
-  const types = run(lvl, path).events.map(e => e.type);
+  const r = run(lvl, path);
+  assert.ok(r.state.won, `stored solution "${lvl.solution}" does not win`);
+  const types = r.events.map(e => e.type);
   for (const t of ['open', ...(lvl.teaches ?? [])])
-    assert.ok(types.includes(t), `shortest solution skips "${t}" (cheese)`);
-  console.log(`  ${lvl.name}: shortest ${path.length} moves`);
+    assert.ok(types.includes(t), `solution skips "${t}" (cheese)`);
 });

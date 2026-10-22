@@ -3,6 +3,7 @@
 export default [
   {
     name: 'First Push',
+    solution: 'rrrrrrrrrrrrr',
     skill: 'S3 merge + S1 n fills n holes + S2 lock (onboarding free sample)',
     beat: 'introduce',
     misconception: 'none yet: 1-wide corridor; the 3 you make fills exactly 3 holes, the other 3 opens the 3-door',
