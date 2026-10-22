@@ -24,3 +24,5 @@ date | agent | task | est | actual | note
 2026-10-21 | Worldo | cut to 22 levels + fixes | - | 151k | over 100k; big multi-level pass
 2026-10-21 | Testo | replay-solution solvability | - | 20k |
 2026-10-21 | Axio | Craft prototype | - | ? |
+2026-10-21 | Qualito | Craft review | - | 22k |
+2026-10-21 | Axio | Craft prototype + round 2 | - | 103k+? | continued agent
