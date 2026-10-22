@@ -54,9 +54,30 @@ test('doze: when the fire runs out you wake at camp next morning, nothing lost',
   assert.equal(JSON.stringify(s.objects), objects);
 });
 
-test('bumps cost no time; burning −2 is refused, warmth never drops from a feed', () => {
-  const s = newCraft(), r = step(s, 'right');
-  const c = structuredClone(s); c.player = { x: 2, y: 3 }; c.facing = 'down'; c.bag = [{ id: 99, kind: 'num', value: -2 }];
+test('bumps cost no time; 0 and −2 never feed the fire', () => {
+  const s = newCraft(); s.player = { x: 3, y: 4 }; s.facing = 'left';
+  const r = step(s, 'left'); // walk into the fire with nothing to push
+  assert.equal(r.events[0].type, 'bounce');
+  assert.equal(r.state.t, 0);
+  const c = structuredClone(s); c.player = { x: 2, y: 3 }; c.facing = 'down';
+  c.bag = [{ id: 99, kind: 'num', value: -2 }];
   assert.equal(step(c, 'grab').events[0].reason, 'not-whole');
-  assert.ok(r.state.t <= 1);
+  c.bag = [{ id: 99, kind: 'num', value: 0 }];
+  assert.equal(step(c, 'grab').events[0].reason, 'zero-fill');
+});
+
+test('pits fill only across: a 5 dropped down a filled bridge column bounces', () => {
+  let s = newCraft();
+  s.player = { x: 9, y: 6 }; s.facing = 'right'; s.objects = s.objects.filter(o => !(o.x === 9 && o.y === 6));
+  s.bag = [{ id: 98, kind: 'num', value: 3 }];
+  s = step(s, 'grab').state; // bridge row 6
+  s.player = { x: 10, y: 6 }; s.facing = 'up'; s.bag = [{ id: 99, kind: 'num', value: 5 }];
+  const r = step(s, 'grab');
+  assert.equal(r.events[0].type, 'bounce');
+  assert.deepEqual(r.state.tiles, s.tiles);
+  s.tiles[7] = s.tiles[7].slice(0, 10) + '...' + s.tiles[7].slice(13); // a second bridge on row 7
+  s.objects.push({ id: 97, x: 10, y: 6, kind: 'num', value: 1 }); s.player = { x: 10, y: 7 };
+  const p = step(s, 'up'); // the 1 would drop into (10,5), down a column
+  assert.equal(p.events[0].type, 'bounce', 'pushing up into the pit column bounces too');
+  assert.deepEqual(p.state.tiles, s.tiles);
 });

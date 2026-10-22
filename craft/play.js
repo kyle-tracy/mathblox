@@ -4,7 +4,7 @@ import { cv, g, CELL, INK, WHITE, C, rr, circle, text } from '../render/look.js'
 import { piece, opBlock } from '../render/draw.js';
 import { tone, pitch, boing, muted, setMute, muteBtn } from '../render/audio.js';
 import { isNat } from '../core/value.js';
-import { newCraft, step, pits, isNight, dayOf, DAY, NIGHT, BAG } from '../core/craft.js';
+import { newCraft, step, pits, isNight, dayOf, movesToSwitch, BAG } from '../core/craft.js';
 
 const VW = 15, VH = 9, PAD = 40, HUD = 70; // view in cells; margins for the axes and the HUD
 let s = newCraft(), history = [], msg = '', msgT = 0;
@@ -14,7 +14,7 @@ const say = m => { msg = m; msgT = performance.now(); };
 say('Push blocks together to do math. Feed the fire at 0. Space picks up / puts down.');
 
 const SAY = { 'bag-full': `Your bag holds ${BAG}.`, 'not-whole': 'Only whole numbers burn and fill pits.', 'too-long': 'Too big for that pit.',
-  'zero-fill': '0 fills nothing.', socket: 'The fire wants a number.', empty: 'Nothing to put down.', storm: '÷ 0: a storm! Nothing happens.' };
+  'zero-fill': '0 is nothing: it can\'t burn or fill.', socket: 'The fire wants a number.', empty: 'Nothing to put down.', storm: '÷ 0: a storm! Nothing happens.' };
 function act(a) {
   const r = step(s, a);
   if (r.state !== s && r.events[0]?.type !== 'bounce') { history.push(s); s = r.state; }
@@ -77,7 +77,7 @@ function draw(now) {
   for (let x = cam; x < cam + VW; x++) text(x - s.camp.x, X(x) + CELL / 2, HUD + VH * CELL + 20, 14, C.axis, x === s.camp.x);
   for (let y = 0; y < VH; y++) text(s.camp.y - y, PAD / 2, Y(y) + CELL / 2, 14, C.axis, y === s.camp.y);
   // HUD: day, warmth, bag, message.
-  const night = isNight(s.t), left = night ? DAY - s.t % DAY : DAY - NIGHT - s.t % DAY;
+  const night = isNight(s.t), left = movesToSwitch(s.t);
   text(`${night ? '☾ Night' : '☀ Day'} ${dayOf(s.t)}`, 70, 20, 18, WHITE);
   text(night ? `${left} moves to dawn` : `${left} moves to dusk`, 70, 46, 13, '#c9d6ea', false);
   text(`🔥 ${s.fire}`, 190, 30, 22, '#ffd166');

@@ -9,6 +9,7 @@ export const DAY = 48, NIGHT = 16, BAG = 2, START_HEAT = 3; // moves per day; th
 const burnEvery = t => (isNight(t) ? 4 : 8); // the fire eats 1 warmth every 8 moves, every 4 at night
 export const isNight = t => t % DAY >= DAY - NIGHT;
 export const dayOf = t => Math.floor(t / DAY) + 1;
+export const movesToSwitch = t => (isNight(t) ? DAY : DAY - NIGHT) - (t % DAY); // until dawn or dusk
 
 // Hand-authored strip, about 3 screens wide. Camp (the fire) is the origin; pits are trench runs ('o'):
 // a run of n cells is a −n pit, a block of n fills it to 0, a smaller block leaves the rest.
@@ -48,7 +49,8 @@ const isFire = (s, x, y) => x === s.camp.x && y === s.camp.y;
 // Feed a block to the fire: warmth only grows (a wrong value is still warmth, never a penalty).
 function feed(state, s, o, events) {
   if (o.kind !== 'num') return bounce(state, 'socket', { ...s.camp });
-  if (!isNat(o.value) || o.value === 0) return bounce(state, 'not-whole', { ...s.camp }); // −2 or 7/2 can't burn
+  if (o.value === 0) return bounce(state, 'zero-fill', { ...s.camp });
+  if (!isNat(o.value)) return bounce(state, 'not-whole', { ...s.camp }); // −2 or 7/2 can't burn
   s.fire = add(s.fire, o.value);
   events.push({ type: 'feed', at: { ...s.camp }, value: o.value, heat: s.fire });
   return null;
@@ -63,6 +65,8 @@ export function step(state, action) {
 
 function push(state, dir) {
   const r = worldStep(state, dir);
+  // Pits run across the strip (pits() labels rows), so they fill only across; a vertical fill would mis-add.
+  if (dir === 'up' || dir === 'down') { const f = r.events.find(e => e.type === 'fill'); if (f) return bounce(state, 'wall', f.at); }
   if (r.state !== state) { r.state.facing = dir; return r; }
   const b = r.events[0], [dx, dy] = DIRS[dir];
   // A block pushed into the fire: the engine says 'wall' there (calcs in the chain already went first).
@@ -93,7 +97,7 @@ function grab(state) {
   const item = s.bag.at(-1);
   if (!item) return bounce(state, 'empty', { x, y });
   if (isFire(s, x, y)) { const no = feed(state, s, item, events); if (no) return no; }
-  else if (tileAt(s, x, y) === 'o') { const no = fillTrench(state, s, [item], x, y, dx, dy, s.facing, events); if (no) return no; }
+  else if (tileAt(s, x, y) === 'o' && dy === 0) { const no = fillTrench(state, s, [item], x, y, dx, dy, s.facing, events); if (no) return no; }
   else if (tileAt(s, x, y) === '.' && (!item.shape || roomFor(s, item, x, y))) {
     s.objects.push({ ...item, x, y, id: Math.max(-1, ...s.objects.map(q => q.id)) + 1 });
     events.push({ type: 'place', at: { x, y } });
