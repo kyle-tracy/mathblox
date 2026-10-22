@@ -54,15 +54,13 @@ export const tick = a => add(a, 1); // successor: Peano's first axiom, the toddl
 // Door locks. A number n means "□ = n"; a string is an equation like "7 = □+3" or "△ + 2 = 7".
 // □ is the block you bring. Lane shapes (△ ○ ◇ …) are variables: each is the total of its lane.
 // A door with no □ is a gate: it opens itself the moment its equation is true.
-// Same-precedence ops read left to right; + − and × never share a side (÷ in doors is deferred).
+// Calculator precedence: × before + −, then left to right (÷ in doors is deferred).
 export function checkDoor(spec, laneSyms = []) {
   if (typeof spec === 'number') return;
   const syms = [...spec.replace(/[\d+\-×=\s]/g, '')];
   const holes = syms.filter(c => c === '□').length;
   if (spec.split('=').length !== 2 || holes > 1 || !syms.length || syms.some(c => c !== '□' && !laneSyms.includes(c)))
     throw new Error(`bad door "${spec}": need one "=", at most one "□", known lane symbols, digits, + − ×`);
-  if (spec.split('=').some(side => /[+\-]/.test(side) && side.includes('×')))
-    throw new Error(`bad door "${spec}": mixed + − and × on one side (precedence is P4)`);
 }
 
 export const isGate = spec => typeof spec === 'string' && !spec.includes('□');
@@ -73,13 +71,13 @@ export function sides(spec, env) {
   if (typeof spec === 'number') return [env['□'], spec];
   return spec.split('=').map(side => {
     const t = side.replace(/\s/g, '').match(/\d+|[+\-×]|./gu), num = x => (/\d/.test(x) ? +x : env[x]);
-    let acc = num(t[0]);
-    for (let i = 1; i < t.length; i += 2) {
-      const r = apply(t[i], acc, num(t[i + 1]));
-      if (!r.ok) return NaN; // that side can't be built in this world yet
-      acc = r.value;
-    }
-    return acc;
+    // Calculator precedence, as in chains: fold × first, then + − left to right.
+    const fold = (xs, ops) => { const out = [xs[0]]; for (let i = 1; i < xs.length; i += 2) {
+      if (!ops.includes(xs[i])) { out.push(xs[i], xs[i + 1]); continue; }
+      const r = apply(xs[i], out.pop(), xs[i + 1]); if (!r.ok) return null; out.push(r.value);
+    } return out; };
+    const v = fold(fold(t.map((x, i) => (i % 2 ? x : num(x))), '×') ?? [NaN], '+-');
+    return v ? v[0] : NaN;
   });
 }
 

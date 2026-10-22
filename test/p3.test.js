@@ -99,7 +99,9 @@ test('doors read ×; mixed precedence on one side is refused', () => {
   assert.ok(accepts('6×□ = 6', 1));
   assert.ok(accepts('□ = 5×0', 0));
   assert.ok(accepts('△ × 3 = 12', { '△': 4 }));
-  assert.throws(() => checkDoor('2+3×□ = 5'), /mixed/);
+  checkDoor('2+3×□ = 14');
+  assert.ok(accepts('2+3×□ = 14', 4), 'doors use calculator precedence: 2 + 3 × 4 = 14');
+  assert.ok(accepts('□ - 2×3 = 1', 7));
 });
 
 test('[a][×][b] builds an a-rows-of-b platform next to the player, in reading order both ways', () => {
