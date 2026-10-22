@@ -36,6 +36,7 @@ test('land is a number: −3 + 3 = 0, −3 + 2 = −1, −3 + 5 = 2 (a hill bloc
   const five = put(5);
   assert.equal(heightAt(five.state, 10, 6), 0);
   assert.equal(at(five.state, 10, 6).value, 2, 'the 2 left over stands as a hill');
+  assert.equal(at(five.state, 10, 6).land, true, 'a hill carries the land attribute, so it looks unlike a carried 2');
   assert.equal(heightAt(put(-2).state, 10, 6), -5, 'a negative block digs deeper');
   assert.equal(put(0).events[0].reason, 'zero-fill');
 });

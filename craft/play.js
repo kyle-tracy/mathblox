@@ -116,7 +116,7 @@ function draw(now) {
     if (o.mimic) continue; // drawn over the night shade
     const ox = X(o.x) + wob(o.x, o.y), oy = Y(o.y);
     if (o.kind === 'op') opBlock(ox, oy, o.op, 1);
-    else { if (!o.shape && parts(o.value)[0] > 0) { g.fillStyle = 'rgba(122,92,67,.45)'; g.beginPath(); g.ellipse(ox + CELL / 2, oy + CELL - 6, 29, 7, 0, 0, 7); g.fill(); } // a + block stands up from the land like a hill
+    else { if (o.land) { g.fillStyle = 'rgba(122,92,67,.45)'; g.beginPath(); g.ellipse(ox + CELL / 2, oy + CELL - 6, 29, 7, 0, 0, 7); g.fill(); } // only land (an overfill hill) stands on a mound; a carried + block does not
       piece(ox, oy, o); }
   }
   // Player, with a nose toward the facing direction (what Space picks up).

@@ -24,7 +24,7 @@ Read `docs/ceo.md` first: it says who you are and how you delegate. Then read th
 - **The studio is paused.** No agents are running.
 
 ## Next (when the commissioner says go)
-1. Craft: hills and positive blocks look the same. Axio adds a terrain attribute, then Arto draws it.
+1. ~~Hills look like blocks~~: done. A `land` attribute now puts only overfill hills on a mound. Have Qualito check it on screen at the next playtest.
 2. Commissioner playtest of `?craft` and the 22 levels. Their feedback outranks everything.
 3. The next Craft beats, from `docs/craft-loop.md`:
    - the Mirror Lands (x<0, anti-blocks)
@@ -36,5 +36,5 @@ Read `docs/ceo.md` first: it says who you are and how you delegate. Then read th
 5. First Visio batch (it is new, so its ideas.md is empty): 6–10 ideas, with new math beyond × ÷ and Craft systems. Qualito triages them.
 
 ## Owners for Next
-1 → axio then arto · 2 → commissioner, then qualito triage · 3 → psycho picks, axio/worldo/arto build, qualito judges · 4 → worldo decides with axio · 5 → visio, then qualito.
+1 → qualito (visual check) · 2 → commissioner, then qualito triage · 3 → psycho picks, axio/worldo/arto build, qualito judges · 4 → worldo decides with axio · 5 → visio, then qualito.
 How to work: see `docs/ceo.md` (the loop, the brief template, the gotchas, the wrap-up).

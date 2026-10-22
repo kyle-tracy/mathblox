@@ -65,7 +65,7 @@ function sink(state, s, o, x, y, events) {
   const k = `${x},${y}`, h = add(s.ground[k], o.value); // land is a number: −3 + 5 = 2, −3 + (−2) = −5
   if (sign(h) < 0) s.ground[k] = h;
   else { delete s.ground[k]; setTile(s, x, y, '.'); }
-  if (sign(h) > 0) s.objects.push({ id: nextId(s), x, y, kind: 'num', value: h }); // the hill is the leftover block
+  if (sign(h) > 0) s.objects.push({ id: nextId(s), x, y, kind: 'num', value: h, land: true }); // the hill is the leftover block; land is its attribute, so it stays land wherever it goes
   events.push({ type: 'land', at: { x, y }, value: o.value, height: h });
   return null;
 }
