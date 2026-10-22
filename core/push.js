@@ -55,7 +55,7 @@ export function resolveChain(state, s, chain, dx, dy) {
   const all = made.flatMap(cells);
   if (!free(s, all)) return bounce(state, 'no-room', { x: rr.x, y: rr.y }, { ghost: all });
   s.objects.push(...made);
-  return { state: s, events: [{ type: r.event, at: { x: made[0].x, y: made[0].y }, value: r.value, operands, ...(made.length > 1 || made[0].shape ? { ids: made.map(o => o.id) } : {}) }] };
+  return { state: s, events: [{ type: r.event, at: { x: made[0].x, y: made[0].y }, value: r.value, operands, ids: made.map(o => o.id) }] };
 }
 
 // The last block of the chain is the key; returns a bounce, or null once the = lock consumed it.
