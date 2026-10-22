@@ -173,8 +173,15 @@ test('[a][÷][b] shares along the push line; small÷big resolves; ÷0 storms; 0�
   assert.deepEqual(v('#@0÷3..#')[1], ['0', '0', '0']);
   assert.deepEqual(v('#@6÷1..#')[1], ['6']);
   assert.deepEqual(nums(v('#@6÷1..#')[0].state).map(o => [o.id, o.x]), [[2, 2]], '6÷1 lands in the first operand cell, keeping the divisor id');
-  assert.equal(v('#@2×3+1..#')[0].events[0].reason, 'mixed');
-  assert.equal(v('#..2+3×1@#', 'left')[0].events[0].reason, 'mixed');
+  const calc = (map, d, div) => { const w = '#'.repeat(map.length), f = '#' + '.'.repeat(map.length - 2) + '#';
+    let st = parseLevel({ name: 't', div, map: [w, map, f, f, f, w] }); for (let i = 0; i < 12; i++) st = step(st, d).state; return nums(st).map(o => o.value); };
+  assert.deepEqual(calc('#@2+3×4.....#', 'right'), [14], 'precedence: 2 + 3 × 4 = 14');
+  assert.deepEqual(calc('#@2×3+1.....#', 'right'), [7]);
+  assert.deepEqual(calc('#@8-2×3.....#', 'right'), [2]);
+  assert.deepEqual(calc('#@8÷2×2.....#', 'right', 'fraction'), [8], '÷ and × left to right');
+  let col = parseLevel({ name: 't', map: ['######', '#....#', '#....#', '#2...#', '#+...#', '#1...#', '#×...#', '#4...#', '#@...#', '######'] });
+  for (let i = 0; i < 8; i++) col = step(col, 'up').state;
+  assert.deepEqual(nums(col).map(o => o.value), [6], 'pushed up: 2 + 1 × 4 = 6, not 12');
 });
 
 test('a bundle pad turns a value-10 block or platform into a ten-rod; a rod socket takes only a rod', () => {

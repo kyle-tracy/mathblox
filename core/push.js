@@ -20,6 +20,7 @@ export const bounce = (state, reason, at, extra) => ({ state, events: [{ type: '
 
 // Helpers below mutate the clone `s` and the `chain`; every bounce returns the untouched `state`.
 // [a][op][b] pushed together always calculates, operands in READING order (left->right, top->bottom).
+// A longer line resolves one triple per push, chosen by standard precedence (below).
 // The result grows from where the operands were: it fills
 // their cells from the reading-first operand on, and any extra cells (÷ pebbles, Voids, wide
 // platforms) extend along the push line away from the player. move() then steps the player in if free.
@@ -28,16 +29,18 @@ export function resolveChain(state, s, chain, dx, dy) {
   while (chain[k]?.kind === (k % 2 ? 'op' : 'num')) k++;
   if (k % 2 === 0) k--;
   if (k < 3) return null;
-  // Only − and ÷ need order: there the reading-first triple resolves first (pushed left/up, the far end).
-  // A pure + or × line is commutative and associative, so the triple nearest the player goes first.
-  const rev = dx < 0 || dy < 0, ordered = chain.slice(0, k).some(o => '-÷'.includes(o.op)), start = rev && ordered ? k - 3 : 0;
-  const [p, op, q] = chain.slice(start, start + 3), before = rev && chain[start + 3];
-  // An operator just before the triple in reading order must not change its meaning: 8 − 1 − 1 never
-  // becomes 8 − (1 − 1). Only a commutative triple after + or its own op is safe; otherwise the line just slides.
-  if (before?.kind === 'op' && !('+×'.includes(op.op) && (before.op === '+' || before.op === op.op))) return null;
-  const [l, rr] = rev ? [q, p] : [p, q];
-  const ops = chain.slice(0, k).filter(o => o.kind === 'op').map(o => '+-'.includes(o.op));
-  if (ops.includes(true) && ops.includes(false)) return bounce(state, 'mixed', { x: rr.x, y: rr.y }); // precedence is P4
+  // Scientific-calculator precedence: × ÷ before + −. Within that level, − or ÷ needs reading order
+  // (reading-first triple); a pure + or × level is commutative, so the triple nearest the player goes first.
+  const rev = dx < 0 || dy < 0, line = rev ? chain.slice(0, k).reverse() : chain.slice(0, k); // reading order
+  const prec = o => (o?.kind === 'op' ? ('×÷'.includes(o.op) ? 2 : 1) : 0);
+  const top = Math.max(...line.map(prec)), cand = line.flatMap((o, j) => (prec(o) === top ? [j] : []));
+  const j = cand.some(i => '-÷'.includes(line[i].op)) || !rev ? cand[0] : cand.at(-1);
+  const [l, op, rr] = line.slice(j - 1, j + 2);
+  // Operators just outside the triple (in reading order) must not change its meaning: 8 − 1 − 1 never becomes
+  // 8 − (1 − 1), and 2 + 3 × (gap) 4 never becomes (2 + 3) × 4. If they would, the line just slides.
+  const pb = j > 1 ? line[j - 2] : rev && chain[k], pa = j + 2 < line.length ? line[j + 2] : !rev && chain[k];
+  if (prec(pb) === prec(op) && !('+×'.includes(op.op) && pb.op === op.op) || prec(pb) > prec(op)) return null;
+  if (prec(pa) > prec(op)) return null;
   const r = apply(op.op, l, rr, s.div);
   if (!r.ok) return bounce(state, r.reason, { x: rr.x, y: rr.y }, { missing: r.missing });
   const operands = [l.value, rr.value];
