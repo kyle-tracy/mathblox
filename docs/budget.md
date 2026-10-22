@@ -22,3 +22,5 @@ date | agent | task | est | actual | note
 2026-10-21 | Psycho | craft-loop.md | - | 20k |
 2026-10-21 | Axio | calculator engine + precedence + doors | - | 111k cumulative | 3 follow-ups
 2026-10-21 | Worldo | cut to 22 levels + fixes | - | 151k | over 100k; big multi-level pass
+2026-10-21 | Testo | replay-solution solvability | - | 20k |
+2026-10-21 | Axio | Craft prototype | - | ? |
