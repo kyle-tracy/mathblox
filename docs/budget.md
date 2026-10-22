@@ -27,3 +27,5 @@ date | agent | task | est | actual | note
 2026-10-21 | Qualito | Craft review | - | 22k |
 2026-10-21 | Axio | Craft prototype + round 2 | - | 131k cumulative | continued agent
 2026-10-21 | Arto | negatives/fractions/Craft render | - | 120k |
+2026-10-22 | Qualito | hill visual check | - | 17k | verdict FIX → Arto
+2026-10-22 | Visio | batch 1 ideas (9) | - | 31k | no shell; CEO committed
