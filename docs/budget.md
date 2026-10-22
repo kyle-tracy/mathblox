@@ -25,4 +25,5 @@ date | agent | task | est | actual | note
 2026-10-21 | Testo | replay-solution solvability | - | 20k |
 2026-10-21 | Axio | Craft prototype | - | ? |
 2026-10-21 | Qualito | Craft review | - | 22k |
-2026-10-21 | Axio | Craft prototype + round 2 | - | 103k+? | continued agent
+2026-10-21 | Axio | Craft prototype + round 2 | - | 131k cumulative | continued agent
+2026-10-21 | Arto | negatives/fractions/Craft render | - | ? |

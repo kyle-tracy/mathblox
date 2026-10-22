@@ -54,3 +54,4 @@ Worldo batch #2 has been committed: L4, L5, L9, L16, L17, L18 and L24 are fixed.
 - Never `pkill -f`. Kill the server only by `$SRV`.
 - **Token and CPU cost:** the exhaustive dead-end checks (up to 3M states, 10 s to 30 min each) are what burn tokens and CPU. Testo's re-run 2 used about 132k tokens over 1 h 44 m, mostly re-running and waiting on these. From now on, run `SLOW=1` once per gate on the changed levels only. Agents use `timeout` and must not leave background solver scripts running after they report.
 - **Commissioner note for Testo:** we only need proof that a level is beatable, not the best solution. Use a first-win search such as DFS or best-first for solvability and for first-push checks (each push just needs any win). Keep exhaustive search for proving dead ends. See `.claude/agents/testo.md`.
+- Open (paused): hills vs. positive blocks look identical in Craft — needs a terrain attribute from Axio
