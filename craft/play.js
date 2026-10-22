@@ -4,7 +4,7 @@ import { cv, g, CELL, INK, WHITE, C, rr, circle, text } from '../render/look.js'
 import { piece, opBlock } from '../render/draw.js';
 import { tone, pitch, boing, muted, setMute, muteBtn } from '../render/audio.js';
 import { isNat } from '../core/value.js';
-import { newCraft, step, pits, isNight, dayOf, movesToSwitch, BAG } from '../core/craft.js';
+import { newCraft, step, heightAt, bagSize, isNight, dayOf, movesToSwitch } from '../core/craft.js';
 
 const VW = 15, VH = 9, PAD = 40, HUD = 70; // view in cells; margins for the axes and the HUD
 let s = newCraft(), history = [], msg = '', msgT = 0;
@@ -13,7 +13,7 @@ document.getElementById('name').textContent = 'MathBlox Craft: keep the fire war
 const say = m => { msg = m; msgT = performance.now(); };
 say('Push blocks together to do math. Feed the fire at 0. Space picks up / puts down.');
 
-const SAY = { 'bag-full': `Your bag holds ${BAG}.`, 'not-whole': 'Only whole numbers burn and fill pits.', 'too-long': 'Too big for that pit.',
+const SAY = { 'bag-full': 'Your bag is full.', 'not-whole': 'Only whole numbers burn.',
   'zero-fill': '0 is nothing: it can\'t burn or fill.', socket: 'The fire wants a number.', empty: 'Nothing to put down.', storm: '÷ 0: a storm! Nothing happens.' };
 function act(a) {
   const r = step(s, a);
@@ -24,11 +24,14 @@ function act(a) {
     if (e.type === 'push') tone(110, 0.06, 'sine');
     if (e.type === 'merge' || e.type === 'carve' || e.type === 'multiply' || e.type === 'share') tone(pitch(isNat(e.value) ? e.value : 0), 0.18, 'triangle');
     if (e.type === 'feed') { for (let i = 0; i < e.value; i++) tone(pitch(i * 2), 0.05, 'sawtooth', -40, i * 0.03); say(`The fire eats ${e.value}. Warmth ${e.heat}!`); }
-    if (e.type === 'fill') { tone(pitch(e.value), 0.2, 'sine'); say(e.left ? `Filled ${e.value}. The pit still needs ${e.left}.` : 'The pit is flat ground now!'); }
+    if (e.type === 'land') { tone(pitch(Math.max(0, 6 + (isNat(e.height) ? e.height : -3))), 0.2, 'sine'); say(isNat(e.height) ? (e.height ? `Too much! A ${e.height} is left over as a hill.` : 'Flat ground! You can cross.') : `Still a pit: ${String(e.height).replace('-', '−')}.`); }
+    if (e.type === 'mimic') say(`A shy "?" peeks out past the river. It wears ${e.value}.`);
+    if (e.type === 'tame') { [0, 4, 7].forEach((n, i) => tone(pitch(n + 12), 0.15, 'triangle', 0, i * 0.1)); say('Tamed! It follows you and carries for you.'); }
+    if (e.type === 'hop') { tone(500, 0.15, 'sine', 300); say(`Not ${e.value}... it hops away.`); }
     if (e.type === 'pick') tone(pitch(8), 0.08, 'sine', 100);
     if (e.type === 'place') tone(pitch(4), 0.08, 'sine', -100);
     if (e.type === 'dusk') say('Night falls. The fire burns faster.');
-    if (e.type === 'dawn') say('Morning!');
+    if (e.type === 'dawn') say(e.ids.length ? 'Morning! Rocks grew back.' : 'Morning!');
     if (e.type === 'doze') { say('The fire went out. You dozed off and woke at camp. Nothing is lost.'); tone(300, 0.6, 'sine', -150); }
   }
 }
@@ -41,11 +44,11 @@ function draw(now) {
   g.fillStyle = '#2b2d42'; g.fillRect(0, 0, cv.width, cv.height);
   for (let y = 0; y < VH; y++) for (let x = cam; x < cam + VW; x++) {
     const t = s.tiles[y][x];
-    g.fillStyle = t === '#' ? C.wall : t === 'o' ? C.trench : C.floor; g.fillRect(X(x), Y(y), CELL, CELL);
+    const pit = heightAt(s, x, y) !== 0;
+    g.fillStyle = pit ? C.trench : t === '#' ? C.wall : C.floor; g.fillRect(X(x), Y(y), CELL, CELL);
     g.strokeStyle = C.grid; g.lineWidth = 1; g.strokeRect(X(x) + 0.5, Y(y) + 0.5, CELL, CELL);
-    if (t === 'o') { g.fillStyle = C.trenchDeep; g.fillRect(X(x), Y(y), CELL, 6); }
+    if (pit) { g.fillStyle = C.trenchDeep; g.fillRect(X(x), Y(y), CELL, 6); text(String(heightAt(s, x, y)).replace('-', '−'), X(x) + CELL / 2, Y(y) + CELL / 2, 18, WHITE); }
   }
-  for (const p of pits(s)) if (p.x >= cam - 3 && p.x < cam + VW) text(String(p.height).replace('-', '−'), X(p.x) + CELL / 2, Y(p.y) + CELL / 2, 18, WHITE);
   // Axes: camp is the origin (a frame of reference; labels count cells from camp, y up).
   g.strokeStyle = C.axis; g.lineWidth = 2; g.setLineDash([6, 4]);
   g.beginPath(); g.moveTo(PAD, Y(s.camp.y) + CELL / 2); g.lineTo(cv.width, Y(s.camp.y) + CELL / 2);
@@ -58,6 +61,7 @@ function draw(now) {
   g.fillStyle = '#ff9f1c'; circle(fx, fy + 8 - h / 3, h * 0.8); g.fillStyle = '#ffd166'; circle(fx, fy + 6, h * 0.5);
   text(s.fire, fx, fy + 6, 18, INK);
   for (const o of s.objects) if (o.x >= cam - 3 && o.x < cam + VW) {
+    if (o.mimic) continue; // drawn over the night shade
     if (o.kind === 'op') opBlock(X(o.x), Y(o.y), o.op, 1);
     else if (isNat(o.value) && o.value <= 20) piece(X(o.x), Y(o.y), o);
     else { rr(X(o.x) + 5, Y(o.y) + 5, CELL - 10, CELL - 10, 10, '#c9d6ea'); text(String(o.value).replace('-', '−'), X(o.x) + CELL / 2, Y(o.y) + CELL / 2, 18, INK); }
@@ -73,6 +77,13 @@ function draw(now) {
     grad.addColorStop(0, 'rgba(10,14,40,0)'); grad.addColorStop(1, 'rgba(10,14,40,.6)');
     g.fillStyle = grad; g.fillRect(PAD, HUD, VW * CELL, VH * CELL);
   }
+  // The shy creature (a "?" wearing its equation) and, once tamed, your helper.
+  for (const o of s.objects) if (o.mimic && o.x >= cam && o.x < cam + VW) {
+    const cx = X(o.x) + CELL / 2, cy = Y(o.y) + CELL / 2;
+    g.fillStyle = '#8e7dff'; circle(cx, cy + 4, 22); text('?', cx, cy + 4, 24, WHITE);
+    rr(cx - 34, cy - 40, 68, 22, 8, C.sign); text(o.value, cx, cy - 29, 14, INK);
+  }
+  if (s.pet) { const cx = X(s.pet.x) + CELL / 2, cy = Y(s.pet.y) + CELL / 2; g.fillStyle = '#8e7dff'; circle(cx, cy + 8, 16); g.fillStyle = WHITE; circle(cx - 6, cy + 4, 4); circle(cx + 6, cy + 4, 4); }
   g.fillStyle = '#f4efe4'; g.fillRect(0, HUD + VH * CELL, cv.width, PAD); g.fillRect(0, HUD, PAD, VH * CELL);
   for (let x = cam; x < cam + VW; x++) text(x - s.camp.x, X(x) + CELL / 2, HUD + VH * CELL + 20, 14, C.axis, x === s.camp.x);
   for (let y = 0; y < VH; y++) text(s.camp.y - y, PAD / 2, Y(y) + CELL / 2, 14, C.axis, y === s.camp.y);
@@ -82,7 +93,7 @@ function draw(now) {
   text(night ? `${left} moves to dawn` : `${left} moves to dusk`, 70, 46, 13, '#c9d6ea', false);
   text(`🔥 ${s.fire}`, 190, 30, 22, '#ffd166');
   text('bag', 270, 30, 14, '#c9d6ea', false);
-  for (let i = 0; i < BAG; i++) {
+  for (let i = 0; i < bagSize(s); i++) {
     const bx = 290 + i * 54, o = s.bag[i];
     g.strokeStyle = '#c9d6ea'; g.lineWidth = 2; g.strokeRect(bx, 8, 50, 50);
     if (o) { g.save(); g.translate(bx - 0.6, 7.4); g.scale(0.8, 0.8); if (o.kind === 'op') opBlock(0, 0, o.op, 1); else if (isNat(o.value) && o.value <= 20 && !o.shape) piece(0, 0, o); else text(String(o.value).replace('-', '−'), CELL / 2, CELL / 2, 20, WHITE); g.restore(); }

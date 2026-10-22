@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { newCraft, step, pits, heightAt, DAY, START_HEAT } from '../core/craft.js';
+import { newCraft, step, heightAt, bagSize, DAY, NIGHT, START_HEAT } from '../core/craft.js';
 
 const run = (s, acts) => acts.reduce((st, a) => step(st, a).state, s);
 const at = (s, x, y) => s.objects.find(o => o.x === x && o.y === y);
@@ -23,20 +23,64 @@ test('merge then feed: 2+3 burns as 5 (the puzzle engine does the math)', () => 
   assert.equal(r.state.fire, s.fire + 5 - (r.state.t % 8 === 0 ? 1 : 0));
 });
 
-test('pit math: a −3 run takes 3 to become 0; 2 leaves −1; 4 bounces', () => {
+test('land is a number: −3 + 3 = 0, −3 + 2 = −1, −3 + 5 = 2 (a hill block), −3 + (−2) = −5', () => {
   const s = newCraft();
   assert.equal(heightAt(s, 10, 6), -3);
-  const put = (v, st = s, x = 9) => { const c = structuredClone(st); c.player = { x, y: 6 }; c.facing = 'right'; c.objects = c.objects.filter(o => !(o.x === 9 && o.y === 6)); c.bag = [{ id: 99, kind: 'num', value: v }]; return step(c, 'grab'); };
+  const put = (v, st = s) => { const c = structuredClone(st); c.player = { x: 9, y: 6 }; c.facing = 'right'; c.objects = c.objects.filter(o => !(o.x === 9 && o.y === 6)); c.bag = [{ id: 99, kind: 'num', value: v }]; return step(c, 'grab'); };
   const three = put(3);
-  assert.equal(three.events[0].type, 'fill');
   assert.equal(heightAt(three.state, 10, 6), 0);
-  assert.equal(three.state.tiles[6].slice(10, 13), '...');
+  assert.equal(three.state.tiles[6][10], '.');
   const two = put(2);
-  assert.equal(heightAt(two.state, 12, 6), -1);
-  assert.equal(put(1, two.state, 11).state.tiles[6][12], '.', '−1 + 1 = 0');
-  assert.equal(put(4).events[0].reason, 'too-long');
-  assert.equal(put(-2).events[0].reason, 'not-whole');
-  assert.equal(pits(s).filter(p => p.y === 6).map(p => p.height).join(), '-3,-5,-2');
+  assert.equal(heightAt(two.state, 10, 6), -1);
+  assert.equal(heightAt(put(1, two.state).state, 10, 6), 0, '−1 + 1 = 0');
+  const five = put(5);
+  assert.equal(heightAt(five.state, 10, 6), 0);
+  assert.equal(at(five.state, 10, 6).value, 2, 'the 2 left over stands as a hill');
+  assert.equal(heightAt(put(-2).state, 10, 6), -5, 'a negative block digs deeper');
+  assert.equal(put(0).events[0].reason, 'zero-fill');
+});
+
+test('pits fill from any side: push a 3 down into a −3', () => {
+  const s = newCraft();
+  s.tiles[5] = s.tiles[5].slice(0, 10) + '.' + s.tiles[5].slice(11); delete s.ground['10,5']; // stand-in bridge cell
+  s.objects.push({ id: 97, x: 10, y: 5, kind: 'num', value: 3 }); s.player = { x: 10, y: 4 }; delete s.ground['10,4']; s.tiles[4] = s.tiles[4].slice(0, 10) + '.' + s.tiles[4].slice(11);
+  const r = step(s, 'down');
+  assert.equal(heightAt(r.state, 10, 6), 0);
+  assert.equal(r.state.tiles[6][10], '.');
+});
+
+test('rocks regrow at dawn where their cell is empty', () => {
+  let s = newCraft();
+  s.objects = s.objects.filter(o => !(o.x === 5 && o.y === 6)); // the 9 is gone (burned)
+  s.objects.push({ id: 200, x: 4, y: 2, kind: 'num', value: 1 }); // and something sits on the 2's spot
+  s.objects = s.objects.filter(o => !(o.x === 4 && o.y === 2 && o.id !== 200));
+  s.fire = 99; s.t = DAY - 1;
+  s.player = { x: 3, y: 3 };
+  s = step(s, 'up').state;
+  assert.equal(at(s, 5, 6)?.value, 9);
+  assert.equal(at(s, 4, 2)?.value, 1, 'an occupied spawn stays as it is');
+  const again = (t) => { const c = newCraft(); c.fire = 99; c.t = t; c.player = { x: 3, y: 3 }; return JSON.stringify(step(c, 'up').state); };
+  assert.equal(again(DAY - 1), again(DAY - 1), 'deterministic');
+});
+
+const dusk = () => { const s = newCraft(); s.fire = 99; s.t = DAY - NIGHT - 1; s.player = { x: 3, y: 3 }; return step(s, 'up').state; };
+test('night: a "?" creature appears past the first river; the right value tames it, a wrong one makes it hop', () => {
+  const s = dusk(), m = s.objects.find(o => o.mimic);
+  assert.ok(m && m.x > 10, 'past the first river');
+  assert.equal(m.value, '□+3=8');
+  const give = (v, how) => { const c = structuredClone(s); c.player = { x: m.x - 2, y: m.y }; c.facing = 'right';
+    if (how === 'push') { c.objects.push({ id: 300, x: m.x - 1, y: m.y, kind: 'num', value: v }); return step(c, 'right'); }
+    c.player.x++; c.bag = [{ id: 300, kind: 'num', value: v }]; return step(c, 'grab'); };
+  for (const how of ['push', 'place']) {
+    const ok = give(5, how);
+    assert.ok(ok.events.some(e => e.type === 'tame'), how);
+    assert.ok(ok.state.pet && !ok.state.objects.some(o => o.mimic));
+    assert.equal(bagSize(ok.state), 4, 'the helper doubles the bag');
+    const no = give(4, how), m2 = no.state.objects.find(o => o.mimic);
+    assert.ok(no.events.some(e => e.type === 'hop'), how);
+    assert.ok(m2.x !== m.x || m2.y !== m.y, 'hopped to another spot');
+    assert.equal(no.state.pet, null);
+  }
 });
 
 test('doze: when the fire runs out you wake at camp next morning, nothing lost', () => {
@@ -51,7 +95,7 @@ test('doze: when the fire runs out you wake at camp next morning, nothing lost',
   assert.equal(s.fire, START_HEAT);
   assert.equal(s.t % DAY, 0, 'morning');
   assert.deepEqual(s.bag.map(o => o.value), [7]);
-  assert.equal(JSON.stringify(s.objects), objects);
+  for (const o of JSON.parse(objects)) assert.ok(s.objects.some(q => q.id === o.id && q.x === o.x && q.y === o.y), 'nothing lost');
 });
 
 test('bumps cost no time; 0 and −2 never feed the fire', () => {
@@ -64,20 +108,4 @@ test('bumps cost no time; 0 and −2 never feed the fire', () => {
   assert.equal(step(c, 'grab').events[0].reason, 'not-whole');
   c.bag = [{ id: 99, kind: 'num', value: 0 }];
   assert.equal(step(c, 'grab').events[0].reason, 'zero-fill');
-});
-
-test('pits fill only across: a 5 dropped down a filled bridge column bounces', () => {
-  let s = newCraft();
-  s.player = { x: 9, y: 6 }; s.facing = 'right'; s.objects = s.objects.filter(o => !(o.x === 9 && o.y === 6));
-  s.bag = [{ id: 98, kind: 'num', value: 3 }];
-  s = step(s, 'grab').state; // bridge row 6
-  s.player = { x: 10, y: 6 }; s.facing = 'up'; s.bag = [{ id: 99, kind: 'num', value: 5 }];
-  const r = step(s, 'grab');
-  assert.equal(r.events[0].type, 'bounce');
-  assert.deepEqual(r.state.tiles, s.tiles);
-  s.tiles[7] = s.tiles[7].slice(0, 10) + '...' + s.tiles[7].slice(13); // a second bridge on row 7
-  s.objects.push({ id: 97, x: 10, y: 6, kind: 'num', value: 1 }); s.player = { x: 10, y: 7 };
-  const p = step(s, 'up'); // the 1 would drop into (10,5), down a column
-  assert.equal(p.events[0].type, 'bounce', 'pushing up into the pit column bounces too');
-  assert.deepEqual(p.state.tiles, s.tiles);
 });
