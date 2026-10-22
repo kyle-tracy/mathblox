@@ -76,10 +76,10 @@ function creature(cx, cy, spec) {
   g.fillStyle = '#8e7dff'; g.beginPath(); g.ellipse(cx, cy + 6, 21, 19, 0, 0, 7); g.fill(); g.strokeStyle = INK; g.lineWidth = 2; g.stroke();
   text('?', cx, cy + 12, 22, WHITE);
   g.fillStyle = WHITE; for (const d of [-8, 8]) circle(cx + d, cy - 6, 5); g.fillStyle = INK; for (const d of [-8, 8]) circle(cx + d + 2, cy - 5, 2.5); // glancing aside: shy
-  const w = equation(spec, 0, 0, 14, INK, false, {}) + 14, sy = cy - 62;
+  const w = equation(spec, 0, 0, 14, INK, false, {}) + 14, sy = cy - 62, sx = Math.max(PAD + w / 2 + 2, Math.min(PAD + VW * CELL - w / 2 - 2, cx)); // the sign stays on the board
   g.fillStyle = C.doorFrame; g.fillRect(cx - 2, sy + 30, 4, 20); // its sign post
-  rr(cx - w / 2, sy, w, 38, 6, C.sign); g.strokeStyle = C.doorFrame; g.lineWidth = 2; g.stroke();
-  equation(spec, cx, sy + 11, 14, INK, true, {});
+  rr(sx - w / 2, sy, w, 38, 6, C.sign); g.strokeStyle = C.doorFrame; g.lineWidth = 2; g.stroke();
+  equation(spec, sx, sy + 11, 14, INK, true, {});
 }
 
 function draw(now) {
