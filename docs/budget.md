@@ -31,3 +31,5 @@ date | agent | task | est | actual | note
 2026-10-22 | Visio | batch 1 ideas (9) | - | 31k | no shell; CEO committed
 2026-10-22 | Arto | hill mound readability | - | 24k |
 2026-10-22 | Qualito | Visio triage (continued) | - | 22k cumulative |
+2026-10-22 | Qualito | demo playlist + gap routes (continued) | - | 50k cumulative |
+2026-10-22 | Arto | creature label clamp (continued) | - | small |
