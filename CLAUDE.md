@@ -40,6 +40,7 @@ A game where **the math is the physics**. Prototype: ages 6–9 (2D, browser). T
 | `fun-principles.md` | Psycho |
 | `budget.md` (token estimates and ledger) | Budgeto |
 | keep/cut verdicts, feel and findability QC | Qualito |
+| `ideas.md` (new concepts, risky propositions) | Visio |
 
   Agent charters are in `.claude/agents/`.
 - **Rules code:** keep it pure, with no DOM. The renderer never does math; it reads state and events from `step()`.

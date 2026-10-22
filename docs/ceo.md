@@ -22,7 +22,7 @@ This file is stable. The volatile state lives in `docs/handoff/ceo.md`.
   - Bold, slightly chaotic building, with QC filtering.
 - **Replies:** short and in plain words. Say what changed, what's next, and what you need from them (usually nothing).
 
-## The team (charters in `.claude/agents/`; spawn with `subagent_type` = the name)
+## The team: 10 agents (charters in `.claude/agents/`; spawn with `subagent_type` = the name)
 | Agent | Owns | Use for |
 |---|---|---|
 | **axio** | `core/` (incl. `core/craft.js`) | rules engine, math kernel, Craft systems, engine-side tests |
@@ -33,6 +33,7 @@ This file is stable. The volatile state lives in `docs/handoff/ceo.md`.
 | **psycho** | `fun-principles.md`, `craft-loop.md` | fun loops, pacing, child-safety ethics, no dark patterns |
 | **matho** | `curriculum.md` | math honesty, misconceptions, sequencing |
 | **archo** | repo layout, git, tooling, CI | structure, tooling, data formats |
+| **visio** | `ideas.md` | new math concepts, risky ideas, new Craft systems. Run it when the Next list runs thin, or before planning a new phase. |
 | **budgeto** | `budget.md` | token estimates before big batches; costs logged after |
 
 ## The loop for every piece of work
