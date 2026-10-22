@@ -4,12 +4,14 @@
 // `evidence: false` = forced level, carries no mastery evidence. Maps are ≤ 12 rows (fits 1100×720 at 48 px cells).
 // Pattern "T": the player starts between two true roads (different math) with a bait arm above; the bait ends in a
 // harmless bounce (scale, deficit ghost, overhang), so the wrong idea fails visibly and nothing is lost.
+// P3 Fields (A1-A13, docs/handoff/worldo-p3.md) plays after Lanes, before Sandbox.
 // One file per world, in play order. Order here IS the play order (?level=N).
 import meadow from './meadow.js';
 import balance from './balance.js';
 import merge from './merge.js';
 import carve from './carve.js';
 import lanes from './lanes.js';
+import fields from './fields.js';
 import sandbox from './sandbox.js';
 
-export const LEVELS = [...meadow, ...balance, ...merge, ...carve, ...lanes, ...sandbox];
+export const LEVELS = [...meadow, ...balance, ...merge, ...carve, ...lanes, ...fields, ...sandbox];
