@@ -20,3 +20,5 @@ date | agent | task | est | actual | note
 2026-10-21 | Budgeto | estimate 5 tasks | - | 13k | P3 remainder estimated at 309k
 2026-10-21 | Qualito | audit 39 levels | - | 68k | first run
 2026-10-21 | Psycho | craft-loop.md | - | 20k |
+2026-10-21 | Axio | calculator engine + precedence + doors | - | 111k cumulative | 3 follow-ups
+2026-10-21 | Worldo | cut to 22 levels + fixes | - | 151k | over 100k; big multi-level pass
