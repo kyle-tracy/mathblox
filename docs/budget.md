@@ -18,3 +18,4 @@ date | agent | task | est | actual | note
 2026-10-20 | Arto | P3 render | - | ? | stopped by the spend limit partway through; uncommitted edits in render/
 2026-10-21 | Arto | P3 render (all runs) | 40k (finish) | 96k cumulative | interrupted twice; the restarts re-read context
 2026-10-21 | Budgeto | estimate 5 tasks | - | 13k | P3 remainder estimated at 309k
+2026-10-21 | Qualito | audit 39 levels | - | 68k | first run

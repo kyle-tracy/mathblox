@@ -13,7 +13,9 @@ A game where **the math is the physics**. Prototype: ages 6–9 (2D, browser). T
   - `docs/`: `INDEX.md` (what to read), `decisions.md`, `workflow.md`, `gates/`, `archive/`.
 - **Locked decisions:**
   - A block's meaning lives in its attributes, never its location. The visible axes are a frame of reference.
-  - Chains compute in reading order.
+  - Order only matters where the math has order: + and × give the same result in any push direction; − and ÷ read in reading order.
+  - The engine is as precise as a calculator: negatives and exact fractions are real; bounce only for what is truly impossible. A combination that breaks a level is play, not a bug.
+  - Puzzles are the tutorial; the destination is an open-world survival-craft (`docs/vision.md`).
   - No dark patterns.
   - No 3D before the P5 gate.
   - No dependencies without CEO approval.
@@ -37,6 +39,7 @@ A game where **the math is the physics**. Prototype: ages 6–9 (2D, browser). T
 | `curriculum.md` | Matho |
 | `fun-principles.md` | Psycho |
 | `budget.md` (token estimates and ledger) | Budgeto |
+| keep/cut verdicts, feel and findability QC | Qualito |
 
   Agent charters are in `.claude/agents/`.
 - **Rules code:** keep it pure, with no DOM. The renderer never does math; it reads state and events from `step()`.
