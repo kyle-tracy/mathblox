@@ -29,3 +29,5 @@ date | agent | task | est | actual | note
 2026-10-21 | Arto | negatives/fractions/Craft render | - | 120k |
 2026-10-22 | Qualito | hill visual check | - | 17k | verdict FIX → Arto
 2026-10-22 | Visio | batch 1 ideas (9) | - | 31k | no shell; CEO committed
+2026-10-22 | Arto | hill mound readability | - | 24k |
+2026-10-22 | Qualito | Visio triage (continued) | - | 22k cumulative |
