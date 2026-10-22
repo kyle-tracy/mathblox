@@ -1,5 +1,6 @@
 // Push resolution for core/world.js move(): what a pushed chain does when it calculates, meets a door, or fills a trench.
 // Pure, no DOM. Imports only math.js (no cycle with world.js); `lanes` is laneValues(s), passed in by the caller.
+import { isNat } from './value.js';
 import { apply, accepts, sides, tick, rotate, bundle, SOCKETS } from './math.js';
 
 export const tileAt = (s, x, y) => s.tiles[y]?.[x] ?? '#';
@@ -14,49 +15,47 @@ export const face = (o, dx, dy) => cells(o).map(([x, y]) => [x + dx, y + dy]).fi
 const floor = t => t === '.' || t === 'b'; // where a body may stand
 const free = (s, cs, ok = () => false) => cs.every(([x, y]) => floor(tileAt(s, x, y)) && (!objAt(s, x, y) || ok(objAt(s, x, y))) && (s.player.x !== x || s.player.y !== y));
 // Replace a block's math attributes with a fresh block from math.js; id, kind and place stay.
-const remake = (o, b) => { delete o.shape; delete o.tens; delete o.pebble; return Object.assign(o, b); };
+const remake = (o, b) => { delete o.shape; delete o.tens; delete o.pebble; delete o.show; return Object.assign(o, b); };
 export const bounce = (state, reason, at, extra) => ({ state, events: [{ type: 'bounce', reason, at, ...extra }] });
 
 // Helpers below mutate the clone `s` and the `chain`; every bounce returns the untouched `state`.
-// [a][op][b] pushed together always calculates, in READING order (left->right, top->bottom),
-// never push order. On a long line like 9-3-2 the reading-first triple resolves first, so
-// pushed left/up that's the far end. The result lands in the right-hand operand (reading order).
-export function resolveChain(state, s, chain, dx, dy, nx, ny) {
+// [a][op][b] pushed together always calculates, operands in READING order (left->right, top->bottom).
+// The result grows from where the operands were: it fills
+// their cells from the reading-first operand on, and any extra cells (÷ pebbles, Voids, wide
+// platforms) extend along the push line away from the player. move() then steps the player in if free.
+export function resolveChain(state, s, chain, dx, dy) {
   let k = 0;
   while (chain[k]?.kind === (k % 2 ? 'op' : 'num')) k++;
   if (k % 2 === 0) k--;
   if (k < 3) return null;
-  const rev = dx < 0 || dy < 0, start = rev ? k - 3 : 0;
-  const [p, op, q] = chain.slice(start, start + 3);
+  // Only − and ÷ need order: there the reading-first triple resolves first (pushed left/up, the far end).
+  // A pure + or × line is commutative and associative, so the triple nearest the player goes first.
+  const rev = dx < 0 || dy < 0, ordered = chain.slice(0, k).some(o => '-÷'.includes(o.op)), start = rev && ordered ? k - 3 : 0;
+  const [p, op, q] = chain.slice(start, start + 3), before = rev && chain[start + 3];
+  // An operator just before the triple in reading order must not change its meaning: 8 − 1 − 1 never
+  // becomes 8 − (1 − 1). Only a commutative triple after + or its own op is safe; otherwise the line just slides.
+  if (before?.kind === 'op' && !('+×'.includes(op.op) && (before.op === '+' || before.op === op.op))) return null;
   const [l, rr] = rev ? [q, p] : [p, q];
   const ops = chain.slice(0, k).filter(o => o.kind === 'op').map(o => '+-'.includes(o.op));
   if (ops.includes(true) && ops.includes(false)) return bounce(state, 'mixed', { x: rr.x, y: rr.y }); // precedence is P4
-  const r = apply(op.op, l, rr);
+  const r = apply(op.op, l, rr, s.div);
   if (!r.ok) return bounce(state, r.reason, { x: rr.x, y: rr.y }, { missing: r.missing });
   const operands = [l.value, rr.value];
-  if (r.out.length === 1 && !r.out[0].shape) { // one block: it lands in the right-hand operand's cell
-    remake(rr, r.out[0]);
-    s.objects = s.objects.filter(x => x !== l && x !== op);
-    if (!rev) s.player = { x: nx, y: ny }; // pushed forward, the player steps into the freed cell
-    return { state: s, events: [{ type: r.event, at: { x: rr.x, y: rr.y }, value: r.value, operands }] };
-  }
-  // Several blocks or a platform: they start next to the player and grow away along the push line,
-  // and from the line toward +x / +y across it. The player stays put.
-  const used = [l, op, rr];
-  s.objects = s.objects.filter(o => !used.includes(o));
-  let off = chain.slice(0, start).reduce((t, o) => t + extent(o, dx), 1), id = Math.max(...state.objects.map(o => o.id)) + 1;
-  const sx = state.player.x + dx * off, sy = state.player.y + dy * off;
-  off = 0;
+  s.objects = s.objects.filter(o => o !== l && o !== op && o !== rr);
+  // Along the line: the triple spans lo..hi (l is always at lo); across it, blocks grow toward +x / +y.
+  const lo = dx ? l.x : l.y, hi = (dx ? rr.x : rr.y) + extent(rr, dx) - 1;
+  const len = r.out.reduce((t, b) => t + ((dx ? b.shape?.[1] : b.shape?.[0]) ?? 1), 0);
+  let at = rev ? Math.min(lo, hi - len + 1) : lo, id = Math.max(...state.objects.map(o => o.id)) + 1;
+  const cx = dx ? null : state.player.x, cy = dx ? state.player.y : null;
   const made = r.out.map((b, i) => {
-    const [h, w] = b.shape ?? [1, 1], len = dx ? w : h;
-    const o = { id: i ? id++ : rr.id, x: dx > 0 ? sx + off : dx < 0 ? sx - off - w + 1 : sx, y: dy > 0 ? sy + off : dy < 0 ? sy - off - h + 1 : sy, kind: 'num', ...b };
-    off += len;
+    const o = { id: i ? id++ : rr.id, x: cx ?? at, y: cy ?? at, kind: 'num', ...b };
+    at += extent(o, dx);
     return o;
   });
   const all = made.flatMap(cells);
   if (!free(s, all)) return bounce(state, 'no-room', { x: rr.x, y: rr.y }, { ghost: all });
   s.objects.push(...made);
-  return { state: s, events: [{ type: r.event, at: { x: sx, y: sy }, value: r.value, operands, ids: made.map(o => o.id) }] };
+  return { state: s, events: [{ type: r.event, at: { x: made[0].x, y: made[0].y }, value: r.value, operands, ...(made.length > 1 || made[0].shape ? { ids: made.map(o => o.id) } : {}) }] };
 }
 
 // The last block of the chain is the key; returns a bounce, or null once the = lock consumed it.
@@ -77,6 +76,7 @@ export function fillTrench(state, s, chain, cx, cy, dx, dy, dir, events) {
   const last = chain[chain.length - 1];
   if (last.kind !== 'num' || last.shape) return bounce(state, 'wall', { x: cx, y: cy }); // platforms never fill trenches
   if (last.value === 0) return bounce(state, 'zero-fill', { x: cx, y: cy }); // 0 is an object that fills 0 holes
+  if (!isNat(last.value)) return bounce(state, 'not-whole', { x: cx, y: cy }); // −2 or 7/2 unit cubes can't exist
   let len = 0;
   while (tileAt(s, cx + dx * len, cy + dy * len) === 'o' && !objAt(s, cx + dx * len, cy + dy * len)) len++;
   if (last.value > len) return bounce(state, 'too-long', { x: cx, y: cy }, { extra: last.value - len });

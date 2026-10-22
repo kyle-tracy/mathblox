@@ -57,7 +57,7 @@ test('□ doors can reference lanes; unknown symbols are rejected', () => {
   const ok = run({ name: 't', map: ['#@4AE#', '#3...#'], lanes: { '○': { row: 1 } }, doors: { A: '□ = ○ + 1' } }, ['right', 'right', 'right']);
   assert.ok(ok.state.won);
   assert.throws(() => parseLevel({ name: 't', map: ['#@A#'], doors: { A: '◇ = 2' } }), /bad door/);
-  assert.throws(() => parseLevel({ name: 't', map: ['#@A#'], doors: { A: '3 - 1 + □ = 4' } }), /last operation/);
+  assert.doesNotThrow(() => parseLevel({ name: 't', map: ['#@A#'], doors: { A: '3 - 5 + □ = 4' } }), 'negatives are real now');
   assert.doesNotThrow(() => parseLevel({ name: 't', map: ['#@A#'], doors: { A: '3 + □ - 1 = 4' } }));
 });
 

@@ -42,17 +42,17 @@ test('zero at doors: 0 is a real key', () => {
 
 test('long chains (>5) compute in reading order from both ends', () => {
   for (const [line, want] of [['1+1+1+1+1', 5], ['8-3+2-4', 3], ['9-1-1-1', 6]]) {
-    const R = run([`#@${line}${'.'.repeat(9)}#`], Array(12).fill('right'));
-    const L = run([`#${'.'.repeat(9)}${line}@#`], Array(12).fill('left'));
+    const R = run([`#@${line}${'.'.repeat(9)}#`], Array(20).fill('right'));
+    const L = run([`#${'.'.repeat(9)}${line}@#`], Array(20).fill('left'));
     for (const r of [R, L]) assert.deepEqual(r.state.objects.map(o => o.value), [want], line);
-    assert.deepEqual(R.events.filter(e => e.operands).map(e => e.operands), L.events.filter(e => e.operands).map(e => e.operands), 'same steps either way');
+    if (line.includes('-')) assert.deepEqual(R.events.filter(e => e.operands).map(e => e.operands), L.events.filter(e => e.operands).map(e => e.operands), 'with − the steps are the same either way');
   }
 });
 
 test('vertical chains read top to bottom when pushed down', () => {
   const r = run(['#@#', '#7#', '#-#', '#3#', '#.#'], ['down']);
-  assert.deepEqual(nums(r.state), ['4@1,3']);
-  assert.equal(unchanged(['#@#', '#3#', '#-#', '#7#', '#.#'], 'down').missing, 4);
+  assert.deepEqual(nums(r.state), ['4@1,1'], 'the result grows from the first operand');
+  assert.deepEqual(nums(run(['#@#', '#3#', '#-#', '#7#', '#.#'], ['down']).state), ['-4@1,1']);
 });
 
 test('tick pads under a chain: each number that lands on a fresh pad ticks once; operators do not spend pads', () => {
@@ -64,16 +64,17 @@ test('tick pads under a chain: each number that lands on a fresh pad ticks once;
   assert.deepEqual(nums(last.state), ['3@3,0', '2@4,0']);
 });
 
-test('resolve: forward the player steps in; reverse the player stays and the result sits beside it', () => {
+test('resolve: the result grows from the first operand; the player steps in only if the cell in front is freed', () => {
   const f = run(['#@7-3.#'], ['right']);
-  assert.deepEqual([nums(f.state), f.state.player], [['4@4,0'], { x: 2, y: 0 }]);
+  assert.deepEqual([nums(f.state), f.state.player], [['4@2,0'], { x: 1, y: 0 }]);
   const b = run(['#.7-3@#'], ['left']);
-  assert.deepEqual([nums(b.state), b.state.player], [['4@4,0'], { x: 5, y: 0 }]);
-  assert.equal(b.events.some(e => e.type === 'move'), false);
+  assert.deepEqual([nums(b.state), b.state.player], [['4@2,0'], { x: 4, y: 0 }]);
   const up = run(['#.#', '#7#', '#-#', '#3#', '#@#'], ['up']);
-  assert.deepEqual([nums(up.state), up.state.player], [['4@1,3'], { x: 1, y: 4 }]);
-  const dangling = run(['#+7-3@#'], ['left']);
-  assert.deepEqual(nums(dangling.state), ['4@4,0'], 'a stray operator past the line is left alone');
+  assert.deepEqual([nums(up.state), up.state.player], [['4@1,1'], { x: 1, y: 3 }]);
+  assert.equal(unchanged(['#+7-3@#'], 'left').reason, 'wall', 'a − line with an operator before it never resolves out of reading order');
+  const gap = run(['#8.-1-1@#'], Array(6).fill('left'));
+  assert.equal(gap.events.filter(e => e.type === 'carve').length, 2, 'the detached −1−1 slides; it never computes 1 − 1');
+  assert.deepEqual(gap.state.objects.map(o => o.value), [6], '8 − 1 − 1 = 6');
 });
 
 test('blocks cannot bury the exit: a push onto E bounces and nothing moves (P2 blocker, fixed in P2.1)', () => {

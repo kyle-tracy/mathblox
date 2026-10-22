@@ -1,6 +1,7 @@
 // The ONLY module that knows what a value is, and the only one that builds or changes math attributes.
-// A block is { value, shape?: [rows, cols], tens?, pebble? }; no shape means 1×1. Today: natural numbers.
-// Later domains (negatives, fractions, vectors, matrices) add rows to OPS, not rewrites.
+// A block is { value, shape?: [rows, cols], tens?, pebble? }; no shape means 1×1. What a value IS lives in value.js
+// (exact rationals today); later domains (vectors, matrices) add cases there and rows to OPS, not rewrites.
+import { add, sub, mul, div, isNat, isInt } from './value.js';
 // Each row takes operand blocks and returns { ok, event, out: [blocks] } or { ok: false, reason }.
 
 // a×b = a rows of b. Shape and value are set together, so no 3×4 can be worth 13. ×0 is a Void, never [a, 0].
@@ -14,38 +15,41 @@ export const SOCKETS = { '|': ['rod', isRod], v: ['void', b => b.value === 0 && 
 
 const done = (event, out) => ({ ok: true, event, out });
 // An identity's result: the operand's math attributes only (never its id or place).
-const same = b => ({ value: b.value, ...(b.shape && { shape: b.shape }), ...(b.pebble && { pebble: true }) });
-// −, × and ÷ on a ten-rod would unbundle it, and unbundling is P6, so they bounce.
-const rodIn = (a, b) => a.tens || b.tens;
+const same = b => ({ value: b.value, ...(b.shape && { shape: b.shape }), ...(b.pebble && { pebble: true }), ...(b.show && { show: b.show }) });
+const plain = b => isNat(b.value) && !b.shape && !b.tens; // a loose natural number: × builds its array
+// Every legal combination resolves (commissioner): only ÷0 refuses. Values are exact (value.js);
+// an op that leaves the naturals (3 − 5, 7 ÷ 2, a platform × 3) gives one plain block with the exact value.
 export const OPS = {
-  // A sum is one plain block (a platform's shape is lost, its value kept); + carries tens.
-  '+': (a, b) => { const tens = (a.tens ?? 0) + (b.tens ?? 0); return done('merge', [{ value: a.value + b.value, ...(tens && { tens }) }]); },
-  // Naturals only until negatives unlock: you can't carve more than is there.
-  '-': (a, b) => (rodIn(a, b) ? { ok: false, reason: 'bundled' } : b.value > a.value ? { ok: false, reason: 'too-much', missing: b.value - a.value } : done('carve', [{ value: a.value - b.value }])),
-  // A platform times a number would be a solid (3D): not before P5.
-  // ×1 and 1× are true identities: a platform keeps its shape.
-  '×': (a, b) => (rodIn(a, b) ? { ok: false, reason: 'bundled' } : a.shape && b.value === 1 && !b.shape ? done('multiply', [same(a)])
-    : b.shape && a.value === 1 && !a.shape ? done('multiply', [same(b)]) : a.shape || b.shape ? { ok: false, reason: 'shape' } : done('multiply', [platform(a.value, b.value)])),
-  // Share a among b: b equal blocks of q plus r whole pebbles. 3÷6 = six Voids + 3 pebbles; ÷0 never resolves.
-  '÷': (a, b) => {
-    if (rodIn(a, b)) return { ok: false, reason: 'bundled' };
-    if (b.shape) return { ok: false, reason: 'shape' };
+  // A sum is one plain block (a platform's shape is lost, its value kept); + of naturals carries tens.
+  '+': (a, b) => { const tens = isNat(a.value) && isNat(b.value) ? (a.tens ?? 0) + (b.tens ?? 0) : 0; return done('merge', [{ value: add(a.value, b.value), ...(tens && { tens }) }]); },
+  '-': (a, b) => done('carve', [{ value: sub(a.value, b.value) }]), // 3 − 5 is a real −2
+  // ×1 and 1× are true identities: a platform keeps its shape. Two loose naturals build a rows of b.
+  '×': (a, b) => (a.shape && b.value === 1 && !b.shape ? done('multiply', [same(a)]) : b.shape && a.value === 1 && !a.shape ? done('multiply', [same(b)])
+    : plain(a) && plain(b) ? done('multiply', [platform(a.value, b.value)]) : done('multiply', [{ value: mul(a.value, b.value) }])),
+  // ÷ is always exact; the level's `div` domain sets how it shows (never the block's place). ÷0 storms.
+  // 'remainder' (default): share natural a among n, n equal blocks of q plus r whole pebbles; 0 ÷ n = n Voids.
+  // 'fraction' / 'decimal', or operands outside the naturals: one block of the exact value, `show` for the renderer.
+  '÷': (a, b, mode = 'remainder') => {
     if (b.value === 0) return { ok: false, reason: 'storm' };
-    if (b.value === 1) return done('share', [same(a)]); // ÷1 is a true identity: shape and value kept
-    const q = Math.floor(a.value / b.value), r = a.value % b.value;
-    return done('share', [...Array(b.value)].map(() => ({ value: q })).concat([...Array(r)].map(() => ({ value: 1, pebble: true }))));
+    if (b.value === 1 && !b.shape) return done('share', [same(a)]); // ÷1 is a true identity: shape and value kept
+    if (mode === 'remainder' && isNat(a.value) && plain(b)) {
+      const q = Math.floor(a.value / b.value), r = a.value % b.value;
+      return done('share', [...Array(b.value)].map(() => ({ value: q })).concat([...Array(r)].map(() => ({ value: 1, pebble: true }))));
+    }
+    const v = div(a.value, b.value);
+    return done('share', [{ value: v, ...(!isInt(v) && { show: mode === 'decimal' ? 'decimal' : 'fraction' }) }]);
   },
 };
 
 // Numbers or blocks in; for plain numbers (doors, tests) `value` is the first result's value.
-export function apply(op, a, b) {
-  const w = x => (typeof x === 'number' ? { value: x } : x), f = OPS[op];
-  const r = f ? f(w(a), w(b)) : { ok: false, reason: 'unknown-op' };
+export function apply(op, a, b, div) {
+  const w = x => (typeof x === 'object' ? x : { value: x }), f = OPS[op];
+  const r = f ? f(w(a), w(b), div) : { ok: false, reason: 'unknown-op' };
   return r.ok ? { ...r, value: r.out[0].value } : r;
 }
 
 export const equal = (a, b) => a === b;
-export const tick = a => a + 1; // successor: Peano's first axiom, the toddler's "one more"
+export const tick = a => add(a, 1); // successor: Peano's first axiom, the toddler's "one more"
 
 // Door locks. A number n means "□ = n"; a string is an equation like "7 = □+3" or "△ + 2 = 7".
 // □ is the block you bring. Lane shapes (△ ○ ◇ …) are variables: each is the total of its lane.
@@ -59,10 +63,6 @@ export function checkDoor(spec, laneSyms = []) {
     throw new Error(`bad door "${spec}": need one "=", at most one "□", known lane symbols, digits, + − ×`);
   if (spec.split('=').some(side => /[+\-]/.test(side) && side.includes('×')))
     throw new Error(`bad door "${spec}": mixed + − and × on one side (precedence is P4)`);
-  // Until negatives unlock, − may only be the last op on a side: 3 − 5 + 4 is 2, but its
-  // left-to-right middle step (3 − 5) can't be built in the naturals.
-  if (spec.split('=').some(side => /-.*[+\-]/.test(side)))
-    throw new Error(`bad door "${spec}": − must be the last operation on its side (no negatives yet)`);
 }
 
 export const isGate = spec => typeof spec === 'string' && !spec.includes('□');
