@@ -23,18 +23,17 @@ Read `docs/ceo.md` first: it says who you are and how you delegate. Then read th
 - **Tests:** 86 pass. Everything is pushed to master (github.com/kyle-tracy/mathblox).
 - **The studio is paused.** No agents are running.
 
-## Next (when the commissioner says go)
-1. ~~Hills look like blocks~~: done. A `land` attribute now puts only overfill hills on a mound. Have Qualito check it on screen at the next playtest.
-2. Commissioner playtest of `?craft` and the 22 levels. Their feedback outranks everything.
-3. The next Craft beats, from `docs/craft-loop.md`:
-   - the Mirror Lands (x<0, anti-blocks)
-   - recipes as balance scales
-   - trees that Tick each day
-   - harvest by ÷ (ages 8+)
-   - Psycho's ideas: a helper pet, blueprint ghosts, a Number Museum, couch co-op, rule shrines
-4. The puzzle levels no longer use ten-rod sockets or tick pads. Reuse them in Craft or delete them.
-5. First Visio batch (it is new, so its ideas.md is empty): 6–10 ideas, with new math beyond × ÷ and Craft systems. Qualito triages them.
+## Next: the residency demo (due 2026-10-27)
+The commissioner ruled that the demo shows the best of what exists, polished; **nothing is built new for it**. Craft beats are paused until it ships.
+1. **Re-run Qualito's demo pick.** The budget log shows "demo playlist + gap routes" (~50k tokens), but no playlist file was ever saved. Brief Qualito to write `docs/demo.md`: the levels and Craft moments to show, in order, with the move strings (`?level=N&moves=...`) and any polish gaps. Tell it to *save the file first*.
+2. Arto polishes only the gaps that `docs/demo.md` lists, and Qualito checks the overfill-hill mound on screen as part of this.
+3. Record the demo, which the commissioner does.
 
-## Owners for Next
-1 → qualito (visual check) · 2 → commissioner, then qualito triage · 3 → psycho picks, axio/worldo/arto build, qualito judges · 4 → worldo decides with axio · 5 → visio, then qualito.
+## After the demo
+- Commissioner playtest of `?craft` and the 22 levels. Their feedback outranks everything.
+- Visio batch 1 (triaged): build Weight Bridges, then Doubling Trees. Prime Ore waits until a hut needs a floor; Mirror Twin stays on paper (`docs/ideas.md`).
+- Other Craft beats are in `docs/craft-loop.md`. Rod sockets and tick pads stay in core/ for reuse (decision of 2026-10-22).
+
+## Owners
+Demo: qualito → arto → commissioner. After: commissioner → qualito triage → axio/worldo/arto build.
 How to work: see `docs/ceo.md` (the loop, the brief template, the gotchas, the wrap-up).
