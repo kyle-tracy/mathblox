@@ -33,7 +33,8 @@ Read `docs/ceo.md` first: it says who you are and how you delegate. Then read th
    - harvest by ÷ (ages 8+)
    - Psycho's ideas: a helper pet, blueprint ghosts, a Number Museum, couch co-op, rule shrines
 4. The puzzle levels no longer use ten-rod sockets or tick pads. Reuse them in Craft or delete them.
+5. First Visio batch (it is new, so its ideas.md is empty): 6–10 ideas, with new math beyond × ÷ and Craft systems. Qualito triages them.
 
 ## Owners for Next
-1 → axio then arto · 2 → commissioner, then qualito triage · 3 → psycho picks, axio/worldo/arto build, qualito judges · 4 → worldo decides with axio.
+1 → axio then arto · 2 → commissioner, then qualito triage · 3 → psycho picks, axio/worldo/arto build, qualito judges · 4 → worldo decides with axio · 5 → visio, then qualito.
 How to work: see `docs/ceo.md` (the loop, the brief template, the gotchas, the wrap-up).
