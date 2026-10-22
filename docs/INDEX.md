@@ -1,6 +1,6 @@
 # Docs index: read only what your task needs
 
-**After a restart, read `docs/handoff/ceo.md` first.**
+**CEO: after a restart, read `docs/ceo.md` (charter), then `docs/handoff/ceo.md` (state).**
 
 | Task | Read |
 |---|---|

@@ -1,6 +1,6 @@
 # CEO handoff, 2026-10-22 (fresh session, not a resume)
 
-Read this, then `docs/vision.md` and `tail -n 25 docs/decisions.md`. Read nothing else until a task needs it. The older history is in git (`git log`) and `docs/archive/`.
+Read `docs/ceo.md` first: it says who you are and how you delegate. Then read this, `docs/vision.md` and `tail -n 25 docs/decisions.md`. Read nothing else until a task needs it. The older history is in git (`git log`) and `docs/archive/`.
 
 ## Where we are
 - **The direction changed (commissioner, 2026-10-21).** The puzzles are now the tutorial. The goal is an **open-world survival-craft** built from math blocks. The commissioner said: "build a bit chaotically, keep good game design; let QC and testing kill bad ideas."
@@ -34,11 +34,6 @@ Read this, then `docs/vision.md` and `tail -n 25 docs/decisions.md`. Read nothin
    - Psycho's ideas: a helper pet, blueprint ghosts, a Number Museum, couch co-op, rule shrines
 4. The puzzle levels no longer use ten-rod sockets or tick pads. Reuse them in Craft or delete them.
 
-## How to work (cheap)
-- One agent per task, with a tight brief and a report under 150 words. Continue a finished agent with SendMessage instead of re-spawning it.
-- Make quick rulings myself, then log them.
-- After each agent finishes, Qualito judges the result. Qualito may be the cheapest agent to run.
-- Commit with `git add <paths>`, never `-a`: agents share the working tree.
-- Log each agent's token cost in `docs/budget.md`.
-- Screenshots: start `python3 -m http.server 8772` with run_in_background and a timeout, then run chromium headless (the recipe is in `docs/workflow.md`). Never `pkill -f`.
-- **When the commissioner says "wrap up":** rewrite this file, update memory, push, and give them a fresh-session start prompt. Resuming a long context costs more than a fresh session that reads this file.
+## Owners for Next
+1 → axio then arto · 2 → commissioner, then qualito triage · 3 → psycho picks, axio/worldo/arto build, qualito judges · 4 → worldo decides with axio.
+How to work: see `docs/ceo.md` (the loop, the brief template, the gotchas, the wrap-up).
