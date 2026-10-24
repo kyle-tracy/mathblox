@@ -11,11 +11,11 @@ export const CHARACTERS = {
   },
   pythagoras: {
     name: 'Pythagoras', move: 'Leaps 2 squares, over anything. Never pushes.', color: '#edae49',
-    trivia: 'Halve a string and it sings the same note, higher: 2 to 1. Babylonian scribes knew "his" triangle rule 1,000 years before him. His followers refused to eat beans.',
+    trivia: 'Halve a string and it sings the same note, higher: 2 to 1. Babylonian scribes knew "his" triangle rule 1,000 years before him. Old stories say his followers refused to eat beans.',
   },
   brahmagupta: {
     name: 'Brahmagupta', move: 'Flips a number to its opposite, and + to −.', color: '#00798c',
-    trivia: 'In 628 he wrote the first rules for zero and negative numbers, calling them "debts" and "fortunes". He also said 0 ÷ 0 = 0. That one was wrong.',
+    trivia: 'In 628 he wrote some of the first rules for zero as a number, and rules for negatives, calling them "debts" and "fortunes". He also said 0 ÷ 0 = 0. That one was wrong.',
   },
   zeno: {
     name: 'Zeno', move: 'Goes half the way to whatever is ahead.', color: '#6a4c93',
