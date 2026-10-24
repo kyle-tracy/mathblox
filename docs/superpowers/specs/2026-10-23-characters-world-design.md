@@ -4,7 +4,7 @@ The goal is to turn mathematics into a game. Each hero is a mathematician whose 
 
 ## 1. Heroes are modules
 
-A hero is one id, registered in three places, each kept to a single entry:
+A hero is one id, registered in three places (built, commit after 7c1f2a1), each kept to a single entry:
 
 | Layer | Where | What the entry holds |
 |---|---|---|
@@ -23,10 +23,10 @@ Starting cast:
 
 ## 2. Characters on the board
 
-- **Several bodies.** `level.heroes = [{ id, x, y }, …]`, or `@` plus `cast`, as today. `state.players` is a list, and `state.active` indexes the one you control.
+- **Several bodies.** `level.bodies = [{ id, x, y }, …]` in addition to `@`. The body you control is `state.player` and its hero is `state.mover`; the others are in `state.others`.
   - `step(state, 'swap')` moves control to the next body.
   - The bodies you aren't controlling are solid: they block pushes and walks, Euclid stops against them, and Pythagoras can leap over them.
-  - Any body standing on `E` wins.
+  - The body you control reaching `E` wins.
 - **One-body swap (today's `cast`).** It stays as is. A level uses either the list of bodies or `cast`.
 - **Change pads.** A map tile `*`, specified in `level.pads = { 'x,y': id }`. Stepping onto one turns your current body into that hero. The pad stays on the floor.
 - **Rules for every hero:** one rule per hero, everything can be undone, and each hero gets an intro card the first time they appear.
@@ -68,7 +68,7 @@ Each level needs 3–4 heroes at once. The final boss is the ÷0 Storm, and you 
 - The engine stays exact like a calculator, and bounces happen only when a move is truly impossible.
 - A block's meaning lives in its attributes, never in where it sits.
 - Every level stores a solution that the tests replay. The cheese bot proves you can't win while skipping what the level teaches.
-- The bot can prune Euclid and Zeno when the Tally-Keeper is also in the cast, because their moves are runs of Tally steps. Euclid's curling push breaks that equivalence, so after step 1 the bot prunes only Zeno.
+- The bot can prune Euclid and Zeno when the Tally-Keeper is also in the cast and the level has no extra bodies or pads, because their moves, including the curling push, are runs of Tally steps.
 - No dependencies, and no 3D before the P5 gate.
 
 ## 5. Build order

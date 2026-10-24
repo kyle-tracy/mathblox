@@ -2,18 +2,18 @@
 // ban: event types the bot refuses to cause (e.g. ['carve']) -- proves a level can't be won while skipping its skill.
 import { step, DIRS } from '../core/world.js';
 
-export const key = s => `${s.mover}|${s.player.x},${s.player.y}|${s.tiles.join('')}|` + // tiles change: trenches fill, pads get used
+export const key = s => `${s.mover}|${s.player.x},${s.player.y}|${(s.others ?? []).map(o => `${o.id}@${o.x},${o.y}`).join(';')}|${s.tiles.join('')}|` + // tiles change: trenches fill, pads get used
   s.objects.map(o => `${o.kind}${o.value ?? o.op}${o.shape ?? ''}${o.tens ?? ''}${o.open ? '!' : ''}@${o.x},${o.y}`).sort().join(';');
 
 // Euclid's and Zeno's moves are runs of Tally steps, so with the Tally-Keeper in the cast the bot drops them.
 // ponytail: the returned path is for that pruned cast; store hand-checked solutions, not raw bot output, for such levels.
 const RUNS = ['euclid', 'zeno'];
 export function solve(start, maxStates = 200000, ban = []) {
-  if (start.cast?.includes('tally') && start.cast.some(m => RUNS.includes(m))) {
+  if (!start.others?.length && !Object.keys(start.pads ?? {}).length && start.cast?.includes('tally') && start.cast.some(m => RUNS.includes(m))) {
     start = { ...start, cast: start.cast.filter(m => !RUNS.includes(m)) };
     if (RUNS.includes(start.mover)) start.mover = 'tally';
   }
-  const acts = [...Object.keys(DIRS), ...(start.cast?.length > 1 ? ['swap'] : [])];
+  const acts = [...Object.keys(DIRS), ...(start.cast?.length > 1 || start.others?.length ? ['swap'] : [])];
   const seen = new Set([key(start)]);
   let frontier = [[start, []]];
   while (frontier.length && seen.size < maxStates) {

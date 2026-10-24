@@ -3,7 +3,8 @@
 import { isNat } from './value.js';
 import { apply, accepts, sides, tick, rotate, bundle, SOCKETS } from './math.js';
 
-export const tileAt = (s, x, y) => s.tiles[y]?.[x] ?? '#';
+// Bodies you aren't playing (state.others) are solid: everything else sees them as wall.
+export const tileAt = (s, x, y) => (s.others?.some(o => o.x === x && o.y === y) ? '#' : s.tiles[y]?.[x] ?? '#');
 export const setTile = (s, x, y, ch) => { s.tiles[y] = s.tiles[y].slice(0, x) + ch + s.tiles[y].slice(x + 1); };
 // A platform covers shape [rows, cols] from its top-left anchor; everything else is one cell.
 export const inside = (o, x, y) => (o.shape ? x >= o.x && x < o.x + o.shape[1] && y >= o.y && y < o.y + o.shape[0] : o.x === x && o.y === y);
@@ -12,7 +13,7 @@ export const objAt = (s, x, y) => s.objects.find(o => !o.open && inside(o, x, y)
 export const extent = (o, dx) => (o.shape ? o.shape[dx ? 1 : 0] : 1); // cells along the push line
 // The cells a body moves into: its own footprint shifted one step, minus itself.
 export const face = (o, dx, dy) => cells(o).map(([x, y]) => [x + dx, y + dy]).filter(([x, y]) => !inside(o, x, y));
-const floor = t => t === '.' || t === 'b'; // where a body may stand
+const floor = t => t === '.' || t === 'b' || t === '*'; // where a body may stand
 const free = (s, cs, ok = () => false) => cs.every(([x, y]) => floor(tileAt(s, x, y)) && (!objAt(s, x, y) || ok(objAt(s, x, y))) && (s.player.x !== x || s.player.y !== y));
 // Replace a block's math attributes with a fresh block from math.js; id, kind and place stay.
 const remake = (o, b) => { delete o.shape; delete o.tens; delete o.pebble; delete o.show; return Object.assign(o, b); };
