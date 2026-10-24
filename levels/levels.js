@@ -15,4 +15,6 @@ import lanes from './lanes.js';
 import fields from './fields.js';
 import sandbox from './sandbox.js';
 
-export const LEVELS = [...meadow, ...balance, ...merge, ...carve, ...lanes, ...fields, ...sandbox];
+// After the first two levels Euclid joins the cast (commissioner 2026-10-23: no key-spamming). A level's own `cast` wins.
+export const LEVELS = [...meadow, ...balance, ...merge, ...carve, ...lanes, ...fields, ...sandbox]
+  .map((l, i) => (i < 2 || l.cast ? l : { ...l, cast: ['tally', 'euclid'] }));

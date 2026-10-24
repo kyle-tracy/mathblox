@@ -86,7 +86,7 @@ test('position never changes a block value', () => {
 });
 
 // Replays the stored intended solution so room size never matters; BFS only if a level has none.
-const D = { u: 'up', d: 'down', l: 'left', r: 'right' };
+const D = { u: 'up', d: 'down', l: 'left', r: 'right', s: 'swap' };
 for (const lvl of LEVELS) test(`level "${lvl.name}" is solvable`, () => {
   const path = lvl.solution ? [...lvl.solution].map(c => D[c]) : solve(parseLevel(lvl));
   assert.ok(path, 'no solution');

@@ -11,6 +11,7 @@ else {
   addEventListener('keydown', e => {
     if (e.repeat) return; // one step per press: forgiving input
     if (KEYS[e.key]) { act(KEYS[e.key]); e.preventDefault(); }
+    else if (e.key === 'Tab' || e.key === 'c' || e.key === ' ') { act('swap'); e.preventDefault(); } // next character
     else if (e.key === 'z' || e.key === 'Backspace') undo();
     else if (e.key === 'r') restart();
     else if (e.key === 'm') setMute(!muted);
@@ -32,6 +33,6 @@ else {
   });
 
   load(Number(Q.get('level') ?? 1) - 1);
-  for (const c of Q.get('moves') ?? '') act({ u: 'up', d: 'down', l: 'left', r: 'right' }[c]); // QA: replay inputs
+  for (const c of Q.get('moves') ?? '') act({ u: 'up', d: 'down', l: 'left', r: 'right', s: 'swap' }[c]); // QA: replay inputs
   requestAnimationFrame(draw);
 }

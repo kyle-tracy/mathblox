@@ -39,7 +39,7 @@ export function restart() {
 
 export function act(dir) {
   if (won) return;
-  lastDir = dir;
+  if (DIRS[dir]) lastDir = dir;
   fx = fx.filter(f => !f.linger); // ghosts and scales stay readable until the next move
   const before = state, r = step(state, dir);
   if (r.state !== state && r.events[0]?.type !== 'bounce') { history.push(state); prev = state; state = r.state; tMove = performance.now(); }
