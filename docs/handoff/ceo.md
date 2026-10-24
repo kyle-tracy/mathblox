@@ -14,10 +14,10 @@ Read `docs/ceo.md`, then this file, `docs/vision.md`, and `tail -n 25 docs/decis
 - **Other:** p3's no-room check replays stored routes, Elea's 3 held rooms are restored (Elea = 6, 34 levels), demo.md is keyed by level name, and `test/playthrough.test.js` walks the whole path.
 
 ## In flight at wrap-up
-- Axio: solo Pythagoras was cut off from Ujjain when picked at 2 camp cells, (1,11) and (2,7). The test now covers every pick cell × party. If it's uncommitted, finish it, test, commit, push.
+Nothing is running. The tree is clean and pushed (51b55ff+), and 151 tests pass. Axio's last fix (solo Pythagoras from every camp pick cell) is in, and the hub screenshot checked out.
 
 ## Next
-1. **Commissioner play-through:** once Axio's fix is pushed, send them a push notification that it's ready. They asked: "ping me when it's ready to play".
+1. **Commissioner play-through:** they were told at wrap-up that it's ready. Act on their feedback first.
 2. **Style choice is open.** Honest read: B and C are too close to A (B ≈ a texture filter, C pixelates only the terrain props). Ask: lock A, or have Arto push B and C fully (outlined, shaded storybook; a full 16×16 pixel set)?
 3. **Demo due 2026-10-27:** re-verify the demo.md Craft strings by screenshot (the map moved 5 rows; tests say the events are unchanged).
 4. Worldo: a short `greet` field in CHARACTERS (greets currently cut down the trivia).
