@@ -15,10 +15,15 @@ import lanes from './lanes.js';
 import fields from './fields.js';
 import sandbox from './sandbox.js';
 import cast from './cast.js';
+import alexandria from './alexandria.js';
+import croton from './croton.js';
+import ujjain from './ujjain.js';
+import elea from './elea.js';
 
 // Old levels are the Tally-Keeper's (camp tutorial); solo worlds are one hero each (commissioner 2026-10-23).
 // Character intros (cast.js): Euclid after Balance (L3), Pythagoras after Carve (L7), Brahmagupta after The Shrinking Side
 // (L11, negatives in a lane), Zeno after Keep the Pebble (L22, halves round up like a remainder).
 const [euclid, pythagoras, brahmagupta, zeno, ...together] = cast; // together: bodies and change pads (L23-L24)
 export const LEVELS = [...meadow, ...balance, euclid, ...merge, ...carve, pythagoras, ...lanes.slice(0, 3), brahmagupta,
-  ...lanes.slice(3), ...fields.slice(0, 7), zeno, ...together, ...fields.slice(7), ...sandbox]
+  ...lanes.slice(3), ...fields.slice(0, 7), zeno, ...together, ...fields.slice(7), ...sandbox,
+  ...alexandria, ...croton, ...ujjain, ...elea]; // solo worlds (one hero each); play order will follow levels/worlds.js
