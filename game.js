@@ -1,6 +1,6 @@
 // Entry: wires input (keyboard, buttons, swipe) to the game. Rules live in core/, drawing in render/.
 import { cv, reduced, setReduced } from './render/look.js';
-import { lvlIdx, won, load, act, undo, restart, fit, Q } from './render/state.js';
+import { lvlIdx, won, load, act, undo, restart, fit, leave, Q } from './render/state.js';
 import { muted, setMute, muteBtn } from './render/audio.js';
 import { draw } from './render/draw.js';
 
@@ -16,11 +16,13 @@ else {
     else if (e.key === 'r') restart();
     else if (e.key === 'm') setMute(!muted);
     else if (e.key === 'Enter' && won) load(lvlIdx + 1);
+    else if (e.key === 'Escape') leave();
   });
   document.querySelectorAll('[data-dir]').forEach(b => b.onclick = () => act(b.dataset.dir));
   document.getElementById('undo').onclick = undo;
   document.getElementById('restart').onclick = restart;
   document.getElementById('next').onclick = () => load(lvlIdx + 1);
+  document.getElementById('map').onclick = leave;
   muteBtn.onclick = () => setMute(!muted);
   document.getElementById('motion').onclick = () => setReduced(!reduced);
   addEventListener('resize', fit);

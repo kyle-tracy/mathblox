@@ -10,7 +10,7 @@ import { cv, CELL, PAD } from './look.js';
 import { tone, pitch, boing } from './audio.js';
 
 export const Q = new URLSearchParams(location.search);
-const WORLD = WORLDS.find(w => w.id === Q.get('world') && w.levels.length); // ?world=id: that world's levels, in order
+export const WORLD = WORLDS.find(w => w.id === Q.get('world') && w.levels.length); // ?world=id: that world's levels, in order
 export const SET = Q.has('showcase') ? SHOWCASE : WORLD ? WORLD.levels.map(n => LEVELS.find(l => l.name === n)) : LEVELS;
 
 // Finished worlds, kept in localStorage when it is there; the game runs without it (nothing is remembered).
@@ -19,8 +19,12 @@ function markDone(id) { try { const d = getDone(); if (!d.includes(id)) localSto
 
 export let lvlIdx = 0, state, prev, orig, history, fx = [], fills, tMove = 0, won = false, lastDir = 'right';
 
+// Back to the Craft map at this world's door. Leaving early (Esc, ↩ map) marks nothing done.
+export const leave = () => { if (WORLD) location.search = `?craft&from=${WORLD.id}`; };
+
 export function load(i) {
-  if (WORLD && i >= SET.length) { location.search = `?craft&from=${WORLD.id}`; return; } // world finished: back out of its door
+  if (WORLD && i >= SET.length) return leave(); // world finished: back out of its door
+  document.getElementById('map').hidden = !WORLD;
   lvlIdx = (i + SET.length) % SET.length;
   state = prev = orig = parseLevel(SET[lvlIdx]);
   history = []; fx = []; fills = new Map(); won = false;

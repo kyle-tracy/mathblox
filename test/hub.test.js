@@ -30,6 +30,13 @@ test('site doors: enter with the right party, bounce with the missing heroes, pa
   assert.deepEqual([back.player.x, back.player.y], [SITES.motion[0] - 1, SITES.motion[1]]);
 });
 
+test('every world door has a free cell inside it to come back to (finished or left early)', () => {
+  for (const id of Object.keys(SITES)) {
+    const s = atSite(newCraft(), id), [x, y] = SITES[id];
+    assert.equal(Math.abs(s.player.x - x) + Math.abs(s.player.y - y), 1, id);
+    assert.equal(s.tiles[s.player.y][s.player.x], '.', id);
+  }
+});
 test('heroes in Craft: Euclid slides (one move of time) and curls a block into a pit; Tab is free', () => {
   let s = from(newCraft(['alexandria'], ['euclid']), 1, 1);
   s = step(s, 'right').state;
