@@ -20,6 +20,7 @@ let s = from && world(from) ? atSite({ ...(saved ?? newCraft(done)), done }, fro
 cv.width = VW * CELL + PAD; cv.height = VH * CELL + PAD + HUD;
 document.getElementById('name').textContent = 'MathBlox Craft: keep the fire warm';
 const say = m => { msg = m; msgT = performance.now(); };
+if (from) window.history.replaceState(null, '', '?craft'); // a reload starts here, not from the save we came back from
 const who = id => CHARACTERS[id]?.name ?? id;
 const hero = from && world(from).hero;
 say(hero && hero !== 'tally' && done.includes(from) ? `${who(hero)} joins you! Press C at camp to pick who comes along.` : 'Push blocks together to do math. Feed the fire at 0. Space picks up / puts down.');
