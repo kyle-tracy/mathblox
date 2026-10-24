@@ -216,7 +216,9 @@ export function draw(now) {
   drawFx(now);
 
   // Player: whoever is up. Pythagoras arcs over what he leaps; a swap pops a ring in the newcomer's colour.
-  const [PX, PY] = px(prev.player.x + (state.player.x - prev.player.x) * k, prev.player.y + (state.player.y - prev.player.y) * k);
+  const dist = Math.abs(state.player.x - prev.player.x) + Math.abs(state.player.y - prev.player.y); // a slide travels, it doesn't teleport
+  const kp = reduced ? 1 : Math.min(1, (now - tMove) / Math.min(450, 110 + 40 * Math.max(0, dist - 1)));
+  const [PX, PY] = px(prev.player.x + (state.player.x - prev.player.x) * kp, prev.player.y + (state.player.y - prev.player.y) * kp);
   const leap = fx.findLast(f => f.type === 'leap'), lt = leap ? (now - leap.t0) / 110 : 1;
   const hop = !reduced && lt < 1 ? Math.sin(Math.PI * lt) * CELL * 0.6 : 0;
   const tw = leap ? Math.max(0, 1 - (now - leap.t0) / 900) : 0;

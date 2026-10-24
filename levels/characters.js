@@ -18,7 +18,7 @@ export const CHARACTERS = {
     trivia: 'In 628 he wrote some of the first rules for zero as a number, and rules for negatives, calling them "debts" and "fortunes". He also said 0 ÷ 0 = 0. That one was wrong.',
   },
   zeno: {
-    name: 'Zeno', move: 'Goes half the way to whatever is ahead.', color: '#6a4c93',
+    name: 'Zeno', move: 'Goes half the way to whatever is ahead (rounded up: half of 5 is 3).', color: '#6a4c93',
     trivia: 'He argued nothing can ever move: to arrive you must first go halfway, then half of what is left, forever. On a grid, he gets there anyway.',
   },
 };
