@@ -2,10 +2,12 @@
 // merge, carve and pit fill uses the same calculator-precise rules as the puzzles (no second math truth).
 // Added here: number land (pits and hills), a fire at camp, a bag, turn-based day and night,
 // rocks that regrow at dawn, and a shy night creature that wears an equation.
-import { add, isNat, parts } from './value.js';
+import { add, sub, isNat, parts } from './value.js';
 import { accepts } from './math.js';
-import { parseLevel, step as worldStep, DIRS } from './world.js';
+import { parseLevel, step as worldStep, DIRS, API } from './world.js';
 import { objAt, tileAt, setTile, bounce } from './push.js';
+import { HEROES } from './heroes.js';
+import { missing, world } from './progress.js';
 
 export const DAY = 48, NIGHT = 16, BAG = 2, START_HEAT = 3; // moves per day; the last NIGHT moves are night
 const burnEvery = t => (isNight(t) ? 4 : 8); // the fire eats 1 warmth every 8 moves, every 4 at night
@@ -28,6 +30,11 @@ const STAMPS = [
 ];
 // The night creature: shy, past the first river, wearing one equation per night (□ is the block you give it).
 const MIMIC_SPOTS = [[15, 3], [17, 1], [13, 6], [19, 4]], MIMIC_EQS = ['□+3=8', '□+1=5', '□+4=7'];
+// Site doors (spec §3): one per world, set in the border wall. Pair sites sit behind terrain that suits the pair
+// (Pythagoras's past the 1-wide river at 36 he can leap, Euclid+Zeno at the end of a long flat row), but the real gate
+// is `needs` (core/progress.js). First-pass spots; Worldo and Arto own where they end up.
+export const SITES = { camp: [0, 4], alexandria: [5, 0], croton: [8, 8], ujjain: [14, 0], elea: [17, 8], distrib: [25, 0],
+  under: [28, 8], series: [33, 0], vectors: [37, 8], rotation: [38, 0], motion: [47, 3], dungeon: [47, 6] };
 export function craftMap() {
   const rows = [...Array(H)].map((_, y) => [...Array(W)].map((_, x) => (y === 0 || y === H - 1 || x === 0 || x === W - 1 ? '#' : '.')));
   for (const [x] of RIVERS) for (let y = 1; y < H - 1; y++) rows[y][x] = '#'; // solid to the engine; heights live in s.ground
@@ -37,11 +44,13 @@ export function craftMap() {
   return rows.map(r => r.join(''));
 }
 
-export function newCraft() {
-  const s = parseLevel({ name: 'craft', map: craftMap() }), ground = {};
+// done: finished world ids; party: the heroes you take out (Tab swaps between them).
+export function newCraft(done = [], party = ['tally']) {
+  const s = parseLevel({ name: 'craft', map: craftMap(), cast: party }), ground = {};
   for (const [x, h] of RIVERS) for (let y = 1; y < H - 1; y++) ground[`${x},${y}`] = h;
   const spawns = s.objects.map(({ x, y, kind, value, op }) => ({ x, y, kind, ...(kind === 'num' ? { value } : { op }) }));
-  return { ...s, camp: CAMP, ground, spawns, fire: START_HEAT, bag: [], t: 0, facing: 'right', dozes: 0, pet: null };
+  return { ...s, camp: CAMP, ground, spawns, fire: START_HEAT, bag: [], t: 0, facing: 'right', dozes: 0, pet: null,
+    done: [...done], sites: Object.fromEntries(Object.entries(SITES).map(([id, [x, y]]) => [`${x},${y}`, id])) };
 }
 
 export const heightAt = (s, x, y) => s.ground[`${x},${y}`] ?? 0;
@@ -87,22 +96,66 @@ function offer(state, s, m, o, events) {
   return false;
 }
 
+// Swapping heroes is free (like turning): only moves pass time. A hero's whole move is one move of time,
+// so Euclid's slide costs what one step costs.
 export function step(state, action) {
-  const res = action === 'grab' ? grab(state) : push(state, action);
-  if (res.state === state || res.events[0]?.type === 'bounce') return res;
+  const res = action === 'grab' ? grab(state) : action === 'swap' ? worldStep(state, 'swap') : go(state, action);
+  if (res.state === state || ['bounce', 'swap'].includes(res.events[0]?.type)) return res;
   tick(res.state, res.events);
   return res;
 }
 
-function push(state, dir) {
-  const r = worldStep(state, dir), [dx, dy] = DIRS[dir];
-  if (r.state !== state) {
-    const n = r.state;
+// Heroes move on open ground too: each hero's rule runs on Craft's own single step (pits, fire, creature).
+const CRAFT_API = { ...API, move: push, gatesTrue: () => true, falseGates: () => [] };
+function go(state, dir) {
+  const [dx, dy] = DIRS[dir], x = state.player.x + dx, y = state.player.y + dy, site = state.sites?.[`${x},${y}`];
+  if (site) { // a site door: in you go, if you brought who it needs
+    const lack = missing(site, state.cast, state.done);
+    if (lack.length) return bounce(state, 'needs', { x, y }, { world: site, missing: lack });
+    if (!world(site).levels.length) return bounce(state, 'soon', { x, y }, { world: site }); // a pair world not built yet
+    return { state, events: [{ type: 'enter', world: site, at: { x, y } }] };
+  }
+  if (state.mover === 'brahmagupta' && !state.won) { const f = flipGround(state, x, y); if (f) return f; }
+  const r = HEROES[state.mover](state, dir, CRAFT_API), n = r.state;
+  if (n !== state && (n.player.x !== state.player.x || n.player.y !== state.player.y)) {
     n.facing = dir;
-    if (n.pet && (n.player.x !== state.player.x || n.player.y !== state.player.y)) n.pet = { ...state.player }; // it follows you
+    if (n.pet && state.pet) n.pet = { ...state.player }; // it follows you (to where you stood: after a leap it hops after you)
+  }
+  return r;
+}
+// Brahmagupta in Craft: the ground is a number too, so walking into a pit or a hill flips its height (h becomes −h).
+// A −3 pit becomes a 3 hill block standing there; a hill block (land) becomes a pit as deep as it was tall.
+function flipGround(state, x, y) {
+  const o = objAt(state, x, y);
+  if (!isPit(state, x, y) && !(o?.land && !o.shape)) return null;
+  const s = structuredClone(state), k = `${x},${y}`;
+  let h;
+  if (o) { h = sub(0, o.value); s.objects = s.objects.filter(q => q.id !== o.id); s.ground[k] = h; setTile(s, x, y, '#'); }
+  else { h = sub(0, s.ground[k]); delete s.ground[k]; setTile(s, x, y, '.'); s.objects.push({ id: nextId(s), x, y, kind: 'num', value: h, land: true }); }
+  return { state: s, events: [{ type: 'negate', at: { x, y }, value: h, ground: true }] };
+}
+// At camp (within 2 cells of the fire) you pick who comes out with you; time doesn't pass.
+export function choose(state, party) {
+  if (Math.max(Math.abs(state.player.x - state.camp.x), Math.abs(state.player.y - state.camp.y)) > 2) return bounce(state, 'camp', { ...state.player });
+  return { state: { ...structuredClone(state), cast: [...party], mover: party[0] }, events: [{ type: 'party', party }] };
+}
+// Back from a world: stand just inside its door (or at camp if a block now stands there).
+export function atSite(state, id) {
+  const s = structuredClone(state), [x, y] = SITES[id], W = s.tiles[0].length, H = s.tiles.length;
+  const p = { x: Math.min(W - 2, Math.max(1, x)), y: Math.min(H - 2, Math.max(1, y)) };
+  s.player = tileAt(s, p.x, p.y) === '.' && !objAt(s, p.x, p.y) ? p : wakeSpot(s);
+  if (s.pet) s.pet = { ...s.player };
+  return s;
+}
+
+// One plain step (the Tally-Keeper's move), plus what Craft adds: feeding the fire, filling land, offering to the creature.
+function push(state, dir) {
+  const r = API.move(state, dir), [dx, dy] = DIRS[dir];
+  if (r.state !== state) {
+    r.state.facing = dir;
     // The right block pushed into the creature: the engine's = lock took it (the creature is a door). Tamed.
     const i = r.events.findIndex(e => e.type === 'open' && mimicAt(state, e.at.x, e.at.y));
-    if (i >= 0) { n.pet = { ...r.events[i].at }; r.events[i] = { ...r.events[i], type: 'tame' }; }
+    if (i >= 0) { r.state.pet = { ...r.events[i].at }; r.events[i] = { ...r.events[i], type: 'tame' }; }
     return r;
   }
   const b = r.events[0], s = structuredClone(state), events = [];

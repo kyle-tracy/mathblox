@@ -73,7 +73,7 @@ const occupied = (s, g) => (s.player.x === g.x && s.player.y === g.y) || s.objec
 const falseGates = s => { const env = laneValues(s); return s.objects.filter(o => o.gate && !accepts(o.value, env)).map(o => [o.x, o.y]); };
 const gatesTrue = s => { const env = laneValues(s); return s.objects.every(o => !o.gate || accepts(o.value, env)); };
 
-const API = { move, walk, bounce, tileAt, objAt, gatesTrue, falseGates };
+export const API = { move, walk, bounce, tileAt, objAt, gatesTrue, falseGates };
 function swap(state) {
   if ((state.cast.length < 2 && !state.others.length) || state.won) return { state, events: [] };
   const s = structuredClone(state);

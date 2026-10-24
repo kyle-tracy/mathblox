@@ -5,15 +5,22 @@ import { inside } from '../core/push.js';
 import { LEVELS } from '../levels/levels.js';
 import { CHARACTERS } from '../levels/characters.js';
 import { SHOWCASE } from '../levels/showcase.js';
+import { WORLDS } from '../levels/worlds.js';
 import { cv, CELL, PAD } from './look.js';
 import { tone, pitch, boing } from './audio.js';
 
 export const Q = new URLSearchParams(location.search);
-export const SET = Q.has('showcase') ? SHOWCASE : LEVELS;
+const WORLD = WORLDS.find(w => w.id === Q.get('world') && w.levels.length); // ?world=id: that world's levels, in order
+export const SET = Q.has('showcase') ? SHOWCASE : WORLD ? WORLD.levels.map(n => LEVELS.find(l => l.name === n)) : LEVELS;
+
+// Finished worlds, kept in localStorage when it is there; the game runs without it (nothing is remembered).
+export const getDone = () => { try { return JSON.parse(localStorage.getItem('mathblox.done')) ?? []; } catch { return []; } };
+function markDone(id) { try { const d = getDone(); if (!d.includes(id)) localStorage.setItem('mathblox.done', JSON.stringify([...d, id])); } catch { /* no storage */ } }
 
 export let lvlIdx = 0, state, prev, orig, history, fx = [], fills, tMove = 0, won = false, lastDir = 'right';
 
 export function load(i) {
+  if (WORLD && i >= SET.length) { location.search = `?craft&from=${WORLD.id}`; return; } // world finished: back out of its door
   lvlIdx = (i + SET.length) % SET.length;
   state = prev = orig = parseLevel(SET[lvlIdx]);
   history = []; fx = []; fills = new Map(); won = false;
@@ -119,7 +126,8 @@ export function feedback(e, before) {
     [0, 7].forEach(n => tone(pitch(e.value + 12 + n), 0.3, 'sine', 0, 0.42)); // balanced: a consonant fifth
   }
   if (e.type === 'win') {
-    won = true; [0, 4, 7, 12].forEach((n, i) => tone(pitch(n + 12), 0.18, 'triangle', 0, i * 0.12));
+    won = true; if (WORLD && lvlIdx === SET.length - 1) markDone(WORLD.id);
+    [0, 4, 7, 12].forEach((n, i) => tone(pitch(n + 12), 0.18, 'triangle', 0, i * 0.12));
     fx.push({ type: 'win', t0 }); document.getElementById('next').hidden = false;
   }
 }

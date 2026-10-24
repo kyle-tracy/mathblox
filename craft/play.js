@@ -2,17 +2,27 @@
 // Never does math: every value, height and warmth comes from core/craft.js state and events.
 import { cv, g, CELL, INK, WHITE, C, rr, circle, text, dotPos, equation, reduced, TS } from '../render/look.js';
 import { piece, opBlock, label } from '../render/draw.js';
+import { sprite } from '../render/cast.js';
+import { getDone } from '../render/state.js';
+import { CHARACTERS } from '../levels/characters.js';
+import { recruits, parties, canEnter, world } from '../core/progress.js';
 import { ghostCells, wantWhole } from '../render/fx.js';
 import { tone, pitch, boing, muted, setMute, muteBtn } from '../render/audio.js';
 import { isNat, parts } from '../core/value.js';
-import { newCraft, step, heightAt, bagSize, isNight, dayOf, movesToSwitch, DAY, NIGHT } from '../core/craft.js';
+import { newCraft, step, heightAt, bagSize, isNight, dayOf, movesToSwitch, choose, atSite, DAY, NIGHT } from '../core/craft.js';
 
 const VW = 15, VH = 9, PAD = 40, HUD = 70; // view in cells; margins for the axes and the HUD
-let s = newCraft(), history = [], msg = '', msgT = 0;
+// Back from a world (?craft&from=id): the Craft you left (saved on the way in, if storage allows), standing at its door.
+const from = new URLSearchParams(location.search).get('from'), done = getDone();
+let saved = null;
+if (from && world(from)) try { saved = JSON.parse(localStorage.getItem('mathblox.craft')); } catch { /* no storage: a fresh Craft */ }
+let s = from && world(from) ? atSite({ ...(saved ?? newCraft(done)), done }, from) : newCraft(done), history = [], msg = '', msgT = 0;
 cv.width = VW * CELL + PAD; cv.height = VH * CELL + PAD + HUD;
 document.getElementById('name').textContent = 'MathBlox Craft: keep the fire warm';
 const say = m => { msg = m; msgT = performance.now(); };
-say('Push blocks together to do math. Feed the fire at 0. Space picks up / puts down.');
+const who = id => CHARACTERS[id]?.name ?? id;
+const hero = from && world(from).hero;
+say(hero && hero !== 'tally' && done.includes(from) ? `${who(hero)} joins you! Press C at camp to pick who comes along.` : 'Push blocks together to do math. Feed the fire at 0. Space picks up / puts down.');
 
 const SAY = { 'bag-full': 'Your bag is full.', 'not-whole': 'Only whole numbers burn.',
   'zero-fill': '0 is nothing: it can\'t burn or fill.', socket: 'The fire wants a number.', empty: 'Nothing to put down.', storm: '÷ 0: a storm! Nothing happens.' };
@@ -22,6 +32,12 @@ function act(a) {
   if (r.state !== s && r.events[0]?.type !== 'bounce') { history.push(s); s = r.state; }
   else if (r.state !== s) s = r.state; // turned to face a wall: no time, no undo entry needed
   for (const e of r.events) {
+    if (e.type === 'enter') { try { localStorage.setItem('mathblox.craft', JSON.stringify(s)); } catch { /* fine */ } location.search = `?world=${e.world}`; }
+    if (e.reason === 'needs') say(`${world(e.world).name}: bring ${e.missing.map(m => (m.startsWith('pairs:') ? `${m.slice(6)} finished pair worlds` : who(m))).join(' and ')}.`);
+    if (e.reason === 'soon') say(`${world(e.world).name} (${world(e.world).concept}) is still being built.`);
+    if (e.type === 'swap') { tone(520, 0.05, 'sine', 260); say(`You are ${who(e.mover)}.`); }
+    if (e.type === 'negate') { tone(pitch(7), 0.1, 'triangle', -120); tone(pitch(0), 0.12, 'triangle', 120, 0.1); }
+    if (e.type === 'leap') { tone(pitch(0), 0.12, 'sine'); tone(pitch(12), 0.2, 'sine', 0, 0.1); }
     if (e.type === 'bounce') { boing(); if (SAY[e.reason]) say(SAY[e.reason]);
       const [dx, dy] = a === 'grab' ? [0, 0] : { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }[a], hit = r.state.objects.find(o => o.x === e.at.x && o.y === e.at.y);
       bump = { ...e, t0: performance.now(), wob: hit && !hit.mimic ? e.at : { x: e.at.x - dx, y: e.at.y - dy } }; }
@@ -41,7 +57,13 @@ function act(a) {
   }
 }
 const undo = () => { if (history.length) s = history.pop(); };
-const restart = () => { history.push(s); s = newCraft(); };
+const restart = () => { history.push(s); s = newCraft(s.done, s.cast); };
+// C at camp: cycle through every party your recruits can make (one hero, or two).
+function pick() {
+  const ps = parties(recruits(s.done)), i = ps.findIndex(p => p.join() === s.cast.join()), r = choose(s, ps[(i + 1) % ps.length]);
+  if (r.events[0].type === 'bounce') { boing(); return say('Pick your companions at camp, by the fire.'); }
+  history.push(s); s = r.state; say(`Going out: ${s.cast.map(who).join(' and ')}.`);
+}
 
 // ponytail: one lingering bump (cleared by the next input) plus short one-shot effects; a real fx table if Craft grows.
 let bump = null;
@@ -119,11 +141,16 @@ function draw(now) {
     else { if (o.land) { g.beginPath(); g.ellipse(ox + CELL / 2, oy + CELL + 4, CELL / 2 + 9, CELL * 0.7, 0, Math.PI, 0); g.closePath(); g.fillStyle = '#c9a36b'; g.fill(); g.lineWidth = 3; g.strokeStyle = '#3b2a1a'; g.stroke(); g.strokeStyle = '#7fbf4d'; g.beginPath(); g.ellipse(ox + CELL / 2, oy + CELL + 4, CELL / 2 + 6, CELL * 0.7 - 3, 0, Math.PI * 1.05, Math.PI * 1.95); g.stroke(); } // only land (an overfill hill) stands on a mound; a carried + block does not
       piece(ox, oy, o); }
   }
-  // Player, with a nose toward the facing direction (what Space picks up).
-  const px = X(s.player.x) + CELL / 2, py = Y(s.player.y) + CELL / 2, d = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }[s.facing];
-  g.fillStyle = C.player; circle(px, py, CELL * 0.33); circle(px + d[0] * 20, py + d[1] * 20, 7);
-  g.fillStyle = WHITE; for (const k of [-1, 1]) circle(px + k * 9, py - 5, 6);
-  g.fillStyle = INK; for (const k of [-1, 1]) circle(px + k * 9 + d[0] * 2, py - 4 + d[1] * 2, 3);
+  // Site doors (placeholder look until Arto paints them): open ones lit, locked ones dim, a check once finished.
+  for (const [k, id] of Object.entries(s.sites)) {
+    const [x, y] = k.split(',').map(Number); if (x < cam || x >= cam + VW) continue;
+    const ok = canEnter(id, s.cast, s.done) && world(id).levels.length;
+    rr(X(x) + 8, Y(y) + 6, CELL - 16, CELL - 8, 8, ok ? '#ffd166' : '#6c6f80');
+    text(s.done.includes(id) ? '✓' : world(id).name.replace('The ', '').slice(0, 4), X(x) + CELL / 2, Y(y) + CELL / 2 + 2, 12, INK);
+  }
+  // Player: the hero you are now, facing the way you face (what Space picks up).
+  const px = X(s.player.x) + CELL / 2, py = Y(s.player.y) + CELL / 2;
+  sprite(g, px, py, CELL * 0.95, s.mover, reduced ? 0 : now, s.facing);
   // Light: night is a deep blue shade with a clear circle as wide as the fire's warmth; the last moves of day turn amber.
   const night = isNight(s.t), left = movesToSwitch(s.t);
   if (night) {
@@ -166,7 +193,8 @@ function draw(now) {
     if (o) { g.save(); g.translate(bx - 0.6, 7.4); g.scale(0.8, 0.8); if (o.kind === 'op') opBlock(0, 0, o.op, 1); else if (!o.shape) piece(0, 0, o); else text(label(o.value), CELL / 2, CELL / 2, 20, WHITE); g.restore(); }
   }
   if (bump?.reason === 'bag-full' && !reduced && age(bump) < 400) { g.strokeStyle = '#ffd166'; g.lineWidth = 3; g.strokeRect(288, 6, bagSize(s) * 54, 54); } // the full bag flashes once
-  if (msg && now - msgT < 5000) text(msg, (420 + cv.width) / 2, 32, 14, WHITE, false);
+  if (msg && now - msgT < 5000) text(msg, (420 + cv.width) / 2, 26, 14, WHITE, false);
+  text(`${s.cast.map(id => (id === s.mover ? `▶ ${who(id)}` : who(id))).join('   ')}   (Tab swaps · C at camp picks)`, (420 + cv.width) / 2, 54, 11, '#c9d6ea', false);
   requestAnimationFrame(draw);
 }
 
@@ -174,6 +202,8 @@ const KEYS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 
 addEventListener('keydown', e => {
   if (e.repeat) return;
   if (KEYS[e.key]) { act(KEYS[e.key]); e.preventDefault(); }
+  else if (e.key === 'Tab') { act('swap'); e.preventDefault(); }
+  else if (e.key === 'c') pick();
   else if (e.key === 'z' || e.key === 'Backspace') undo();
   else if (e.key === 'r') restart();
   else if (e.key === 'm') setMute(!muted);
