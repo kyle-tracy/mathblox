@@ -1,4 +1,4 @@
-// Merge (Worldo): S4 Void (L3).
+// Merge (Worldo): S4 Void (L4).
 // Imported in play order by levels/levels.js; schema notes are there.
 export default [
   {

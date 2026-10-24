@@ -25,7 +25,7 @@ export default [
     doors: { A: 5 },
   },
   {
-    name: 'Over and Back',
+    name: 'Leap Behind It',
     cast: ['tally', 'pythagoras'],
     solution: 'dsdrsrsrsllllld',
     skill: 'Pythagoras intro (leap 2, never push) + S1 merge echo: 4+3 = 7',

@@ -1,4 +1,4 @@
-// Lanes (Worldo): S11 Variable Lanes V1, V2, V4, V5, V3, V6 (L6-L11).
+// Lanes (Worldo): S11 Variable Lanes V1, V2, V4, V5, V3, V6 (L8-L10, L12-L14).
 // Imported in play order by levels/levels.js; schema notes are there.
 export default [
   // S11 Variable Lanes (P2.5). A lane's value is the total of the number blocks in it; gates are live.

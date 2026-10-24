@@ -1,4 +1,4 @@
-// Carve (Worldo): S6 missing part + S4 a − a = Void, then S6 round trip (L4-L5).
+// Carve (Worldo): S6 missing part + S4 a − a = Void, then S6 round trip (L5-L6).
 // Imported in play order by levels/levels.js; schema notes are there.
 export default [
   {
