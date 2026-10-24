@@ -20,14 +20,14 @@ test('canEnter: the party must hold every needed recruit; the dungeon needs 2 pa
 
 const from = (s, x, y) => { s.player = { x, y }; return s; };
 test('site doors: enter with the right party, bounce with the missing heroes, a pair world with levels opens', () => {
-  let r = step(from(newCraft(), 14, 1), 'up');
+  let r = step(from(newCraft(), 14, 2), 'up');
   assert.deepEqual([r.events[0].reason, r.events[0].missing], ['needs', ['pythagoras']]);
-  r = step(from(newCraft(['alexandria', 'croton'], ['pythagoras']), 14, 1), 'up');
-  assert.deepEqual(r.events[0], { type: 'enter', world: 'ujjain', at: { x: 14, y: 0 } });
-  assert.equal(step(from(newCraft(), 1, 4), 'left').events[0].world, 'camp');
-  assert.equal(step(from(newCraft(['alexandria', 'ujjain'], ['euclid', 'brahmagupta']), 25, 1), 'up').events[0].world, 'distrib'); // has a level now
+  r = step(from(newCraft(['alexandria', 'croton'], ['pythagoras']), 14, 2), 'up');
+  assert.deepEqual(r.events[0], { type: 'enter', world: 'ujjain', at: { x: 14, y: 1 } });
+  assert.equal(step(from(newCraft(), 1, 10), 'up').events[0].world, 'camp');
+  assert.equal(step(from(newCraft(['alexandria', 'ujjain'], ['euclid', 'brahmagupta']), 25, 2), 'up').events[0].world, 'distrib'); // has a level now
   const back = atSite(newCraft(), 'motion');
-  assert.deepEqual([back.player.x, back.player.y], [SITES.motion[0] - 1, SITES.motion[1]]);
+  assert.deepEqual([back.player.x, back.player.y], [SITES.motion[0], SITES.motion[1] + 1]);
 });
 
 test('every world door has a free cell inside it to come back to (finished or left early)', () => {
@@ -38,27 +38,27 @@ test('every world door has a free cell inside it to come back to (finished or le
   }
 });
 test('heroes in Craft: Euclid slides (one move of time) and curls a block into a pit; Tab is free', () => {
-  let s = from(newCraft(['alexandria'], ['euclid']), 1, 1);
+  let s = from(newCraft(['alexandria'], ['euclid']), 1, 6);
   s = step(s, 'right').state;
   assert.deepEqual([s.player.x, s.t], [9, 1]);
-  s = from(newCraft(['alexandria'], ['euclid']), 7, 3);
-  s.objects.push({ id: 99, x: 8, y: 3, kind: 'num', value: 3 });
+  s = from(newCraft(['alexandria'], ['euclid']), 7, 8);
+  s.objects.push({ id: 99, x: 8, y: 8, kind: 'num', value: 3 });
   const r = step(s, 'right');
   assert.ok(r.events.some(e => e.type === 'land'));
-  assert.equal(heightAt(r.state, 10, 3), 0, 'the craft step ran: the 3 filled the −3');
+  assert.equal(heightAt(r.state, 10, 8), 0, 'the craft step ran: the 3 filled the −3');
   const t = step(newCraft(['alexandria'], ['tally', 'euclid']), 'swap').state;
   assert.deepEqual([t.mover, t.t], ['euclid', 0]);
   assert.deepEqual(choose(newCraft(['alexandria']), ['euclid']).state.cast, ['euclid'], 'picked at camp');
-  assert.equal(choose(from(newCraft(['alexandria']), 9, 3), ['euclid']).events[0].reason, 'camp', 'only at camp');
+  assert.equal(choose(from(newCraft(['alexandria']), 9, 8), ['euclid']).events[0].reason, 'camp', 'only at camp');
 });
 test('Pythagoras leaps the 1-wide river; Brahmagupta flips its ground, −3 to a 3 hill and back', () => {
-  const p = step(from(newCraft(['alexandria'], ['pythagoras']), 9, 3), 'right').state;
+  const p = step(from(newCraft(['alexandria'], ['pythagoras']), 9, 8), 'right').state;
   assert.equal(p.player.x, 11);
-  let b = from(newCraft([], ['brahmagupta']), 9, 3);
+  let b = from(newCraft([], ['brahmagupta']), 9, 8);
   b = step(b, 'right').state;
-  assert.equal(heightAt(b, 10, 3), 0);
-  assert.deepEqual(b.objects.filter(o => o.x === 10 && o.y === 3).map(o => [o.value, o.land]), [[3, true]]);
+  assert.equal(heightAt(b, 10, 8), 0);
+  assert.deepEqual(b.objects.filter(o => o.x === 10 && o.y === 8).map(o => [o.value, o.land]), [[3, true]]);
   b = step(b, 'right').state;
-  assert.equal(heightAt(b, 10, 3), -3);
+  assert.equal(heightAt(b, 10, 8), -3);
   assert.equal(b.player.x, 9);
 });

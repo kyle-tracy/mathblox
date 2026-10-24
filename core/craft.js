@@ -15,11 +15,12 @@ export const isNight = t => t % DAY >= DAY - NIGHT;
 export const dayOf = t => Math.floor(t / DAY) + 1;
 export const movesToSwitch = t => (isNight(t) ? DAY : DAY - NIGHT) - (t % DAY); // until dawn or dusk
 
-// Hand-authored strip, about 3 screens wide. Camp (the fire) is the origin. The land is a number:
+// Hand-authored map: a road (7 rows, about 3 screens wide) between two bands of districts, one per world.
+// Camp (the fire) is the origin. The land is a number:
 // each pit cell has its own height (−3), and any block pushed or placed in adds to it, from any side.
 // −3 + 3 = 0 is flat ground; −3 + 2 = −1 is still a pit; −3 + 5 = 2 is a hill: a 2 block left standing there.
-const W = 48, H = 9, CAMP = { x: 2, y: 4 };
-const RIVERS = [[10, -3], [22, -2], [23, -3], [36, -2]]; // [column, height] down every row
+const OY = 5, W = 48, H = 19, ROAD = [OY + 1, OY + 7], CAMP = { x: 2, y: OY + 4 }; // rows 1-4 and 14-17 are districts
+const RIVERS = [[10, -3], [22, -2], [23, -3], [36, -2]]; // [column, height] down every road row
 const STAMPS = [
   [4, 2, '2'], [5, 2, '+'], [7, 2, '3'], // 0:00: merge 2+3, feed 5
   [3, 6, '1'], [5, 6, '9'], [6, 6, '-'], [8, 6, '6'], // 0:40: 9−6 = 3 bridges the −3 (or burn the 9: it regrows at dawn)
@@ -27,18 +28,32 @@ const STAMPS = [
   [29, 3, '3'], [30, 3, '×'], [32, 3, '3'], [33, 6, '2'], [26, 1, '6'], [31, 7, '4'], // a 3×3 platform burns as 9
   [40, 2, '9'], [41, 4, '+'], [43, 4, '9'], [44, 6, '8'], [42, 6, '5'], [45, 2, '7'], // far side: bonfire wood
   [6, 3, '#'], [13, 1, '#'], [20, 1, '#'], [20, 2, '#'], [27, 6, '#'], [27, 7, '#'], [34, 1, '#'], [39, 7, '#'], [46, 4, '#'],
-];
+].map(([x, y, ch]) => [x, y + OY, ch]); // authored in road rows 1-7
 // The night creature: shy, past the first river, wearing one equation per night (□ is the block you give it).
-const MIMIC_SPOTS = [[15, 3], [17, 1], [13, 6], [19, 4]], MIMIC_EQS = ['□+3=8', '□+1=5', '□+4=7'];
-// Site doors (spec §3): one per world, set in the border wall. Pair sites sit behind terrain that suits the pair
-// (Pythagoras's past the 1-wide river at 36 he can leap, Euclid+Zeno at the end of a long flat row), but the real gate
-// is `needs` (core/progress.js). First-pass spots; Worldo and Arto own where they end up.
-export const SITES = { camp: [0, 4], alexandria: [5, 0], croton: [8, 8], ujjain: [14, 0], elea: [17, 8], distrib: [25, 0],
-  under: [28, 8], series: [33, 0], vectors: [37, 8], rotation: [38, 0], motion: [47, 3], dungeon: [47, 6] };
+const MIMIC_SPOTS = [[15, 3], [17, 1], [13, 6], [19, 4]].map(([x, y]) => [x, y + OY]), MIMIC_EQS = ['□+3=8', '□+1=5', '□+4=7'];
+// Districts: one walled area per world, opening onto the road by a gap (gate) in the door's column. The door (a solid
+// cell at the back) enters the world; the host beside it (hero or signpost) greets. In curriculum order away from camp,
+// alternating top and bottom. Rivers cut only the road, so a district sits on the side of the river its gate opens to:
+// Pythagoras's pair (vectors) past the 1-wide river at 36 he can leap. The real gate is `needs` (core/progress.js).
+const district = (x, w, top, dx) => ({ x, y: top ? 1 : ROAD[1] + 2, w, h: 4, door: [dx, top ? 1 : H - 2], host: [dx - 1, top ? 1 : H - 2],
+  gate: [dx, top ? ROAD[0] - 1 : ROAD[1] + 1] });
+export const DISTRICTS = {
+  camp: { x: 1, y: ROAD[0], w: 9, h: 7, door: [1, CAMP.y], host: [1, CAMP.y - 1] }, // the camp itself; host: the Tally-Keeper
+  alexandria: district(1, 8, true, 5), croton: district(1, 8, false, 8),
+  ujjain: district(10, 10, true, 14), elea: district(10, 11, false, 17),
+  distrib: district(21, 8, true, 25), under: district(22, 9, false, 28), series: district(30, 6, true, 33),
+  vectors: district(32, 8, false, 37), rotation: district(37, 5, true, 38), motion: district(43, 4, true, 45),
+  dungeon: district(41, 6, false, 45),
+};
+export const SITES = Object.fromEntries(Object.entries(DISTRICTS).map(([id, d]) => [id, d.door]));
+const keyed = f => Object.fromEntries(Object.entries(DISTRICTS).map(([id, d]) => [d[f].join(), id]));
 export function craftMap() {
-  const rows = [...Array(H)].map((_, y) => [...Array(W)].map((_, x) => (y === 0 || y === H - 1 || x === 0 || x === W - 1 ? '#' : '.')));
-  for (const [x] of RIVERS) for (let y = 1; y < H - 1; y++) rows[y][x] = '#'; // solid to the engine; heights live in s.ground
+  const rows = [...Array(H)].map(() => Array(W).fill('#')), open = (x, y, w, h) => { for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) rows[j][i] = '.'; };
+  open(1, ROAD[0], W - 2, ROAD[1] - ROAD[0] + 1);
+  for (const d of Object.values(DISTRICTS)) { open(d.x, d.y, d.w, d.h); if (d.gate) open(...d.gate, 1, 1); }
+  for (const [x] of RIVERS) for (let y = ROAD[0]; y <= ROAD[1]; y++) rows[y][x] = '#'; // solid to the engine; heights live in s.ground
   for (const [x, y, ch] of STAMPS) rows[y][x] = ch;
+  for (const d of Object.values(DISTRICTS)) rows[d.door[1]][d.door[0]] = rows[d.host[1]][d.host[0]] = '#';
   rows[CAMP.y][CAMP.x] = '#'; // the fire is solid too; pushes into it are caught below
   rows[CAMP.y][CAMP.x + 1] = '@';
   return rows.map(r => r.join(''));
@@ -47,10 +62,10 @@ export function craftMap() {
 // done: finished world ids; party: the heroes you take out (Tab swaps between them).
 export function newCraft(done = [], party = ['tally']) {
   const s = parseLevel({ name: 'craft', map: craftMap(), cast: party }), ground = {};
-  for (const [x, h] of RIVERS) for (let y = 1; y < H - 1; y++) ground[`${x},${y}`] = h;
+  for (const [x, h] of RIVERS) for (let y = ROAD[0]; y <= ROAD[1]; y++) ground[`${x},${y}`] = h;
   const spawns = s.objects.map(({ x, y, kind, value, op }) => ({ x, y, kind, ...(kind === 'num' ? { value } : { op }) }));
   return { ...s, camp: CAMP, ground, spawns, fire: START_HEAT, bag: [], t: 0, facing: 'right', dozes: 0, pet: null,
-    done: [...done], sites: Object.fromEntries(Object.entries(SITES).map(([id, [x, y]]) => [`${x},${y}`, id])) };
+    done: [...done], sites: keyed('door'), hosts: keyed('host') };
 }
 
 export const heightAt = (s, x, y) => s.ground[`${x},${y}`] ?? 0;
@@ -115,6 +130,8 @@ function go(state, dir) {
     if (!world(site).levels.length) return bounce(state, 'soon', { x, y }, { world: site }); // a pair world not built yet
     return { state, events: [{ type: 'enter', world: site, at: { x, y } }] };
   }
+  const host = state.hosts?.[`${x},${y}`]; // a host: who lives here, what they teach, who you need (free, like a bump)
+  if (host) return { state, events: [{ type: 'greet', world: host, at: { x, y } }] };
   if (state.mover === 'brahmagupta' && !state.won) { const f = flipGround(state, x, y); if (f) return f; }
   const r = HEROES[state.mover](state, dir, CRAFT_API), n = r.state;
   if (n !== state && (n.player.x !== state.player.x || n.player.y !== state.player.y)) {
@@ -139,11 +156,11 @@ export function choose(state, party) {
   if (Math.max(Math.abs(state.player.x - state.camp.x), Math.abs(state.player.y - state.camp.y)) > 2) return bounce(state, 'camp', { ...state.player });
   return { state: { ...structuredClone(state), cast: [...party], mover: party[0] }, events: [{ type: 'party', party }] };
 }
-// Back from a world: stand just inside its door (or at camp if a block now stands there).
+// Back from a world: stand on the floor beside its door (or at camp if a block now stands there).
 export function atSite(state, id) {
-  const s = structuredClone(state), [x, y] = SITES[id], W = s.tiles[0].length, H = s.tiles.length;
-  const p = { x: Math.min(W - 2, Math.max(1, x)), y: Math.min(H - 2, Math.max(1, y)) };
-  s.player = tileAt(s, p.x, p.y) === '.' && !objAt(s, p.x, p.y) ? p : wakeSpot(s);
+  const s = structuredClone(state), [x, y] = SITES[id];
+  const p = Object.values(DIRS).map(([dx, dy]) => ({ x: x + dx, y: y + dy })).find(q => tileAt(s, q.x, q.y) === '.' && !objAt(s, q.x, q.y));
+  s.player = p ?? wakeSpot(s);
   if (s.pet) s.pet = { ...s.player };
   return s;
 }

@@ -16,6 +16,7 @@ const VW = 15, VH = 9, PAD = 40, HUD = 70; // view in cells; margins for the axe
 const from = new URLSearchParams(location.search).get('from'), done = getDone();
 let saved = null;
 if (from && world(from)) try { saved = JSON.parse(localStorage.getItem('mathblox.craft')); } catch { /* no storage: a fresh Craft */ }
+if (saved && String(saved.tiles?.map(r => r.length)) !== String(newCraft().tiles.map(r => r.length))) saved = null; // a save from an older map
 let s = from && world(from) ? atSite({ ...(saved ?? newCraft(done)), done }, from) : newCraft(done), history = [], msg = '', msgT = 0;
 cv.width = VW * CELL + PAD; cv.height = VH * CELL + PAD + HUD;
 document.getElementById('name').textContent = 'MathBlox Craft: keep the fire warm';
@@ -106,14 +107,14 @@ function creature(cx, cy, spec) {
 }
 
 function draw(now) {
-  const W = s.tiles[0].length, cam = Math.max(0, Math.min(W - VW, s.player.x - 7));
-  const X = x => PAD + (x - cam) * CELL, Y = y => HUD + y * CELL;
+  const W = s.tiles[0].length, cam = Math.max(0, Math.min(W - VW, s.player.x - 7)), camY = Math.max(0, Math.min(s.tiles.length - VH, s.player.y - 4));
+  const X = x => PAD + (x - cam) * CELL, Y = y => HUD + (y - camY) * CELL;
   const wob = (x, y) => { // the bumped piece shakes (a rubbery no, never a buzzer)
     if (!bump || reduced || age(bump) > 400 || !bump.wob || bump.wob.x !== x || bump.wob.y !== y) return 0;
     return Math.sin(age(bump) / 25) * 5 * (1 - age(bump) / 400);
   };
   g.fillStyle = '#2b2d42'; g.fillRect(0, 0, cv.width, cv.height);
-  for (let y = 0; y < VH; y++) for (let x = cam; x < cam + VW; x++) {
+  for (let y = camY; y < camY + VH; y++) for (let x = cam; x < cam + VW; x++) {
     const t = s.tiles[y][x], h = heightAt(s, x, y);
     g.fillStyle = t === '#' && !h ? C.wall : C.floor; g.fillRect(X(x), Y(y), CELL, CELL);
     if (h) pit(X(x), Y(y), h);
@@ -175,7 +176,7 @@ function draw(now) {
   if (tame) hearts(X(tame.at.x) + CELL / 2, Y(tame.at.y) + CELL / 2, reduced ? 0.3 : age(tame) / T(600));
   g.fillStyle = '#f4efe4'; g.fillRect(0, HUD + VH * CELL, cv.width, PAD); g.fillRect(0, HUD, PAD, VH * CELL);
   for (let x = cam; x < cam + VW; x++) text(x - s.camp.x, X(x) + CELL / 2, HUD + VH * CELL + 20, 14, C.axis, x === s.camp.x);
-  for (let y = 0; y < VH; y++) text(s.camp.y - y, PAD / 2, Y(y) + CELL / 2, 14, C.axis, y === s.camp.y);
+  for (let y = camY; y < camY + VH; y++) text(s.camp.y - y, PAD / 2, Y(y) + CELL / 2, 14, C.axis, y === s.camp.y);
   // HUD: sun or moon and a day track (amber day, blue night, a dot for now), warmth as a flame with one ember per unit, the bag.
   g.fillStyle = '#2b2d42'; g.fillRect(0, 0, cv.width, HUD);
   sun(24, 24, night); text(`Day ${dayOf(s.t)}`, 80, 22, 17, WHITE);
