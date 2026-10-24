@@ -26,7 +26,7 @@ A game where **the math is the physics**. Prototype: ages 6–9 (2D, browser). T
   - Read only what your brief names. For the Log, use `tail -n 15 docs/decisions.md` instead of reading the whole file.
   - Gate re-runs re-check only the levels that changed.
   - Reports stay under 150 words. Pipe test output through `tail -3`.
-  - The CEO continues a running agent with a message rather than spawning a new one, makes quick rulings itself, and gives mechanical briefs `effort: lower`.
+  - The CEO continues a running agent with a message rather than spawning a new one, makes quick rulings and small fixes itself, pastes exact code ranges into briefs, and gives mechanical briefs `effort: lower`.
 - **Ownership:**
 
 | Path | Owner |
@@ -38,7 +38,7 @@ A game where **the math is the physics**. Prototype: ages 6–9 (2D, browser). T
 | repo layout, git, tooling, backend | Archo |
 | `curriculum.md` | Matho |
 | `fun-principles.md` | Psycho |
-| `budget.md` (token estimates and ledger) | Budgeto |
+| `budget.md` (token ledger) | CEO |
 | keep/cut verdicts, feel and findability QC | Qualito |
 | `ideas.md` (new concepts, risky propositions) | Visio |
 

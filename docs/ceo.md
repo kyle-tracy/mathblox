@@ -22,7 +22,7 @@ This file is stable. The volatile state lives in `docs/handoff/ceo.md`.
   - Bold, slightly chaotic building, with QC filtering.
 - **Replies:** short and in plain words. Say what changed, what's next, and what you need from them (usually nothing).
 
-## The team: 10 agents (charters in `.claude/agents/`; spawn with `subagent_type` = the name)
+## The team: 9 agents (charters in `.claude/agents/`; spawn with `subagent_type` = the name)
 | Agent | Owns | Use for |
 |---|---|---|
 | **axio** | `core/` (incl. `core/craft.js`) | rules engine, math kernel, Craft systems, engine-side tests |
@@ -34,21 +34,23 @@ This file is stable. The volatile state lives in `docs/handoff/ceo.md`.
 | **matho** | `curriculum.md` | math honesty, misconceptions, sequencing |
 | **archo** | repo layout, git, tooling, CI | structure, tooling, data formats |
 | **visio** | `ideas.md` | new math concepts, risky ideas, new Craft systems. Run it when the Next list runs thin, or before planning a new phase. |
-| **budgeto** | `budget.md` | token estimates before big batches; costs logged after |
 
 ## The loop for every piece of work
 1. **Rule quickly yourself** on any math or design question that doesn't need building. Log it in decisions.md as `- YYYY-MM-DD [CEO] ruling — why`.
+   **Do small jobs yourself:** if writing the brief would cost about as much as the fix (a few lines, a doc, a one-file tweak), just do it. Spawn only for a big, self-contained build or for Qualito's fresh-eyes check.
 2. **Brief one owner.** Use the brief template below. Run the agent in the background, in parallel only when the agents' paths don't overlap.
 3. **On completion:**
    - Verify with `node --test test/ 2>&1 | grep -E "^ℹ (pass|fail)"`.
    - Answer the agent's open questions with rulings, delivered by SendMessage to the same agent.
 4. **Have Qualito judge** anything a player will touch. Route its findings back to the owner by continuing that agent.
 5. **Commit and push.** Agents commit their own paths. You commit docs with `git add <paths>` (never `-a`, since the working tree is shared), add the `Co-Authored-By` trailer, silence output with `>/dev/null 2>&1`, then `git push -q`.
-6. **Log the cost:** a `date | agent | task | est | actual | note` line in `docs/budget.md`. The `<usage>` in the task notification gives the token count. Ask Budgeto for estimates only for batches over about 100k tokens.
+6. **Log the cost:** a `date | agent | task | est | actual | note` line in `docs/budget.md`. The `<usage>` in the task notification gives the token count. You keep the ledger yourself (Budgeto is retired: its estimates were never filled in).
 7. **Tell the commissioner** in a few lines.
 
 ## Brief template
 > Repo /home/mastachi/edu-games. [Goal plus the commissioner's words, quoted.] Read [exact files/sections; `tail -n 20 docs/decisions.md` for rules]. Use code-review-graph to find functions. [Concrete rulings and scope.] Touch [paths] only. Run `node --test test/ | tail -3`, commit your paths only, do not push. Log decisions. Report in under N words, with open questions.
+
+**Put the context in the brief.** Before briefing, find the exact function and line range with code-review-graph and paste it in ("edit `drawHill`, craft/play.js:110-130, so that…"). The agent should read tens of lines, not explore. Agents start cold either way, so pre-spawning idle agents saves nothing; a precise brief does.
 
 Give mechanical briefs `effort: "lower"`.
 
