@@ -20,12 +20,14 @@ test('districts do not overlap; door and host sit inside, side by side', () => {
 });
 
 // Walking only (no pushes, merges or flips), keyed on x, y and mover (Tab is free). ponytail: time is not in the key
-// (a path that meets the night creature may be missed); capped.
+// (a path that meets the night creature may be missed); capped. With `home` (a finished search from the spawn cell),
+// reaching any of its cells means reaching all its doors: the world is static, so that is exact.
 const WALK = ['move', 'leap', 'nudge', 'swap', 'face', 'enter', 'dusk', 'dawn', 'mimic', 'doze'];
-function entered(start, cap = 30000) {
+function entered(start, home, cap = 30000) {
   const key = s => `${s.player.x},${s.player.y},${s.mover}`, seen = new Set([key(start)]), got = new Set();
   for (let q = [start]; q.length && seen.size < cap;) {
     const s = q.shift();
+    if (home?.seen.has(key(s))) return { seen, got: new Set([...got, ...home.got]) };
     for (const a of ['up', 'down', 'left', 'right', 'swap']) {
       const r = step(s, a);
       for (const e of r.events) if (e.type === 'enter' || e.reason === 'soon') got.add(e.world); // 'soon': at the door, world not built yet
@@ -33,24 +35,18 @@ function entered(start, cap = 30000) {
       if (!seen.has(key(r.state))) { seen.add(key(r.state)); q.push(r.state); }
     }
   }
-  return got;
+  return { seen, got };
 }
 const ALL = Object.keys(DISTRICTS);
-test('every party a door admits reaches that door from camp (nudgers and the ford included)', () => {
+test('from every cell where C picks a party, every party reaches each door it admits (nudgers and the ford included)', () => {
   for (const party of parties(recruits(ALL))) {
-    const got = entered({ ...newCraft(ALL, party), fire: 99 }); // terrain only: the far districts are a fed fire away (no doze)
-    for (const id of ALL) if (canEnter(id, party, ALL)) assert.ok(got.has(id), `${party} cannot reach ${id}`);
-  }
-});
-test('Pythagoras picked on any cell by the fire still reaches his doors (nudgers fix his parity)', () => {
-  const s0 = newCraft(['camp', 'alexandria', 'croton'], ['pythagoras']);
-  for (let dx = -2; dx <= 2; dx++) for (let dy = -2; dy <= 2; dy++) {
-    const s = structuredClone(s0), x = s.camp.x + dx, y = s.camp.y + dy;
-    if (s.tiles[y][x] !== '.' || s.objects.some(o => o.x === x && o.y === y)) continue;
-    s.player = { x, y };
-    if (['up', 'down', 'left', 'right'].every(d => step(s, d).state === s)) continue; // a pocket he can't leap out of: C picks again
-    const got = entered(s);
-    for (const id of ['camp', 'alexandria', 'ujjain']) assert.ok(got.has(id), `from ${x},${y}: ${id}`);
+    const s0 = { ...newCraft(ALL, party), fire: 99 }, home = entered(s0); // terrain only: the far districts are a fed fire away (no doze)
+    for (let dx = -2; dx <= 2; dx++) for (let dy = -2; dy <= 2; dy++) {
+      const x = s0.camp.x + dx, y = s0.camp.y + dy;
+      if (s0.tiles[y][x] !== '.' || s0.objects.some(o => o.x === x && o.y === y)) continue;
+      const { got } = entered({ ...s0, player: { x, y } }, home);
+      for (const id of ALL) if (canEnter(id, party, ALL)) assert.ok(got.has(id), `${party} from ${x},${y}: ${id}`);
+    }
   }
 });
 test('a nudger pushes you one cell on, if that cell is open', () => {

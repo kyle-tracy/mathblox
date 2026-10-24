@@ -27,7 +27,7 @@ const STAMPS = [
   [14, 5, '4'], [15, 5, '+'], [17, 5, '1'], [15, 7, '7'], [16, 7, '-'], [18, 7, '2'], [19, 2, '8'], // 5 fills −2 and leaves a 3 for the −3
   [29, 3, '3'], [30, 3, '×'], [32, 3, '3'], [33, 6, '2'], [26, 1, '6'], [31, 7, '4'], // a 3×3 platform burns as 9
   [40, 2, '9'], [41, 4, '+'], [43, 4, '9'], [44, 6, '8'], [42, 6, '5'], [45, 2, '7'], // far side: bonfire wood
-  [6, 3, '#'], [13, 1, '#'], [20, 1, '#'], [20, 2, '#'], [27, 6, '#'], [27, 7, '#'], [34, 1, '#'], [40, 7, '#'], [46, 4, '#'],
+  [6, 3, '#'], [13, 1, '#'], [20, 1, '#'], [20, 2, '#'], [27, 6, '#'], [27, 7, '#'], [34, 1, '#'], [40, 7, '#'], [46, 4, '#'], [7, 5, '#'], // (7,10): sets Euclid on the x-axis from the camp's west side 
 ].map(([x, y, ch]) => [x, y + OY, ch]); // authored in road rows 1-7
 // The night creature: shy, past the first river, wearing one equation per night (□ is the block you give it).
 const MIMIC_SPOTS = [[15, 3], [17, 1], [13, 6], [19, 4]].map(([x, y]) => [x, y + OY]), MIMIC_EQS = ['□+3=8', '□+1=5', '□+4=7'];
@@ -41,7 +41,7 @@ const MIMIC_SPOTS = [[15, 3], [17, 1], [13, 6], [19, 4]].map(([x, y]) => [x, y +
 const district = (x, w, top, g, side = 1, y = top ? 1 : H - 2) => ({ x, y: top ? 1 : ROAD[1] + 2, w, h: 4,
   gate: [g, top ? ROAD[0] - 1 : ROAD[1] + 1], stand: [g, y], door: [g + side, y], host: [g + 2 * side, y] }); // side −1: door left of the gate
 export const DISTRICTS = {
-  camp: { x: 1, y: ROAD[0], w: 9, h: 7, stand: [1, CAMP.y - 2], door: [1, CAMP.y - 1], host: [1, CAMP.y] }, // the camp itself; host: the Tally-Keeper
+  camp: { x: 1, y: ROAD[0], w: 9, h: 7, stand: [1, CAMP.y - 2], door: [1, CAMP.y - 1], host: [2, CAMP.y - 1] }, // the camp itself; host: the Tally-Keeper, above the fire
   alexandria: district(1, 8, true, 3), croton: district(1, 9, false, 9, -1),
   ujjain: district(10, 10, true, 15), elea: district(11, 10, false, 13),
   distrib: district(21, 8, true, 25), under: district(22, 9, false, 25), series: district(30, 6, true, 33),
@@ -51,16 +51,17 @@ export const DISTRICTS = {
 // Nudgers (pistons): a road tile that pushes whoever ends a move on it 1 cell onward, if that cell is open floor.
 // Pythagoras leaps 2, so he keeps his parity, and gates, stands and the ford are on odd x, odd y; landing on a
 // nudger flips one parity. Picked at camp on any cell, he gets back on track: (6,9) leaping right, (3,10) leaping
-// up, (4,10) leaping right then (3,10).
-export const NUDGERS = [[6, 9], [3, 10], [4, 10]];
+// up, (4,10) leaping right then (3,10), (6,3) leaping right.
+export const NUDGERS = [[6, 9], [3, 10], [4, 10], [6, 3]]; // (6,3) in Alexandria: picked at (2,7) he leaps up through its wide gate
 const NUDGE = new Set(NUDGERS.map(String));
-export const LAYOUT = 3; // bump when the map changes: older saves are dropped
+export const LAYOUT = 4; // bump when the map changes: older saves are dropped
 export const SITES = Object.fromEntries(Object.entries(DISTRICTS).map(([id, d]) => [id, d.door]));
 const keyed = f => Object.fromEntries(Object.entries(DISTRICTS).map(([id, d]) => [d[f].join(), id]));
 export function craftMap() {
   const rows = [...Array(H)].map(() => Array(W).fill('#')), open = (x, y, w, h) => { for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) rows[j][i] = '.'; };
   open(1, ROAD[0], W - 2, ROAD[1] - ROAD[0] + 1);
   for (const d of Object.values(DISTRICTS)) { open(d.x, d.y, d.w, d.h); if (d.gate) open(...d.gate, 1, 1); }
+  rows[ROAD[0] - 1][2] = '.'; // Alexandria's gate is 2 wide, so Pythagoras picked at (2,7) is never boxed in
   for (const [x] of RIVERS) for (const y of riverRows()) rows[y][x] = '#'; // solid to the engine; heights live in s.ground
   for (const [x, y, ch] of STAMPS) rows[y][x] = ch;
   for (const d of Object.values(DISTRICTS)) rows[d.door[1]][d.door[0]] = rows[d.host[1]][d.host[0]] = '#';
