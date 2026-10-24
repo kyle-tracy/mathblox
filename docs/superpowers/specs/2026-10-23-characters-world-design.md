@@ -61,7 +61,11 @@ Starting cast:
 
 ### The boss dungeon
 
-Each level needs 3–4 heroes at once. The final boss is the ÷0 Storm, and you defeat it with a limit: you approach 0 from both sides and show the storm the value it's heading toward. You never actually divide by 0. The design of the boss fight comes after the pair worlds.
+Each level needs 3–4 heroes at once. The final boss is the ÷0 Storm, and the fight is honest (Matho's redesign, curriculum.md §7):
+- **Phase 1:** (3x)÷x, approached from both sides, settles on 3. A hole in a formula can have a value.
+- **Phase 2:** 1÷x. The two sides race to opposite infinities, which proves the Storm has no value. You win by showing that both sides disagree, never by giving it a number.
+
+A complex number such as 3 + 3i reuses `vec` (it's a point on a plane), so there's no new attribute for it.
 
 ## 4. What doesn't change
 

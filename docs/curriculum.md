@@ -312,3 +312,94 @@ P5 (polish/retention) adds no new skills. It adds echo (spaced review) levels fo
 | P3-17 | intro | N1a | door 10 as a rod: bundle a 2×5 platform or a merged 6+4 | value kept, unit changes |
 | P3-18 | twist | N1a | door 13: rod + 3 or rod + 2+1; bait 9 loose cubes | more pieces ≠ more |
 | P3-19 | master | all | three doors, one per op (×, ÷, bundle), ≥2 fillings each; ÷0 bait storms | big celebration |
+
+## 7. World-map math beats (spec 2026-10-23-characters-world-design.md)
+This section is Matho's plan, and Worldo builds the levels. Each beat is a thought that a hero's move forces on the player, never a quiz. Format: **beat** (the thought) / *misconception it surfaces*. Ages 6–9 run through Elea; the pair worlds are 9+, and calculus and series are older still.
+
+### Camp (Tally): counting, + and −
+Big idea: "Every push is one step, and numbers join like the things they count."
+1. **Count the steps to the door; the door reads a number, not a place.** / *"The last number I said is just a label."* (cardinality)
+2. **3 + 2 opens door 5, and so does 5 + 0.** / *"= means the answer comes next."*
+3. **Carve 5 − 2, then walk back with + 2.** / *"+ and − are unrelated."*
+
+### Alexandria (Euclid): commutativity
+Big idea: "Joining is fair from either side; taking away isn't."
+1. **Euclid slides 3 into +2 from the left and from the right, and both give 5.** / *"Which side you push from changes the sum."*
+2. **The same slide with 3 × 2 builds one array either way (rotate to check).** / *"3×4 and 4×3 are different amounts."*
+3. **Slide into 5 − 2 from the other side: it still reads 5 − 2 = 3, never 2 − 5.** The engine reads − and ÷ in reading order, so the push direction can't swap them. To get 2 − 5 you must rebuild the row. / *"− works backwards too."*
+4. **Only a wall stops Euclid, so where he stops decides which numbers merge.** / *"Order never matters."*
+
+### Croton (Pythagoras): associativity
+Big idea: "With three to join, you pick which two meet first, and for + and × the total stays the same."
+1. **Leap over the middle block to merge b + c first, then a.** / *"You must go left to right."*
+2. **(2 + 3) + 4 and 2 + (3 + 4) open the same door.** / *"The brackets change the answer."*
+3. **Twist: (8 − 3) − 2 opens door 3, but 8 − (3 − 2) opens door 7.** / *"Every operation regroups freely."*
+4. **Pick the grouping that dodges a bounce (a pair that would go below 0 before Ujjain).** / *"There is only one right order."*
+
+### Ujjain (Brahmagupta): negatives and zero
+Big idea: "Every number has an opposite, and the opposite of a debt is a fortune."
+1. **Flip 3 to −3; flip it again and it's 3.** −(−a) = a. / *"Two minuses are just more minus."*
+2. **3 + (−3) = 0, and the door wants 0.** / *"Zero means nothing happened."*
+3. **Flip the + to −, so 5 + 2 becomes 5 − 2.** / *"− is a different kind of thing from a negative number."* (Both are a flip.)
+4. **2 − 5 resolves to −3; it doesn't bounce any more.** This repairs the P2 bounce named in §3.1. / *"You can't take a bigger from a smaller."*
+
+### Elea (Zeno): fractions and halving
+Big idea: "Half of what's left, again and again, gets you as close as you like."
+1. **Zeno covers 8, then 4, 2, 1 cells.** / *"Halves are always the same size."*
+2. **Halve a 1-block into ½ + ½; ½ + ¼ + ¼ = 1.** / *"½ + ¼ = 2/6."* (whole-number bias)
+3. **⅓ of 9: Zeno shares the run into 3.** / *"A bigger denominator means a bigger piece."*
+4. Honesty note: Zeno rounds up, so on a grid he arrives. That's a simplification, and the Endless Stair and the Racetrack repair it.
+
+### Market (Euclid + Brahmagupta): distributivity
+Big idea: "Flipping or multiplying a group does it to every piece."
+1. **Brahmagupta flips a and the +, so a + b becomes −a − b = −(a + b).** / *"Negate only the first."*
+2. **Twist: he also flips b, which gives −a + b, and the door stays shut.** / *"Flip everything you see."* (The operator already carried b's flip.)
+3. **Euclid slides 3×(2+4) into one 3×6 array, then splits it into a 3×2 and a 3×4.** / *"3×(2+4) = 3×2 + 4."*
+4. **One door wants 18 and the other two want 6 and 12: build it whole, or as two arrays.** / *"It only works one way round."*
+New attribute: none.
+
+### Turning Court (Brahmagupta + Pythagoras): imaginary numbers (9+)
+Big idea: "A flip is a half turn; ×i is a quarter turn; two quarters make a flip."
+Honesty check: this passes. ×i really is a 90° rotation in the complex plane, so i·i = a half turn = ×(−1). It's playable because `turn` is an attribute of the block's value (value·i^turn), never of its position, which respects the lock.
+1. **Brahmagupta's flip is a half turn: 3 points the other way and reads −3.** / *"Negative means smaller, not opposite."*
+2. **A ×i gate turns 3 a quarter, so it points off the number line and reads 3i.** / *"i is just a letter."*
+3. **Two ×i gates make −3 with no Brahmagupta: i² = −1.** / *"A square is never negative."*
+4. **Four gates bring it home: i⁴ = 1.** Pythagoras leaps in to feed blocks to gates he can't push past. / *"Turning loses the number."*
+5. **3 + 3i doesn't merge into one line-number.** It becomes a 2-part block, which is the Observatory's `vec`. It must not bounce, because the sum is real math. / *"Every sum is one number on the line."*
+New attribute: `turn` (0–3).
+
+### Racetrack (Euclid + Zeno): speed, velocity, acceleration, limits (10+)
+Big idea: "Velocity is speed with a direction; acceleration is how velocity changes."
+1. **A block with vel 2 moves 2 cells per turn; vel −2 moves back. Same speed, opposite velocity.** / *"Speed and velocity are the same thing."*
+2. **A boost pad adds +1 to vel each turn: 1, 2, 3, so distance grows faster and faster.** / *"Accelerating means moving at a fixed fast speed."*
+3. **A −1 pad slows a block to 0, then it reverses.** / *"Slowing down isn't acceleration"*; *"vel 0 means nothing is changing."*
+4. **Euclid's slide is the vel = ∞ caricature; Zeno's run of 1, ½, ¼ … gets ever closer to the wall without passing it.** / *"Infinitely many steps take forever."*
+5. **The door reads the value a sequence of exact fractions is heading to (the limit), not any one term.** / *"The limit is the last term."*
+New attribute: `vel` (signed exact rational, cells per turn).
+
+### Discrete Underground (Pythagoras + Zeno): parity, mod, primes, graphs
+Big idea: "Some places can never be reached, and you can prove it."
+1. **Pythagoras's 2-leap keeps x and y each even or odd, so he reaches only ¼ of the cells.** / *"Keep trying and you'll get there."*
+2. **Zeno halves only even runs exactly, which shows odd and even as a property of the number.** / *"Odd/even is about the block's spot."*
+3. **Primes: a 7-platform makes only a 1×7 array, so it fits no square pit.** / *"Big numbers always split."*
+4. **Bridges: cross each edge once (Euler), where an odd number of ends means no route.** / *"Unsolved means I haven't tried enough."*
+New attribute: none at first.
+
+### Observatory (Euclid + Pythagoras): vectors and distance
+Big idea: "A vector is a step with a size and a direction, and steps add."
+1. **Euclid slides a vec (2,1) block onto (1,3) and gets (3,4), the same from either order** (a parallelogram). / *"Vectors add like plain numbers."*
+2. **(3,4) is 5 long, which Pythagoras checks with a 5-rope.** / *"Diagonal distance = 3 + 4."*
+3. **Brahmagupta-style negation of a vector = the same length pointing back.** / *"−v is shorter."*
+New attribute: `vec` (dx, dy). This is the seed of matrices.
+
+### Endless Stair (Brahmagupta + Zeno): infinite series
+Big idea: "Infinitely many pieces can add up to an ordinary number."
+1. **Zeno's ½ + ¼ + ⅛ … creeps toward 1 and the door reads 1.** / *"Infinitely many pieces make an infinite amount."*
+2. **Brahmagupta flips every other step: 1 − ½ + ¼ − … The totals bounce 1, ½, ¾, ⅝, 11/16 and close in on ⅔.** / *"The answer is the last total."*
+3. **Only shrinking steps settle; 1 − 1 + 1 … never does, and that door stays shut.** / *"Every endless sum has an answer."*
+
+### Storm Keep (boss, 3–4 heroes): the ÷0 Storm
+Honesty problem with the spec: a ÷ 0 has no limit. Near 0, 1÷x gets huge and positive from one side and huge and negative from the other. So "show the value it's heading toward" only works for a 0÷0 shape. Proposed fight:
+1. **Phase 1: the storm guards (3·x) ÷ x.** Zeno feeds x = 1, ½, ¼ and Brahmagupta feeds −1, −½. Every result is 3, so the door accepts 3. You never compute 0÷0.
+2. **Phase 2: the storm becomes 1 ÷ x.** The two sides run off in opposite directions, and the win is a both-sides gate that proves there is no value. The storm breaks because it was never a number.
+3. Euclid slides the approaches and Pythagoras leaps between the two sides.
