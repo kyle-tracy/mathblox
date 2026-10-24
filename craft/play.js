@@ -142,12 +142,10 @@ function draw(now) {
     else { if (o.land) { g.beginPath(); g.ellipse(ox + CELL / 2, oy + CELL + 4, CELL / 2 + 9, CELL * 0.7, 0, Math.PI, 0); g.closePath(); g.fillStyle = '#c9a36b'; g.fill(); g.lineWidth = 3; g.strokeStyle = '#3b2a1a'; g.stroke(); g.strokeStyle = '#7fbf4d'; g.beginPath(); g.ellipse(ox + CELL / 2, oy + CELL + 4, CELL / 2 + 6, CELL * 0.7 - 3, 0, Math.PI * 1.05, Math.PI * 1.95); g.stroke(); } // only land (an overfill hill) stands on a mound; a carried + block does not
       piece(ox, oy, o); }
   }
-  // Site doors (placeholder look until Arto paints them): open ones lit, locked ones dim, a check once finished.
+  // Site doors, each in its world's art: lit doorway with the hero inside if you may enter, dark if not, a check once done.
   for (const [k, id] of Object.entries(s.sites)) {
     const [x, y] = k.split(',').map(Number); if (x < cam || x >= cam + VW) continue;
-    const ok = canEnter(id, s.cast, s.done) && world(id).levels.length;
-    rr(X(x) + 8, Y(y) + 6, CELL - 16, CELL - 8, 8, ok ? '#ffd166' : '#6c6f80');
-    text(s.done.includes(id) ? '✓' : world(id).name.replace('The ', '').slice(0, 4), X(x) + CELL / 2, Y(y) + CELL / 2 + 2, 12, INK);
+    siteDoor(X(x), Y(y), id, canEnter(id, s.cast, s.done) && world(id).levels.length, s.done.includes(id), now);
   }
   // Player: the hero you are now, facing the way you face (what Space picks up).
   const px = X(s.player.x) + CELL / 2, py = Y(s.player.y) + CELL / 2;
@@ -227,3 +225,39 @@ cv.style.width = `${cv.width * Math.max(0.5, k)}px`;
 for (const c of new URLSearchParams(location.search).get('moves') ?? '') act({ u: 'up', d: 'down', l: 'left', r: 'right', g: 'grab' }[c]);
 setMute(muted);
 requestAnimationFrame(draw);
+
+// ---- World doors (style guide: docs/characters.md Art cue). Drawing only; who may enter comes from core/progress.js. ----
+const STYLE = { camp: ['#b5835a', '#7a4f2e'], alexandria: [INK, '#e08a4f'], croton: ['#f3ead2', '#c9b68a'], ujjain: ['#00798c', '#f2c14e'], elea: ['#cfc6dd', '#6a4c93'] };
+function siteDoor(X, Y, id, open, done, now) {
+  const w = world(id), cx = X + CELL / 2, [face, trim] = STYLE[id] ?? ['#8d8f9c', '#5b5e6b'], line = (lw, col) => { g.lineWidth = lw; g.strokeStyle = col; g.stroke(); };
+  const arch = (x, y, ww, hh) => { g.beginPath(); g.moveTo(x, y + hh); g.lineTo(x, y + ww / 2); g.arc(x + ww / 2, y + ww / 2, ww / 2, Math.PI, 0); g.lineTo(x + ww, y + hh); g.closePath(); };
+  g.save(); if (!open && !done) g.globalAlpha = 0.75;
+  if (id === 'camp') { // a cave mouth in ochre rock, a hand stencil beside it
+    g.fillStyle = face; g.beginPath(); g.ellipse(cx, Y + 40, 29, 26, 0, Math.PI, 0); g.lineTo(cx + 29, Y + 62); g.lineTo(cx - 29, Y + 62); g.fill(); line(2.5, INK);
+    g.fillStyle = '#9c2f1f'; circle(X + 11, Y + 36, 3.5); for (const a of [-1, -0.4, 0.2, 0.8]) { g.beginPath(); g.moveTo(X + 11, Y + 34); g.lineTo(X + 11 + Math.sin(a) * 7, Y + 34 - Math.cos(a) * 7); line(2, '#9c2f1f'); }
+  } else if (id === 'alexandria') { // red-figure pottery: black ground, clay outlines, a meander band
+    rr(X + 4, Y + 6, CELL - 8, CELL - 6, 6, face); arch(X + 12, Y + 18, CELL - 24, 42); line(3, trim);
+    g.beginPath(); for (let i = X + 7; i < X + CELL - 10; i += 7) { g.moveTo(i, Y + 14); g.lineTo(i, Y + 9); g.lineTo(i + 5, Y + 9); g.lineTo(i + 5, Y + 12); g.lineTo(i + 2.5, Y + 12); } line(1.5, trim);
+  } else if (id === 'croton') { // a temple front: pediment over two columns
+    g.fillStyle = face; g.beginPath(); g.moveTo(X + 3, Y + 18); g.lineTo(cx, Y + 3); g.lineTo(X + CELL - 3, Y + 18); g.closePath(); g.fill(); line(2, INK);
+    for (const c of [X + 6, X + CELL - 16]) { rr(c, Y + 20, 10, 42, 2, face); g.beginPath(); g.rect(c, Y + 20, 10, 42); line(1.5, INK); for (const d of [3, 7]) { g.beginPath(); g.moveTo(c + d, Y + 23); g.lineTo(c + d, Y + 59); line(1, trim); } }
+  } else if (id === 'ujjain') { // a miniature-painting arch: cusped, teal and gold, a jewel at the crown
+    rr(X + 5, Y + 4, CELL - 10, CELL - 4, 4, face); g.beginPath(); g.rect(X + 5, Y + 4, CELL - 10, CELL - 4); line(3, trim);
+    g.beginPath(); g.moveTo(X + 14, Y + 62); g.lineTo(X + 14, Y + 30); for (let i = 0; i < 3; i++) g.arc(X + 19 + i * 13, Y + 26 - (i === 1) * 4, 6.5, Math.PI, 0); g.lineTo(X + CELL - 14, Y + 62); line(3, trim);
+    g.fillStyle = '#e63946'; circle(cx, Y + 11, 3.5);
+  } else if (id === 'elea') { // a stoa: a long beam on slim columns
+    rr(X + 2, Y + 8, CELL - 4, 9, 2, trim); for (const c of [X + 5, X + 18, X + CELL - 23, X + CELL - 10]) rr(c, Y + 17, 5, 45, 1, face);
+  } else { // a pair world: a sealed slab carved with the two heroes it needs
+    rr(X + 6, Y + 6, CELL - 12, CELL - 6, 8, face); g.beginPath(); g.moveTo(cx, Y + 8); g.lineTo(cx, Y + 60); line(2, trim);
+    const two = w.needs.filter(n => CHARACTERS[n]);
+    if (two.length) two.forEach((n, i) => { g.fillStyle = CHARACTERS[n].color; circle(cx + (i ? 12 : -12), Y + 30, 11); sprite(g, cx + (i ? 12 : -12), Y + 30, CELL * 0.75, n, 0, 'right', 0, true); });
+    else text('÷0', cx, Y + 30, 16, WHITE);
+  }
+  if (STYLE[id]) { // the doorway: lit with the hero inside when you may go in
+    const dw = id === 'croton' ? 22 : id === 'elea' ? 18 : 24;
+    arch(cx - dw / 2, Y + (id === 'croton' ? 26 : 30), dw, id === 'croton' ? 36 : 32); g.fillStyle = open ? '#ffd166' : '#2b2d42'; g.fill();
+    if (w.hero) sprite(g, cx, Y + 48, CELL * 0.75, w.hero, 0, 'right', 0, true);
+  }
+  g.restore();
+  if (done) { g.fillStyle = '#06d6a0'; circle(X + CELL - 10, Y + 12, 9); text('✓', X + CELL - 10, Y + 13, 13, INK); }
+}

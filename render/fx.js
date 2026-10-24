@@ -2,6 +2,7 @@
 import { g, cv, CELL, INK, WHITE, C, PAL, pal, reduced, TS, px, ease, rr, circle, text, dotPos, face, slots, door, bubble, equation, socketGlyph } from './look.js';
 import { state, orig, fx, objAt } from './state.js';
 import { laneValues } from '../core/world.js';
+import { piece } from './draw.js';
 import { cells } from '../core/push.js';
 
 // Where equation doors' signs hang. All signs are placed together, once per state (cached: no frame jitter, and the
@@ -214,7 +215,23 @@ function bounceFx(f, t, X, Y, now) {
   if (f.reason === 'not-whole') wantWhole(X, Y, avoid(f.at), must(f));
 }
 
-const FX = { merge, carve, tick: tickRing, open, bundle: bundleFx, bounce: bounceFx };
+function bracket(f, t, X, Y) { // a glowing ( ) closes around the two neighbours, then both fly into the sign's cell
+  if (reduced) t = Math.max(t, 400);
+  if (t > 700) return;
+  const cx = X + CELL / 2, cy = Y + CELL / 2, close = ease(t / 250), fly = ease((t - 150) / 250);
+  g.save(); g.globalAlpha = t < 450 ? 1 : 1 - (t - 450) / 250;
+  for (const [o, k] of [[f.a, -1], [f.b, 1]]) if (o && fly < 1) {
+    const d = CELL * k * (1 - fly), s = 1 - 0.4 * fly;
+    piece(cx + f.p[0] * d - CELL / 2, cy + f.p[1] * d - CELL / 2, { ...o, x: 0, y: 0 }, s);
+  }
+  g.translate(cx, cy); g.rotate(Math.atan2(f.p[1], f.p[0]));
+  g.strokeStyle = '#ffd166'; g.shadowColor = '#ffb703'; g.shadowBlur = 16; g.lineWidth = 7; g.lineCap = 'round';
+  const r = CELL * (2.4 - 1.6 * close); // the brackets' reach along the neighbours' line, shrinking as they close
+  for (const k of [-1, 1]) { g.beginPath(); g.arc(k * (r - CELL * 1.1), 0, CELL * 1.1, k < 0 ? Math.PI * 0.72 : -Math.PI * 0.28, k < 0 ? Math.PI * 1.28 : Math.PI * 0.28); g.stroke(); }
+  g.restore();
+}
+
+const FX = { bracket, merge, carve, tick: tickRing, open, bundle: bundleFx, bounce: bounceFx };
 
 export function drawFx(now) {
   for (const f of fx) {

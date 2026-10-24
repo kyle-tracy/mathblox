@@ -196,6 +196,7 @@ export function draw(now) {
   };
   const objs = [...state.objects].sort((a, b) => !!b.open - !!a.open); // open gates first: whatever stands in one draws on top
   for (const o of objs) {
+    if (!reduced && fx.some(f => f.type === 'bracket' && f.at.x === o.x && f.at.y === o.y && now - f.t0 < 380)) continue; // the bracket's result lands when its operands arrive
     const sp = fx.find(f => f.ids?.includes(o.id)), p = from(o.id) ?? sp?.src ?? o; // spawned parts fan out from the operand
     const f = fx.find(f => f.wob && inside(o, f.wob.x, f.wob.y) && now - f.t0 < 400 * TS);
     let x = p.x + (o.x - p.x) * k, y = p.y + (o.y - p.y) * k, s = 1;

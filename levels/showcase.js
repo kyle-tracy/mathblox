@@ -111,5 +111,18 @@ export const SHOWCASE = [
     bodies: [{ id: 'zeno', x: 1, y: 3 }, { id: 'euclid', x: 8, y: 1 }],
     pads: { '4,1': 'pythagoras', '6,1': 'brahmagupta', '5,4': 'zeno' },
     doors: {},
+  },  {
+    // moves=r: Pythagoras leaps the + and brackets (2 + 3) into its cell.
+    name: 'Bracket Leap',
+    skill: 'QA: Pythagoras bracket arc, operands fly in, chord',
+    map: [
+      '#######',
+      '#..2..#',
+      '#.@+..#',
+      '#..3.E#',
+      '#######',
+    ],
+    cast: ['pythagoras'],
+    doors: {},
   },
 ];
