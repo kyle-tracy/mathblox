@@ -14,7 +14,12 @@ import carve from './carve.js';
 import lanes from './lanes.js';
 import fields from './fields.js';
 import sandbox from './sandbox.js';
+import cast from './cast.js';
 
 // After the first two levels Euclid joins the cast (commissioner 2026-10-23: no key-spamming). A level's own `cast` wins.
-export const LEVELS = [...meadow, ...balance, ...merge, ...carve, ...lanes, ...fields, ...sandbox]
+// Character intros (cast.js): Euclid after Balance (L3), Pythagoras after Carve (L7), Brahmagupta after The Shrinking Side
+// (L11, negatives in a lane), Zeno after Keep the Pebble (L22, halves round up like a remainder).
+const [euclid, pythagoras, brahmagupta, zeno] = cast;
+export const LEVELS = [...meadow, ...balance, euclid, ...merge, ...carve, pythagoras, ...lanes.slice(0, 3), brahmagupta,
+  ...lanes.slice(3), ...fields.slice(0, 7), zeno, ...fields.slice(7), ...sandbox]
   .map((l, i) => (i < 2 || l.cast ? l : { ...l, cast: ['tally', 'euclid'] }));
