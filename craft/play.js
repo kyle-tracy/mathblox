@@ -11,7 +11,7 @@ import { tone, pitch, boing, muted, setMute, muteBtn } from '../render/audio.js'
 import { isNat, parts } from '../core/value.js';
 import { newCraft, step, heightAt, bagSize, isNight, dayOf, movesToSwitch, choose, atSite, DAY, NIGHT, DISTRICTS } from '../core/craft.js';
 
-const VW = 15, VH = 9, PAD = 40, HUD = 70; // view in cells; margins for the axes and the HUD
+const VW = 15, VH = 9, PAD = 40, HUD = 100; // view in cells; margins for the axes and the HUD
 // Back from a world (?craft&from=id): the Craft you left (saved on the way in, if storage allows), standing at its door.
 const from = new URLSearchParams(location.search).get('from'), moves = new URLSearchParams(location.search).get('moves'), done = getDone(); // read before the URL is replaced
 let saved = null;
@@ -22,18 +22,18 @@ cv.width = VW * CELL + PAD; cv.height = VH * CELL + PAD + HUD;
 document.getElementById('name').textContent = 'MathBlox: the Road of Lands';
 const say = m => { msg = m; msgT = performance.now(); };
 if (from) window.history.replaceState(null, '', '?craft'); // a reload starts here, not from the save we came back from
-const who = id => CHARACTERS[id]?.name ?? id;
+const who = id => CHARACTERS[id]?.name ?? id, about = w => w.kid ?? w.concept; // kid words first (levels/worlds.js)
 const bring = ms => ms.map(m => (m.startsWith('pairs:') ? `${m.slice(6)} finished pair worlds` : who(m))).join(' and ');
 // ponytail: the greet's fact is the trivia's first sentence, cut at its first clause if long; a `greet` field in CHARACTERS (Worldo) is cleaner.
 const short = t => { const s1 = t.split(/(?<=\.) /)[0]; return s1.length > 70 ? `${s1.split(/[,:] | and /)[0]}.` : s1; };
 function greet(id) { // a host speaks: who they are and one fact, then what the land teaches and whether you can go in
   const w = world(id), miss = missing(id, s.cast, s.done);
   const how = !w.levels.length ? 'Still being built.' : miss.length ? `Bring ${bring(miss)}.` : s.done.includes(id) ? 'Walk in to play again!' : 'Walk in!';
-  say(w.hero ? `${who(w.hero)}. ${short(CHARACTERS[w.hero].trivia)}\n${w.name}: ${w.concept}. ${how}`
-    : `${w.name}: ${w.concept}.\n${w.levels.length ? how : `Bring ${bring(w.needs)}. ${how}`}`);
+  say(w.hero ? `${who(w.hero)}. ${short(CHARACTERS[w.hero].trivia)}\n${w.name}: ${about(w)}. ${how}`
+    : `${w.name}: ${about(w)}.\n${w.levels.length ? how : `Bring ${bring(w.needs)}. ${how}`}`);
 }
 const hero = from && world(from).hero;
-say(hero && hero !== 'tally' && done.includes(from) ? `${who(hero)} joins you! Press C at camp to pick who comes along.` : 'Push blocks together to do math. Feed the fire at 0. Space picks up / puts down.');
+say(hero && hero !== 'tally' && done.includes(from) ? `${who(hero)} joins you! Press C at camp to pick who comes along.` : 'Push blocks together to do math. Feed number blocks to the fire, where the lines cross. Space picks up / puts down.');
 
 const SAY = { 'bag-full': 'Your bag is full.', 'not-whole': 'Only whole numbers burn.',
   'zero-fill': '0 is nothing: it can\'t burn or fill.', socket: 'The fire wants a number.', empty: 'Nothing to put down.', storm: '÷ 0: a storm! Nothing happens.' };
@@ -46,7 +46,7 @@ function act(a) {
     if (e.type === 'enter') { try { localStorage.setItem('mathblox.craft', JSON.stringify(s)); } catch { /* fine */ } location.search = `?world=${e.world}`; }
     if (e.reason === 'needs') say(`${world(e.world).name}: bring ${bring(e.missing)}.`);
     if (e.type === 'greet') { tone(pitch(4), 0.08, 'sine'); tone(pitch(7), 0.1, 'sine', 0, 0.08); greet(e.world); }
-    if (e.reason === 'soon') say(`${world(e.world).name} (${world(e.world).concept}) is still being built.`);
+    if (e.reason === 'soon') say(`${world(e.world).name} (${about(world(e.world))}) is still being built.`);
     if (e.type === 'swap') { tone(520, 0.05, 'sine', 260); say(`You are ${who(e.mover)}.`); }
     if (e.type === 'negate') { tone(pitch(7), 0.1, 'triangle', -120); tone(pitch(0), 0.12, 'triangle', 120, 0.1); }
     if (e.type === 'leap') { tone(pitch(0), 0.12, 'sine'); tone(pitch(12), 0.2, 'sine', 0, 0.1); }
@@ -190,27 +190,29 @@ function draw(now) {
   const tame = fxs.find(f => f.type === 'tame' && age(f) < T(600));
   if (tame) hearts(X(tame.at.x) + CELL / 2, Y(tame.at.y) + CELL / 2, reduced ? 0.3 : age(tame) / T(600));
   g.fillStyle = '#f4efe4'; g.fillRect(0, HUD + VH * CELL, cv.width, PAD); g.fillRect(0, HUD, PAD, VH * CELL);
-  for (let x = cam; x < cam + VW; x++) text(x - s.camp.x, X(x) + CELL / 2, HUD + VH * CELL + 20, 14, C.axis, x === s.camp.x);
-  for (let y = camY; y < camY + VH; y++) text(s.camp.y - y, PAD / 2, Y(y) + CELL / 2, 14, C.axis, y === s.camp.y);
+  for (let x = cam; x < cam + VW; x++) text(x - s.camp.x, X(x) + CELL / 2, HUD + VH * CELL + 20, 17, C.axis, x === s.camp.x);
+  for (let y = camY; y < camY + VH; y++) text(s.camp.y - y, PAD / 2, Y(y) + CELL / 2, 17, C.axis, y === s.camp.y);
   // HUD: sun or moon and a day track (amber day, blue night, a dot for now), warmth as a flame with one ember per unit, the bag.
   g.fillStyle = '#2b2d42'; g.fillRect(0, 0, cv.width, HUD);
-  sun(24, 24, night); text(`Day ${dayOf(s.t)}`, 80, 22, 17, WHITE);
+  sun(24, 24, night); text(`Day ${dayOf(s.t)}`, 84, 22, 20, WHITE);
   const tw = 120, dayW = tw * (DAY - NIGHT) / DAY, at = tw * (s.t % DAY) / DAY;
   rr(16, 44, dayW, 10, 4, '#ffd166'); rr(16 + dayW, 44, tw - dayW, 10, 4, '#3a4a8a');
   g.fillStyle = WHITE; circle(16 + at, 49, 6); g.strokeStyle = INK; g.lineWidth = 2; g.stroke();
-  text(night ? `${left} to dawn` : `${left} to dusk`, 80, 63, 10, '#c9d6ea', false);
+  text(night ? `${left} to dawn` : `${left} to dusk`, 76, 74, 16, '#c9d6ea', false);
   flame(172, 50, 34, 13); text(s.fire, 172, 40, 13, INK);
   g.fillStyle = '#ffd166'; for (let i = 0; i < Math.min(20, s.fire); i++) { const [ex, ey] = dotPos(i, 210, 18, 7); circle(ex, ey, 2.6); }
-  text('bag', 262, 30, 14, '#c9d6ea', false);
+  text('bag', 262, 30, 16, '#c9d6ea', false);
   for (let i = 0; i < bagSize(s); i++) {
     const bx = 290 + i * 54, o = s.bag[i];
     g.strokeStyle = '#c9d6ea'; g.lineWidth = 2; g.strokeRect(bx, 8, 50, 50);
     if (o) { g.save(); g.translate(bx - 0.6, 7.4); g.scale(0.8, 0.8); if (o.kind === 'op') opBlock(0, 0, o.op, 1); else if (!o.shape) piece(0, 0, o); else text(label(o.value), CELL / 2, CELL / 2, 20, WHITE); g.restore(); }
   }
   if (bump?.reason === 'bag-full' && !reduced && age(bump) < 400) { g.strokeStyle = '#ffd166'; g.lineWidth = 3; g.strokeRect(288, 6, bagSize(s) * 54, 54); } // the full bag flashes once
-  const lines = msg && now - msgT < 3000 + msg.length * 60 ? wrap(msg, cv.width - 440) : []; // long enough to read aloud
-  lines.forEach((l, i) => text(l, (420 + cv.width) / 2, lines.length > 1 ? 13 + i * 17 : 26, 14, WHITE, false));
-  if (lines.length < 3) text(`${s.cast.map(id => (id === s.mover ? `▶ ${who(id)}` : who(id))).join('   ')}   (Tab swaps · C at camp picks)`, (420 + cv.width) / 2, 54, 11, '#c9d6ea', false);
+  const lines = msg && now - msgT < 3000 + msg.length * 60 ? wrap(msg, cv.width - 320 - bagSize(s) * 54) : []; // long enough to read aloud
+  const mx = (300 + bagSize(s) * 54 + cv.width) / 2; // the message fills what the bag leaves
+  lines.length = Math.min(lines.length, 4);
+  lines.forEach((l, i) => text(l, mx, 40 - (lines.length - 1) * 9.5 + i * 19, 17, WHITE, false));
+  text(`${s.cast.map(id => (id === s.mover ? `▶ ${who(id)}` : who(id))).join('   ')}   (Tab swaps · C at camp picks)`, mx, 90, 15, '#c9d6ea', false);
   requestAnimationFrame(draw);
 }
 
@@ -237,8 +239,11 @@ cv.addEventListener('touchend', e => {
   const t = e.changedTouches[0], dx = t.clientX - touch.clientX, dy = t.clientY - touch.clientY;
   act(Math.max(Math.abs(dx), Math.abs(dy)) > 24 ? (Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up')) : 'grab');
 });
-const k = Math.min(1, (innerWidth - 40) / cv.width, (innerHeight - 200) / cv.height);
-cv.style.width = `${cv.width * Math.max(0.5, k)}px`;
+// The board fills the window (buttons beside it on wide screens, below on tall ones; index.html's media query).
+const fit = () => { const wide = matchMedia('(min-aspect-ratio: 5/4)').matches;
+  const k = wide ? Math.min((innerWidth - 190) / cv.width, (innerHeight - 90) / cv.height) : Math.min((innerWidth - 24) / cv.width, (innerHeight - 220) / cv.height);
+  cv.style.width = `${cv.width * Math.max(0.4, Math.min(1.6, k))}px`; };
+fit(); addEventListener('resize', fit);
 for (const c of moves ?? '') act({ u: 'up', d: 'down', l: 'left', r: 'right', g: 'grab' }[c]);
 setMute(muted);
 requestAnimationFrame(draw);
@@ -328,15 +333,16 @@ function decal(id, st, X0, Y0, x, y, wall) {
 function host(X0, Y0, id, now) {
   const w = world(id), cx = X0 + CELL / 2, cy = Y0 + CELL / 2, st = landLook(id);
   g.fillStyle = st.floor; g.fillRect(X0, Y0, CELL, CELL);
-  if (w.hero) { g.fillStyle = 'rgba(0,0,0,.18)'; g.beginPath(); g.ellipse(cx, cy + 26, 18, 5, 0, 0, 7); g.fill(); return sprite(g, cx, cy, CELL * 0.9, w.hero, reduced ? 0 : now, 'down'); }
+  if (w.hero && id !== 'camp') { g.fillStyle = 'rgba(0,0,0,.18)'; g.beginPath(); g.ellipse(cx, cy + 26, 18, 5, 0, 0, 7); g.fill(); return sprite(g, cx, cy, CELL * 0.9, w.hero, reduced ? 0 : now, 'down'); }
   g.fillStyle = C.doorFrame; g.fillRect(cx - 3, cy, 6, 30);
   rr(X0 + 3, Y0 + 6, CELL - 6, 30, 6, C.sign); g.strokeStyle = C.doorFrame; g.lineWidth = 2; g.stroke();
-  const two = w.needs.filter(n => CHARACTERS[n]);
+  const two = id === 'camp' ? ['tally'] : w.needs.filter(n => CHARACTERS[n]); // camp: a signpost with Tally's sign and a flame, so it is never mistaken for you
+  if (id === 'camp') flame(cx + 14, Y0 + 32, 22, 8);
   if (two.length) two.forEach((n, i) => { const hx = cx + (i ? 14 : -14); g.fillStyle = CHARACTERS[n].color; circle(hx, Y0 + 21, 11); sprite(g, hx, Y0 + 21, CELL * 0.6, n, 0, 'right', 0, true); });
   else text('÷0', cx, Y0 + 21, 15, INK);
 }
 function wrap(m, width) { // the message's own line breaks, then word-wrap to the HUD's width
-  g.font = `14px ${FONT}`;
+  g.font = `17px ${FONT}`;
   return m.split('\n').flatMap(par => par.split(' ').reduce((ls, wd) => {
     const t = ls.length ? `${ls[ls.length - 1]} ${wd}` : wd;
     if (ls.length && g.measureText(t).width <= width) ls[ls.length - 1] = t; else ls.push(wd);
