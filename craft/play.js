@@ -19,7 +19,7 @@ if (from && world(from)) try { saved = JSON.parse(localStorage.getItem('mathblox
 if (saved && String(saved.tiles?.map(r => r.length)) !== String(newCraft().tiles.map(r => r.length))) saved = null; // a save from an older map
 let s = from && world(from) ? atSite({ ...(saved ?? newCraft(done)), done }, from) : newCraft(done), history = [], msg = '', msgT = 0;
 cv.width = VW * CELL + PAD; cv.height = VH * CELL + PAD + HUD;
-document.getElementById('name').textContent = 'MathBlox Craft: keep the fire warm';
+document.getElementById('name').textContent = 'MathBlox: the Road of Lands';
 const say = m => { msg = m; msgT = performance.now(); };
 if (from) window.history.replaceState(null, '', '?craft'); // a reload starts here, not from the save we came back from
 const who = id => CHARACTERS[id]?.name ?? id;
