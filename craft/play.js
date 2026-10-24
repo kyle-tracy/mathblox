@@ -1,6 +1,6 @@
 // Craft prototype view + input (?craft). Crude on purpose: Arto polishes later.
 // Never does math: every value, height and warmth comes from core/craft.js state and events.
-import { cv, g, CELL, INK, WHITE, C, rr, circle, text, dotPos, equation, reduced, TS, FONT } from '../render/look.js';
+import { cv, g, CELL, INK, WHITE, C, rr, circle, text, dotPos, equation, reduced, TS, FONT, ART } from '../render/look.js';
 import { piece, opBlock, label } from '../render/draw.js';
 import { sprite } from '../render/cast.js';
 import { getDone } from '../render/state.js';
@@ -124,13 +124,20 @@ function draw(now) {
     return Math.sin(age(bump) / 25) * 5 * (1 - age(bump) / 400);
   };
   g.fillStyle = '#2b2d42'; g.fillRect(0, 0, cv.width, cv.height);
+  const live = reduced ? 0 : now, pits = []; // every ambient motion runs on this clock: frozen in reduced motion
   for (let y = camY; y < camY + VH; y++) for (let x = cam; x < cam + VW; x++) {
     const t = s.tiles[y][x], h = heightAt(s, x, y);
     const id = LAND[`${x},${y}`], st = id && landLook(id), wall = t === '#' && !h;
-    g.fillStyle = wall ? (st?.wall ?? C.wall) : (st?.floor ?? C.floor); g.fillRect(X(x), Y(y), CELL, CELL);
-    if (h) pit(X(x), Y(y), h); else if (st) decal(id, st, X(x), Y(y), x, y, wall);
+    const fl = st?.floor ?? C.floor, wl = st?.wall ?? C.wall;
+    if (wall && ART === 'a') { g.fillStyle = fl; g.fillRect(X(x), Y(y), CELL, CELL); rr(X(x) + 2, Y(y) + 2, CELL - 4, CELL - 4, 12, wl); } // walls as rounded icon tiles
+    else { g.fillStyle = wall ? wl : fl; g.fillRect(X(x), Y(y), CELL, CELL); }
+    if (ART === 'b') { g.fillStyle = hash(x, y) % 2 ? 'rgba(255,250,235,.10)' : 'rgba(90,60,30,.06)'; g.fillRect(X(x), Y(y), CELL, CELL); } // gouache patchiness
+    if (h) { if (ART === 'c') pits.push(() => pit(X(x), Y(y), h)); else pit(X(x), Y(y), h); } else if (st) decal(id, st, X(x), Y(y), x, y, wall);
+    else if (t === '.' && hash(x, y) % 5 === 0) grass(X(x), Y(y), x, live);
     g.strokeStyle = C.grid; g.lineWidth = 1; g.strokeRect(X(x) + 0.5, Y(y) + 0.5, CELL, CELL);
   }
+  if (ART === 'c') { pixelate(4); pits.forEach(f => f()); } // chunky terrain; pits (their depth numerals) and pieces stay sharp to read
+  ambient(X, Y, cam, camY, live);
   // Axes: camp is the origin (a frame of reference; labels count cells from camp, y up).
   g.strokeStyle = C.axis; g.lineWidth = 2; g.setLineDash([6, 4]);
   g.beginPath(); g.moveTo(PAD, Y(s.camp.y) + CELL / 2); g.lineTo(cv.width, Y(s.camp.y) + CELL / 2);
@@ -149,11 +156,12 @@ function draw(now) {
   if (feed && !reduced) for (let i = 0; i < 6; i++) { const q = age(feed) / T(500); g.fillStyle = `rgba(255,209,102,${1 - q})`; circle(fx + Math.cos(i) * 18 * q, fy - 10 - q * 30 - i * 3, 2.5); } // sparks fly up
   for (const o of s.objects) if (o.x >= cam - 3 && o.x < cam + VW) {
     if (o.mimic) continue; // drawn over the night shade
-    const ox = X(o.x) + wob(o.x, o.y), oy = Y(o.y);
+    const ox = X(o.x) + wob(o.x, o.y), oy = Y(o.y) + Math.sin(live / 700 + o.id * 1.7) * 1.5; // a slow breath, never off its cell
     if (o.kind === 'op') opBlock(ox, oy, o.op, 1);
     else { if (o.land) { g.beginPath(); g.ellipse(ox + CELL / 2, oy + CELL + 4, CELL / 2 + 9, CELL * 0.7, 0, Math.PI, 0); g.closePath(); g.fillStyle = '#c9a36b'; g.fill(); g.lineWidth = 3; g.strokeStyle = '#3b2a1a'; g.stroke(); g.strokeStyle = '#7fbf4d'; g.beginPath(); g.ellipse(ox + CELL / 2, oy + CELL + 4, CELL / 2 + 6, CELL * 0.7 - 3, 0, Math.PI * 1.05, Math.PI * 1.95); g.stroke(); } // only land (an overfill hill) stands on a mound; a carried + block does not
-      piece(ox, oy, o); }
+      flatShadow(() => piece(ox, oy, o)); }
   }
+  smoke(fx, fy, live);
   // Site doors, each in its world's art: lit doorway with the hero inside if you may enter, dark if not, a check once done.
   for (const [k, id] of Object.entries(s.sites)) {
     const [x, y] = k.split(',').map(Number); if (x < cam || x >= cam + VW) continue;
@@ -161,11 +169,12 @@ function draw(now) {
   }
   for (const [k, id] of Object.entries(s.hosts ?? {})) { // each land's host: its hero, or a signpost for a pair land
     const [x, y] = k.split(',').map(Number); if (x < cam || x >= cam + VW) continue;
-    host(X(x), Y(y), id, now);
+    host(X(x), Y(y), id, live, Math.abs(x - s.player.x) + Math.abs(y - s.player.y) <= 3 ? (x > s.player.x ? 'left' : x < s.player.x ? 'right' : y > s.player.y ? 'up' : 'down') : 'down');
   }
   // Player: the hero you are now, facing the way you face (what Space picks up).
   const px = X(s.player.x) + CELL / 2, py = Y(s.player.y) + CELL / 2;
-  sprite(g, px, py, CELL * 0.95, s.mover, reduced ? 0 : now, s.facing);
+  flatShadow(() => sprite(g, px, py, CELL * 0.95, s.mover, live, s.facing, 0, false, blinking(live, 0)));
+  if (ART === 'b') paper();
   // Light: night is a deep blue shade with a clear circle as wide as the fire's warmth; the last moves of day turn amber.
   const night = isNight(s.t), left = movesToSwitch(s.t);
   if (night) {
@@ -330,10 +339,10 @@ function decal(id, st, X0, Y0, x, y, wall) {
   }
 }
 // A host: the land's hero standing by its door, or a signpost with the two heroes a pair land needs.
-function host(X0, Y0, id, now) {
+function host(X0, Y0, id, now, look = 'down') {
   const w = world(id), cx = X0 + CELL / 2, cy = Y0 + CELL / 2, st = landLook(id);
   g.fillStyle = st.floor; g.fillRect(X0, Y0, CELL, CELL);
-  if (w.hero && id !== 'camp') { g.fillStyle = 'rgba(0,0,0,.18)'; g.beginPath(); g.ellipse(cx, cy + 26, 18, 5, 0, 0, 7); g.fill(); return sprite(g, cx, cy, CELL * 0.9, w.hero, reduced ? 0 : now, 'down'); }
+  if (w.hero && id !== 'camp') { g.fillStyle = 'rgba(0,0,0,.18)'; g.beginPath(); g.ellipse(cx, cy + 26, 18, 5, 0, 0, 7); g.fill(); return flatShadow(() => sprite(g, cx, cy, CELL * 0.9, w.hero, now, look, 0, false, blinking(now, cx))); } // looks your way when you come near
   g.fillStyle = C.doorFrame; g.fillRect(cx - 3, cy, 6, 30);
   rr(X0 + 3, Y0 + 6, CELL - 6, 30, 6, C.sign); g.strokeStyle = C.doorFrame; g.lineWidth = 2; g.stroke();
   const two = id === 'camp' ? ['tally'] : w.needs.filter(n => CHARACTERS[n]); // camp: a signpost with Tally's sign and a flame, so it is never mistaken for you
@@ -348,4 +357,51 @@ function wrap(m, width) { // the message's own line breaks, then word-wrap to th
     if (ls.length && g.measureText(t).width <= width) ls[ls.length - 1] = t; else ls.push(wd);
     return ls;
   }, []));
+}
+
+// ---- Alive: ambient motion that never blocks play (all of it reads `live`, which reduced motion freezes at 0). ----
+const hash = (x, y) => (((x * 73856093) ^ (y * 19349663)) >>> 0) % 997;
+const blinking = (t, seed) => t > 0 && (t + seed * 37) % 3700 < 140;
+function grass(X0, Y0, x, t) { // a tuft that sways (strokes, never dots: dots mean quantity)
+  const sw = Math.sin(t / 900 + x) * 3; g.beginPath();
+  for (const [dx, h] of [[-5, 12], [0, 16], [5, 11]]) { g.moveTo(X0 + 40 + dx, Y0 + 54); g.quadraticCurveTo(X0 + 40 + dx, Y0 + 54 - h / 2, X0 + 40 + dx * 1.6 + sw, Y0 + 54 - h); }
+  g.lineWidth = 2; g.strokeStyle = ART === 'b' ? '#8aa86a' : '#9cc78a'; g.stroke();
+}
+function smoke(fx, fy, t) { // three puffs drift up from the fire
+  if (!t) return;
+  for (let i = 0; i < 3; i++) { const q = ((t / 2400) + i / 3) % 1; g.fillStyle = `rgba(150,150,160,${0.28 * (1 - q)})`; circle(fx + Math.sin(q * 6 + i) * 8, fy - 30 - q * 70, 6 + q * 10); }
+}
+function ambient(X, Y, cam, camY, t) { // pennants over each gate, cloud shadows and butterflies by day
+  for (const [id, d] of Object.entries(DISTRICTS)) if (d.gate) { const [gx, gy] = d.gate, px0 = X(gx + 1) + 8, py0 = Y(gy) + 6;
+    if (gx + 1 < cam || gx + 1 >= cam + VW || gy < camY || gy >= camY + VH) continue;
+    g.fillStyle = INK; g.fillRect(px0 - 2, py0, 3, 40); const sw = Math.sin(t / 500 + gx) * 5;
+    g.fillStyle = id === 'alexandria' ? '#e08a4f' : landLook(id).wall; g.beginPath(); g.moveTo(px0, py0); g.quadraticCurveTo(px0 + 14, py0 + 4 + sw / 2, px0 + 26, py0 + 8 + sw); g.lineTo(px0, py0 + 16); g.fill(); }
+  if (isNight(s.t)) return;
+  for (let i = 0; i < 4; i++) { const wx = (t / 120 + i * 790) % (s.tiles[0].length * CELL), wy = (2 + i * 4.5) * CELL; // cloud shadows drift east over the map
+    g.fillStyle = 'rgba(20,30,60,.045)'; g.beginPath(); g.ellipse(X(0) + wx, Y(0) + wy, 170, 70, 0, 0, 7); g.fill(); }
+  for (const [id, d] of Object.entries(DISTRICTS)) { if (d.x + d.w < cam || d.x > cam + VW) continue;
+    const k = hash(d.x, d.y), bx = X(d.x + d.w / 2) + Math.sin(t / 1900 + k) * d.w * 22, by = Y(d.y + d.h / 2) + Math.cos(t / 1300 + k) * d.h * 12, f = Math.abs(Math.sin(t / 90 + k));
+    g.fillStyle = ['#ef476f', '#ffd166', '#8e7dff', '#06d6a0'][k % 4]; g.strokeStyle = INK; g.lineWidth = 1;
+    for (const sgn of [-1, 1]) { g.beginPath(); g.ellipse(bx + sgn * 8 * f, by, 8 * f + 1.5, 10, 0, 0, 7); g.fill(); g.stroke(); } }
+}
+function flatShadow(f) { // style a: a hard flat drop shadow under things that stand up
+  if (ART !== 'a') return f();
+  g.save(); g.shadowColor = 'rgba(29,31,46,.28)'; g.shadowOffsetX = 4; g.shadowOffsetY = 5; f(); g.restore();
+}
+let buf;
+function pixelate(n) { // style c: the board drawn small, then blown up with no smoothing
+  const w = VW * CELL, h = VH * CELL; buf ??= document.createElement('canvas'); buf.width = w / n; buf.height = h / n;
+  const b = buf.getContext('2d'); b.imageSmoothingEnabled = true; b.drawImage(cv, PAD, HUD, w, h, 0, 0, w / n, h / n);
+  g.save(); g.imageSmoothingEnabled = false; g.drawImage(buf, 0, 0, w / n, h / n, PAD, HUD, w, h); g.restore();
+}
+let grain;
+function paper() { // style b: warm the whole board, lay a paper grain over it, soften the edges
+  const w = VW * CELL, h = VH * CELL;
+  if (!grain) { grain = document.createElement('canvas'); grain.width = grain.height = 128; const c = grain.getContext('2d');
+    for (let i = 0; i < 2600; i++) { const v = hash(i, i * 7) / 997; c.fillStyle = `rgba(${v > 0.5 ? '255,250,235' : '80,55,30'},${0.10 + v * 0.08})`; c.fillRect(hash(i, 3) % 128, hash(5, i) % 128, 1 + (i % 3 === 0), 1); } }
+  buf ??= document.createElement('canvas'); buf.width = w; buf.height = h; const b = buf.getContext('2d');
+  b.filter = 'sepia(.25) saturate(.88)'; b.drawImage(cv, PAD, HUD, w, h, 0, 0, w, h); g.drawImage(buf, PAD, HUD);
+  g.save(); g.fillStyle = g.createPattern(grain, 'repeat'); g.fillRect(PAD, HUD, w, h);
+  const v = g.createRadialGradient(PAD + w / 2, HUD + h / 2, h * 0.45, PAD + w / 2, HUD + h / 2, w * 0.62); v.addColorStop(0, 'rgba(80,50,20,0)'); v.addColorStop(1, 'rgba(80,50,20,.22)');
+  g.fillStyle = v; g.fillRect(PAD, HUD, w, h); g.restore();
 }

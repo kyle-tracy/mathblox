@@ -15,6 +15,11 @@ export const INK = '#1d1f2e', WHITE = '#ffffff';
 export const C = { floor: '#f4efe4', wall: '#5b6475', grid: '#e2dacb', axis: '#3a3f4b', op: '#dfe3ea', door: '#5b3aa8',
   doorFrame: '#3e2777', exit: '#06d6a0', player: '#ef476f', trench: '#7a5c43', trenchDeep: '#5a4231',
   pad: '#1f7a6d', sign: '#f1e2c2', big: '#efe9dc', pit: '#2f5d7c', pitDeep: '#244a63', hole: '#3a3f4b' };
+// Art direction (?style=a|b|c, the style board): '' is the shipped flat look; a = flat icons pushed, b = storybook gouache,
+// c = chunky pixels. Only terrain and treatment change: value colours (PAL) and every value cue stay the same in every style.
+export const ART = new URLSearchParams(location.search).get('style') ?? '';
+Object.assign(C, { a: { floor: '#fbf8f1', wall: '#3d4a63', grid: 'rgba(0,0,0,0)' }, b: { floor: '#f3e6cc', wall: '#6b5a4a', grid: 'rgba(120,90,60,.10)' },
+  c: { floor: '#e8dcb8', wall: '#4a4e69', grid: 'rgba(0,0,0,.10)' } }[ART]);
 // Lane tints (by declaration order): a hue family the value palette doesn't use. Never the only cue: rows hatch —, columns hatch |.
 export const LANE = ['#3fb8c9', '#c77dff', '#e0a43a'];
 // Cuisenaire-inspired, checked for deuteranopia/protanopia/tritanopia (min ΔE ≥ 12). [fill, ink]; index = value.

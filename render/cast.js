@@ -9,13 +9,14 @@ function blob(c, pts, fill) { c.beginPath(); for (const [x, y, r] of pts) { c.mo
 function line(c, w, color, ...xy) { c.beginPath(); c.moveTo(xy[0], xy[1]); for (let i = 2; i < xy.length; i += 2) c.lineTo(xy[i], xy[i + 1]); c.lineWidth = w; c.strokeStyle = color; c.stroke(); }
 
 // Drawn on a 64-unit cell around (cx, cy); `size` is the cell size in px. `t` (ms) wiggles props; `dir` aims the eyes.
-export function sprite(c, cx, cy, size, id, t = 0, dir = 'right', twang = 0, icon = false) { // icon: the prop alone, centred (change pads)
+export function sprite(c, cx, cy, size, id, t = 0, dir = 'right', twang = 0, icon = false, blink = false) { // icon: the prop alone, centred (change pads)
   const ch = CHARACTERS[id], col = ch?.color ?? C.player;
   c.save(); c.translate(cx, cy); c.scale(size / 64, size / 64); c.lineJoin = c.lineCap = 'round';
   const skin = { tally: '#8d5a3b', euclid: '#e08a4f', pythagoras: '#eab98b', brahmagupta: '#b97a4b', zeno: '#e3b58c' }[id] ?? col;
   const robe = () => { c.beginPath(); c.roundRect(-17, 2, 34, 25, [13, 13, 6, 6]); c.fillStyle = col; c.fill(); c.lineWidth = 2.5; c.strokeStyle = INK; c.stroke(); };
   const head = () => { c.beginPath(); c.arc(0, -9, 13, 0, 7); c.fillStyle = skin; c.fill(); c.lineWidth = 2.5; c.strokeStyle = INK; c.stroke(); };
   const eyes = () => { const [dx, dy] = DIR[dir] ?? [1, 0];
+    if (blink) { line(c, 2.5, INK, -8, -10, -2, -10); line(c, 2.5, INK, 2, -10, 8, -10); return; } // eyes shut for a blink
     blob(c, [[-5, -10, 4], [5, -10, 4]], WHITE); blob(c, [[-5 + dx * 1.6, -9.5 + dy * 1.6, 2.2], [5 + dx * 1.6, -9.5 + dy * 1.6, 2.2]], INK); };
   const wave = Math.sin(t / 300), at = (x, y) => icon || c.translate(x, y);
 
