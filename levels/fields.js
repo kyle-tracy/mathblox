@@ -47,7 +47,7 @@ export default [
   },
   {
     name: 'The Low Tunnel',
-    solution: 'dddrrrrrrrrrrrrrrr',
+    cast: ['euclid'], solution: 'drululdlurrr',
     skill: 'S8 twist: shape and amount are separate truths; area, not length (A3 + A5)',
     beat: 'twist',
     misconception: '"if it does not fit, it is the wrong number": the 3-tall 3×4 jams the 2-tall tunnel; 2×6 is also 12 and slides through. "longer-looking is more": the 1×6 strip spans 6 ticks of the x-axis and fits the tunnel, but it is a 6: door 12 reads 6 vs 12, and the strip slid down the low lane is eaten by the side door 6 (so it never plugs the tunnel)',
@@ -128,7 +128,7 @@ export default [
   },
   {
     name: 'Keep the Pebble',
-    solution: 'rrurrrdulldrurddddldrrrr',
+    cast: ['zeno'], solution: 'rrurrduldrurddddldrrrr',
     skill: 'S9 practice: a remainder is a whole pebble (A9)',
     beat: 'practice',
     misconception: '"a leftover is a decimal, or trash": 7÷2 gives 3, 3 and one pebble; only the pebble plugs the hole',
@@ -147,7 +147,7 @@ export default [
   },
   {
     name: 'Small Shared by Big',
-    solution: 'rurrrrrrrdulldrurddddd',
+    cast: ['zeno'], solution: 'rurrduldrurddddd',
     skill: 'S9 twist: 3÷6 resolves to six Voids and three pebbles (A10)',
     beat: 'twist',
     misconception: '"you cannot share a small number by a big one": 3÷6 works; swapping to 6÷3 gives two 3s that fit neither the pebble hole nor door 0',
