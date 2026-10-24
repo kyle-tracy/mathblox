@@ -33,7 +33,8 @@ Starting cast:
 
 ## 3. World structure
 
-- **The hub.** The game opens at the Craft camp with only the Tally-Keeper. L1 and L2 take place at camp.
+- **The hub.** The game opens at the Craft camp with only the Tally-Keeper. **Camp is the tutorial:** a string of Tally-only levels (the best 10–12 of the old ones), played before the open world opens. After that the Tally-Keeper stays home: he's too good, since every other hero's move is a run of his steps.
+- **One hero per solo world.** Recruiting a hero opens their world, and only that hero goes in. Its levels are designed for that single move.
 - **Sites.** Each puzzle world is a door on the Craft map, drawn in the home art style of its era. Walking in opens that world's levels, and walking out returns you to the door.
 - **Recruiting.** Finishing a solo world recruits its hero. From then on they appear at camp.
 - **Going out.** At camp you choose 2 companions to take out, and the rest stay at camp. Regions are gated by a specific pair, and that region's levels are designed for exactly that pair.
@@ -55,7 +56,7 @@ Starting cast:
 | Brahmagupta + Pythagoras | imaginary numbers: a flip is a half turn, ×i is a quarter turn, i² = −1 | `turn` (0–3 quarter turns) |
 | Euclid + Zeno | calculus: speed, velocity, acceleration, limits | `vel` (cells per turn) |
 | Euclid + Brahmagupta | distributivity: −(a+b) = −a + −b, and a×(b+c) splits into two arrays | none |
-| Pythagoras + Zeno | the discrete underground: parity (the 2-leap's colouring), mod, primes, graphs | none at first |
+| Tally-Keeper + Pythagoras | the discrete underground: parity (a step always changes your checkerboard colour, a 2-leap never does), mod, primes, graphs | none at first |
 | Euclid + Pythagoras | vectors and distance | `vec` |
 | Brahmagupta + Zeno | infinite series: 1 − ½ + ¼ − … = ⅔ | none |
 

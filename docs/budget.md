@@ -40,3 +40,4 @@ date | agent | task | est | actual | note
 2026-10-23 | Matho | world beats (curriculum §7) | - | ? | continued |
 2026-10-23 | Arto | bodies, pads, HUD roster | - | ? | continued |
 2026-10-23 | Worldo | L3 recheck + L23/L24 bodies & pads | - | 99k cumulative | continued |
+2026-10-23 | Axio | Craft hub + exit | - | 95k cumulative | |

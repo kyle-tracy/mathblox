@@ -15,7 +15,7 @@ export const WORLDS = [
   { id: 'rotation', name: 'The Turning Court', concept: 'imaginary numbers: i² = −1', needs: ['brahmagupta', 'pythagoras'], levels: [] },
   { id: 'motion', name: 'The Racetrack', concept: 'speed, velocity, acceleration, limits', needs: ['euclid', 'zeno'], levels: [] },
   { id: 'distrib', name: 'The Market', concept: 'distributivity', needs: ['euclid', 'brahmagupta'], levels: [] },
-  { id: 'under', name: 'The Discrete Underground', concept: 'parity, mod, primes, graphs', needs: ['pythagoras', 'zeno'], levels: [] },
+  { id: 'under', name: 'The Discrete Underground', concept: 'parity, mod, primes, graphs', needs: ['tally', 'pythagoras'], levels: [] }, // Tally's one return: parity
   { id: 'vectors', name: 'The Observatory', concept: 'vectors and distance', needs: ['euclid', 'pythagoras'], levels: [] },
   { id: 'series', name: 'The Endless Stair', concept: 'infinite series', needs: ['brahmagupta', 'zeno'], levels: [] },
   { id: 'dungeon', name: 'The Storm Keep', concept: 'limits: the ÷0 Storm', needs: ['pairs:2'], levels: [] }, // any 2 pair worlds done
