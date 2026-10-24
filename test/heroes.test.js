@@ -66,3 +66,16 @@ test('Pythagoras bracket over ÷0 is the storm, and nothing moves', () => {
   const s = parseLevel({ name: 't', map: ['#.@..#', '#5÷0.#', '#....#'], cast: ['pythagoras'] });
   assert.equal(step(s, 'down').state, s);
 });
+
+test('brackets chain: a result feeds the next sign across the gap it left', () => {
+  const at = x => parseLevel({ name: 't', map: ['#.....@#', '#9-4-2.#', '#......#'], cast: ['pythagoras'] });
+  let s = at(); s.player = { x: 2, y: 0 };
+  s = step(s, 'down').state; // (9 − 4) = 5 at x2
+  s.player = { x: 4, y: 2 };
+  const r = step(s, 'up'); // across the second −: 5 − 2
+  assert.equal(r.events.find(e => e.type === 'bracket').value, 3);
+  let t = at(); t.player = { x: 4, y: 0 };
+  t = step(t, 'down').state; // (4 − 2) = 2 at x4
+  t.player = { x: 2, y: 2 };
+  assert.equal(step(t, 'up').events.find(e => e.type === 'bracket').value, 7, '9 − (4 − 2)');
+});

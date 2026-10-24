@@ -33,7 +33,7 @@ export const HEROES = {
   // Zeno: half the distance to whatever is ahead (rounded up, so on a grid he does arrive).
   zeno: (state, dir, api) => run(state, dir, api, Math.ceil(runway(state, dir, api) / 2) || 1),
   // Pythagoras: a string halved sounds an octave up (2:1). He leaps 2 cells, over anything; he never pushes.
-  // His arc is a bracket: leaping ACROSS an operator closes a bracket around its two neighbours, which calculate
+  // His arc is a bracket: leaping ACROSS an operator closes a bracket around its two nearest numbers on the sign's line, which calculate
   // on the spot (reading order) and become one block where the sign was. Which sign he leaps picks the grouping.
   pythagoras(state, dir, api) {
     if (state.won) return { state, events: [] };
@@ -41,7 +41,13 @@ export const HEROES = {
     if (!'.^bE*'.includes(t) || api.objAt(state, x, y)) return api.bounce(state, 'leap', { x, y });
     const s = structuredClone(state), ox = x - dx, oy = y - dy, op = api.objAt(s, ox, oy), events = [];
     if (op?.kind === 'op') {
-      const [a, b] = [-1, 1].map(k => api.objAt(s, ox + k * dy, oy + k * dx)); // its neighbours across the leap
+      const near = k => { // nearest thing along the sign's line, across empty floor (so a result can feed the next bracket)
+        const px = dy ? 1 : 0, py = dx ? 1 : 0; // across the leap, always in reading order (left→right, top→bottom)
+        let cx = ox + k * px, cy = oy + k * py;
+        while (!api.objAt(s, cx, cy) && '.^b*'.includes(api.tileAt(s, cx, cy))) { cx += k * px; cy += k * py; }
+        return api.objAt(s, cx, cy);
+      };
+      const [a, b] = [near(-1), near(1)]; // its neighbours across the leap
       if (a?.kind === 'num' && b?.kind === 'num' && !a.shape && !b.shape) {
         const r = apply(op.op, a, b, s.div);
         if (!r.ok) return api.bounce(state, r.reason, { x: ox, y: oy }, { missing: r.missing });
