@@ -125,7 +125,7 @@ function offer(state, s, m, o, events) {
 // so Euclid's slide costs what one step costs.
 export function step(state, action) {
   const res = action === 'grab' ? grab(state) : action === 'swap' ? worldStep(state, 'swap') : go(state, action);
-  if (res.state === state || ['bounce', 'swap'].includes(res.events[0]?.type)) return res;
+  if (res.state === state || ['bounce', 'swap', 'enter'].includes(res.events[0]?.type)) return res;
   tick(res.state, res.events);
   return res;
 }
@@ -134,7 +134,8 @@ export function step(state, action) {
 const CRAFT_API = { ...API, move: push, gatesTrue: () => true, falseGates: () => [] };
 function go(state, dir) {
   const [dx, dy] = DIRS[dir], x = state.player.x + dx, y = state.player.y + dy, site = state.sites?.[`${x},${y}`];
-  if (site) { // a site door: in you go, if you brought who it needs
+  if (site) { // a site door: in you go, if you brought who it needs. Either way it is now your waypoint: you wake here.
+    if (state.waypoint !== site) state = { ...state, waypoint: site };
     const lack = missing(site, state.cast, state.done);
     if (lack.length) return bounce(state, 'needs', { x, y }, { world: site, missing: lack });
     if (!world(site).levels.length) return bounce(state, 'soon', { x, y }, { world: site }); // a pair world not built yet
@@ -173,9 +174,8 @@ export function choose(state, party) {
 }
 // Back from a world: stand on the floor beside its door (or at camp if a block now stands there).
 export function atSite(state, id) {
-  const s = structuredClone(state), [x, y] = SITES[id], [sx, sy] = DISTRICTS[id].stand;
-  const p = [[sx - x, sy - y], ...Object.values(DIRS)].map(([dx, dy]) => ({ x: x + dx, y: y + dy })).find(q => tileAt(s, q.x, q.y) === '.' && !objAt(s, q.x, q.y));
-  s.player = p ?? wakeSpot(s);
+  const s = structuredClone(state);
+  s.player = doorSpot(s, id);
   if (s.pet) s.pet = { ...s.player };
   return s;
 }
@@ -256,7 +256,7 @@ function dawn(s, events) {
 
 // Time passes only on a real move (bumping a wall is free). The fire burns only at night (1 warmth every 4 moves;
 // daytime is for exploring); at 0 you doze off
-// and wake at camp next morning, fire relit. Nothing is lost: the bag and the world stay as they were.
+// and wake next morning beside the last district door you reached (camp if none), fire relit. Nothing is lost: the bag and the world stay as they were.
 function tick(s, events) {
   if (events[0]?.type === 'face') return;
   const night = isNight(s.t);
@@ -264,7 +264,7 @@ function tick(s, events) {
   if (isNight(s.t) !== night) (night ? dawn : dusk)(s, events);
   if (isNight(s.t) && s.t % 4 === 0) s.fire = Math.max(0, s.fire - 1);
   if (s.fire > 0) return;
-  s.player = wakeSpot(s);
+  s.player = s.waypoint ? doorSpot(s, s.waypoint) : wakeSpot(s); // each land is a waypoint: you wake by the last door you reached
   if (s.pet) s.pet = { ...s.player };
   s.fire = START_HEAT;
   s.t = (dayOf(s.t)) * DAY; // next morning
@@ -272,6 +272,11 @@ function tick(s, events) {
   events.push({ type: 'doze', at: { ...s.player } });
   dawn(s, events);
 }
+const doorSpot = (s, id) => {
+  const [x, y] = SITES[id], [sx, sy] = DISTRICTS[id].stand;
+  const p = [[sx - x, sy - y], ...Object.values(DIRS)].map(([dx, dy]) => ({ x: x + dx, y: y + dy })).find(q => tileAt(s, q.x, q.y) === '.' && !objAt(s, q.x, q.y));
+  return p ?? wakeSpot(s);
+};
 const wakeSpot = s => {
   for (const [dx, dy] of [[1, 0], [0, 1], [0, -1], [-1, 0], [1, 1], [1, -1], [2, 0]]) {
     const x = s.camp.x + dx, y = s.camp.y + dy;

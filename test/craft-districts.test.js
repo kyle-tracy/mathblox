@@ -1,7 +1,7 @@
 // The overworld: one district per world, each door and host reachable on foot from camp; the demo strings still play.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { newCraft, step, DISTRICTS, SITES } from '../core/craft.js';
+import { newCraft, step, DISTRICTS, SITES, DAY } from '../core/craft.js';
 import { recruits, canEnter, parties } from '../core/progress.js';
 
 const M = { u: 'up', d: 'down', l: 'left', r: 'right', g: 'grab' };
@@ -87,4 +87,16 @@ test('residency demo strings still do what docs/demo.md says', () => {
   assert.ok(a.s.objects.some(o => o.land && o.x === land.at.x && o.y === land.at.y && String(o.value) === '2'));
   const b = play('rrdgulllguurrrrrrrdudududududududududududu'), i = b.ev.findIndex(e => e.type === 'dusk');
   assert.ok(i >= 0); assert.equal(b.ev.find(e => e.type === 'mimic')?.value, '□+3=8');
+});
+
+test('doze wakes you beside the last door you entered or bumped (camp if none); time and fire as before', () => {
+  const doze = s => { s.fire = 1; s.t = DAY - 5; /* the next move is a night burn */ let r; for (const d of ['down', 'up', 'down', 'up']) { r = step(s, d); s = r.state; if (r.events.some(e => e.type === 'doze')) return s; } return s; };
+  const d = DISTRICTS.ujjain, s = newCraft([], ['tally']); s.player = { x: d.stand[0], y: d.stand[1] + 1 };
+  let r = step({ ...s, player: { x: d.stand[0], y: d.stand[1] } }, 'right'); // bump Ujjain's door (needs Pythagoras)
+  assert.equal(r.events[0].reason, 'needs'); assert.equal(r.state.waypoint, 'ujjain'); assert.equal(r.state.t, 0);
+  const w = doze({ ...r.state, player: { x: d.stand[0], y: d.stand[1] + 1 } });
+  assert.deepEqual(w.player, { x: d.stand[0], y: d.stand[1] }); assert.equal(w.dozes, 1); assert.equal(w.fire, 3);
+  const c = doze(newCraft()); assert.deepEqual(c.player, { x: c.camp.x + 1, y: c.camp.y }, 'no waypoint: camp');
+  const e = step({ ...newCraft(), player: { x: 1, y: 7 } }, 'down'); // into Camp
+  assert.equal(e.events[0].type, 'enter'); assert.equal(e.state.waypoint, 'camp'); assert.equal(e.state.t, 0);
 });
