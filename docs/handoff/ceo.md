@@ -25,8 +25,8 @@ Read `docs/ceo.md` first: it says who you are and how you delegate. Then read th
 
 ## Next: the residency demo (due 2026-10-27)
 The commissioner ruled that the demo shows the best of what exists, polished; **nothing is built new for it**. Craft beats are paused until it ships.
-1. **Re-run Qualito's demo pick.** The budget log shows "demo playlist + gap routes" (~50k tokens), but no playlist file was ever saved. Brief Qualito to write `docs/demo.md`: the levels and Craft moments to show, in order, with the move strings (`?level=N&moves=...`) and any polish gaps. Tell it to *save the file first*.
-2. Arto polishes only the gaps that `docs/demo.md` lists, and Qualito checks the overfill-hill mound on screen as part of this.
+1. **Done:** playlist recovered from the last chat and saved to `docs/demo.md`; no polish gaps open.
+2. **Done:** Arto fixed both gaps (hill, creature sign); Qualito screenshot-checked them.
 3. Record the demo, which the commissioner does.
 
 ## After the demo
