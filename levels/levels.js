@@ -24,7 +24,7 @@ import elea from './elea.js';
 import { WORLDS } from './worlds.js';
 const ALL = [...meadow, ...balance, ...merge, ...carve, ...lanes, ...fields, ...sandbox, ...cast, ...alexandria, ...croton, ...ujjain, ...elea];
 // Qualito's cut (2026-10-23): kept in their files and git history, out of play.
-const CUT = new Set(['Take It Out', 'Turn to Pass', 'Weighing a Field', 'Ten in One', 'Every Hole Names Its Kind', 'Sandbox', 'Nothing Times', 'The Low Tunnel'] /* Low Tunnel: Euclid's curl hits ×-no-room */);
+const CUT = new Set(['Take It Out', 'Turn to Pass', 'Weighing a Field', 'Ten in One', 'Every Hole Names Its Kind', 'Sandbox', 'Nothing Times', 'The Low Tunnel', 'Something to Stop On', 'Leap Behind It'] /* old intros reworked in alexandria/croton; Low Tunnel: Euclid's curl hits ×-no-room */);
 const placed = WORLDS.flatMap(w => w.levels);
 // Play order: world by world (worlds.js), then any level not yet placed in a world (new work in progress).
 export const LEVELS = [...placed.map(n => ALL.find(l => l.name === n)), ...ALL.filter(l => !placed.includes(l.name) && !CUT.has(l.name))];
