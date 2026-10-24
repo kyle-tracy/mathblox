@@ -1,19 +1,19 @@
 // Craft prototype view + input (?craft). Crude on purpose: Arto polishes later.
 // Never does math: every value, height and warmth comes from core/craft.js state and events.
-import { cv, g, CELL, INK, WHITE, C, rr, circle, text, dotPos, equation, reduced, TS } from '../render/look.js';
+import { cv, g, CELL, INK, WHITE, C, rr, circle, text, dotPos, equation, reduced, TS, FONT } from '../render/look.js';
 import { piece, opBlock, label } from '../render/draw.js';
 import { sprite } from '../render/cast.js';
 import { getDone } from '../render/state.js';
 import { CHARACTERS } from '../levels/characters.js';
-import { recruits, parties, canEnter, world } from '../core/progress.js';
+import { recruits, parties, canEnter, world, missing } from '../core/progress.js';
 import { ghostCells, wantWhole } from '../render/fx.js';
 import { tone, pitch, boing, muted, setMute, muteBtn } from '../render/audio.js';
 import { isNat, parts } from '../core/value.js';
-import { newCraft, step, heightAt, bagSize, isNight, dayOf, movesToSwitch, choose, atSite, DAY, NIGHT } from '../core/craft.js';
+import { newCraft, step, heightAt, bagSize, isNight, dayOf, movesToSwitch, choose, atSite, DAY, NIGHT, DISTRICTS } from '../core/craft.js';
 
 const VW = 15, VH = 9, PAD = 40, HUD = 70; // view in cells; margins for the axes and the HUD
 // Back from a world (?craft&from=id): the Craft you left (saved on the way in, if storage allows), standing at its door.
-const from = new URLSearchParams(location.search).get('from'), done = getDone();
+const from = new URLSearchParams(location.search).get('from'), moves = new URLSearchParams(location.search).get('moves'), done = getDone(); // read before the URL is replaced
 let saved = null;
 if (from && world(from)) try { saved = JSON.parse(localStorage.getItem('mathblox.craft')); } catch { /* no storage: a fresh Craft */ }
 if (saved && String(saved.tiles?.map(r => r.length)) !== String(newCraft().tiles.map(r => r.length))) saved = null; // a save from an older map
@@ -23,6 +23,15 @@ document.getElementById('name').textContent = 'MathBlox Craft: keep the fire war
 const say = m => { msg = m; msgT = performance.now(); };
 if (from) window.history.replaceState(null, '', '?craft'); // a reload starts here, not from the save we came back from
 const who = id => CHARACTERS[id]?.name ?? id;
+const bring = ms => ms.map(m => (m.startsWith('pairs:') ? `${m.slice(6)} finished pair worlds` : who(m))).join(' and ');
+// ponytail: the greet's fact is the trivia's first sentence, cut at its first clause if long; a `greet` field in CHARACTERS (Worldo) is cleaner.
+const short = t => { const s1 = t.split(/(?<=\.) /)[0]; return s1.length > 70 ? `${s1.split(/[,:] | and /)[0]}.` : s1; };
+function greet(id) { // a host speaks: who they are and one fact, then what the land teaches and whether you can go in
+  const w = world(id), miss = missing(id, s.cast, s.done);
+  const how = !w.levels.length ? 'Still being built.' : miss.length ? `Bring ${bring(miss)}.` : s.done.includes(id) ? 'Walk in to play again!' : 'Walk in!';
+  say(w.hero ? `${who(w.hero)}. ${short(CHARACTERS[w.hero].trivia)}\n${w.name}: ${w.concept}. ${how}`
+    : `${w.name}: ${w.concept}.\n${w.levels.length ? how : `Bring ${bring(w.needs)}. ${how}`}`);
+}
 const hero = from && world(from).hero;
 say(hero && hero !== 'tally' && done.includes(from) ? `${who(hero)} joins you! Press C at camp to pick who comes along.` : 'Push blocks together to do math. Feed the fire at 0. Space picks up / puts down.');
 
@@ -35,7 +44,8 @@ function act(a) {
   else if (r.state !== s) s = r.state; // turned to face a wall: no time, no undo entry needed
   for (const e of r.events) {
     if (e.type === 'enter') { try { localStorage.setItem('mathblox.craft', JSON.stringify(s)); } catch { /* fine */ } location.search = `?world=${e.world}`; }
-    if (e.reason === 'needs') say(`${world(e.world).name}: bring ${e.missing.map(m => (m.startsWith('pairs:') ? `${m.slice(6)} finished pair worlds` : who(m))).join(' and ')}.`);
+    if (e.reason === 'needs') say(`${world(e.world).name}: bring ${bring(e.missing)}.`);
+    if (e.type === 'greet') { tone(pitch(4), 0.08, 'sine'); tone(pitch(7), 0.1, 'sine', 0, 0.08); greet(e.world); }
     if (e.reason === 'soon') say(`${world(e.world).name} (${world(e.world).concept}) is still being built.`);
     if (e.type === 'swap') { tone(520, 0.05, 'sine', 260); say(`You are ${who(e.mover)}.`); }
     if (e.type === 'negate') { tone(pitch(7), 0.1, 'triangle', -120); tone(pitch(0), 0.12, 'triangle', 120, 0.1); }
@@ -116,8 +126,9 @@ function draw(now) {
   g.fillStyle = '#2b2d42'; g.fillRect(0, 0, cv.width, cv.height);
   for (let y = camY; y < camY + VH; y++) for (let x = cam; x < cam + VW; x++) {
     const t = s.tiles[y][x], h = heightAt(s, x, y);
-    g.fillStyle = t === '#' && !h ? C.wall : C.floor; g.fillRect(X(x), Y(y), CELL, CELL);
-    if (h) pit(X(x), Y(y), h);
+    const id = LAND[`${x},${y}`], st = id && landLook(id), wall = t === '#' && !h;
+    g.fillStyle = wall ? (st?.wall ?? C.wall) : (st?.floor ?? C.floor); g.fillRect(X(x), Y(y), CELL, CELL);
+    if (h) pit(X(x), Y(y), h); else if (st) decal(id, st, X(x), Y(y), x, y, wall);
     g.strokeStyle = C.grid; g.lineWidth = 1; g.strokeRect(X(x) + 0.5, Y(y) + 0.5, CELL, CELL);
   }
   // Axes: camp is the origin (a frame of reference; labels count cells from camp, y up).
@@ -147,6 +158,10 @@ function draw(now) {
   for (const [k, id] of Object.entries(s.sites)) {
     const [x, y] = k.split(',').map(Number); if (x < cam || x >= cam + VW) continue;
     siteDoor(X(x), Y(y), id, canEnter(id, s.cast, s.done) && world(id).levels.length, s.done.includes(id), now);
+  }
+  for (const [k, id] of Object.entries(s.hosts ?? {})) { // each land's host: its hero, or a signpost for a pair land
+    const [x, y] = k.split(',').map(Number); if (x < cam || x >= cam + VW) continue;
+    host(X(x), Y(y), id, now);
   }
   // Player: the hero you are now, facing the way you face (what Space picks up).
   const px = X(s.player.x) + CELL / 2, py = Y(s.player.y) + CELL / 2;
@@ -193,8 +208,9 @@ function draw(now) {
     if (o) { g.save(); g.translate(bx - 0.6, 7.4); g.scale(0.8, 0.8); if (o.kind === 'op') opBlock(0, 0, o.op, 1); else if (!o.shape) piece(0, 0, o); else text(label(o.value), CELL / 2, CELL / 2, 20, WHITE); g.restore(); }
   }
   if (bump?.reason === 'bag-full' && !reduced && age(bump) < 400) { g.strokeStyle = '#ffd166'; g.lineWidth = 3; g.strokeRect(288, 6, bagSize(s) * 54, 54); } // the full bag flashes once
-  if (msg && now - msgT < 5000) text(msg, (420 + cv.width) / 2, 26, 14, WHITE, false);
-  text(`${s.cast.map(id => (id === s.mover ? `▶ ${who(id)}` : who(id))).join('   ')}   (Tab swaps · C at camp picks)`, (420 + cv.width) / 2, 54, 11, '#c9d6ea', false);
+  const lines = msg && now - msgT < 3000 + msg.length * 60 ? wrap(msg, cv.width - 440) : []; // long enough to read aloud
+  lines.forEach((l, i) => text(l, (420 + cv.width) / 2, lines.length > 1 ? 13 + i * 17 : 26, 14, WHITE, false));
+  if (lines.length < 3) text(`${s.cast.map(id => (id === s.mover ? `▶ ${who(id)}` : who(id))).join('   ')}   (Tab swaps · C at camp picks)`, (420 + cv.width) / 2, 54, 11, '#c9d6ea', false);
   requestAnimationFrame(draw);
 }
 
@@ -223,7 +239,7 @@ cv.addEventListener('touchend', e => {
 });
 const k = Math.min(1, (innerWidth - 40) / cv.width, (innerHeight - 200) / cv.height);
 cv.style.width = `${cv.width * Math.max(0.5, k)}px`;
-for (const c of new URLSearchParams(location.search).get('moves') ?? '') act({ u: 'up', d: 'down', l: 'left', r: 'right', g: 'grab' }[c]);
+for (const c of moves ?? '') act({ u: 'up', d: 'down', l: 'left', r: 'right', g: 'grab' }[c]);
 setMute(muted);
 requestAnimationFrame(draw);
 
@@ -261,4 +277,69 @@ function siteDoor(X, Y, id, open, done, now) {
   }
   g.restore();
   if (done) { g.fillStyle = '#06d6a0'; circle(X + CELL - 10, Y + 12, 9); text('✓', X + CELL - 10, Y + 13, 13, INK); }
+}
+
+// ---- Lands (style guide: one era look per district). Drawing only: the cells come from core/craft.js DISTRICTS. ----
+// Floor tints the district; its ring of walls (the facade on the road side, row 5 or 13) wears the era's wall and props.
+const LAND = {};
+for (const [id, d] of Object.entries(DISTRICTS)) {
+  const ring = id === 'camp' ? 0 : 1; // the camp is the road's west end: no walls of its own
+  for (let y = d.y - ring; y < d.y + d.h + ring; y++) for (let x = d.x - ring; x < d.x + d.w + ring; x++) {
+    const inside = x >= d.x && x < d.x + d.w && y >= d.y && y < d.y + d.h;
+    if (inside || !(`${x},${y}` in LAND)) LAND[`${x},${y}`] = id;
+  }
+}
+const LOOKS = { camp: { floor: '#efdcbf', wall: '#8a5a2b', line: '#d9bf98' }, alexandria: { floor: '#f2cfa8', wall: INK, line: '#e08a4f' },
+  croton: { floor: '#f7f2e6', wall: '#d9ccaa', line: '#ddd3bd' }, ujjain: { floor: '#cfe6e2', wall: '#00798c', line: '#f2c14e' },
+  elea: { floor: '#e7e0f1', wall: '#6a4c93', line: '#cfc6dd' }, pair: { floor: '#e6e7ec', wall: '#8d8f9c', line: '#c9ccd6' },
+  sealed: { floor: '#b9bcc6', wall: '#4a4d58', line: '#9a9dab' } };
+const opened = id => canEnter(id, recruits(s.done), s.done) && world(id).levels.length > 0; // by recruits, not the party: C never repaints the land
+const landLook = id => (LOOKS[id] ?? (opened(id) ? LOOKS.pair : LOOKS.sealed));
+// Decals are flat and faint (never dots or numerals: dots mean quantity). Props sit on every other wall cell.
+function decal(id, st, X0, Y0, x, y, wall) {
+  const ln = (lw, col) => { g.lineWidth = lw; g.strokeStyle = col; g.stroke(); }, cx = X0 + CELL / 2, cy = Y0 + CELL / 2;
+  if (!wall) {
+    g.beginPath();
+    if (id === 'camp') for (const k of [16, 32, 48]) { g.moveTo(X0, Y0 + k); g.lineTo(X0 + CELL, Y0 + k); } // planks
+    else if (id === 'alexandria') { g.moveTo(X0, Y0 + 5); g.lineTo(X0 + CELL, Y0 + 5); g.moveTo(X0, Y0 + CELL - 5); g.lineTo(X0 + CELL, Y0 + CELL - 5); } // fired-clay bands
+    else if (id === 'croton') { g.moveTo(X0 + 8, Y0 + 50); g.bezierCurveTo(X0 + 24, Y0 + 30, X0 + 40, Y0 + 44, X0 + 58, Y0 + 14); } // a marble vein
+    else if (id === 'ujjain') { g.moveTo(cx, Y0 + 3); g.lineTo(X0 + CELL - 3, cy); g.lineTo(cx, Y0 + CELL - 3); g.lineTo(X0 + 3, cy); g.closePath(); } // a painted lozenge
+    else if (id === 'elea') { if ((x + y) % 2) g.rect(X0 + 4, Y0 + 4, CELL - 8, CELL - 8); } // stoa paving
+    else { g.moveTo(X0, Y0 + CELL / 2); g.lineTo(X0 + CELL, Y0 + CELL / 2); g.moveTo(cx, Y0); g.lineTo(cx, Y0 + CELL); } // plain flagstones
+    return ln(id === 'ujjain' ? 1.5 : 2, st.line);
+  }
+  if (x % 2) return;
+  if (id === 'alexandria') { // a scroll on a red-figure wall
+    rr(X0 + 12, Y0 + 22, 40, 20, 4, '#f1e2c2'); g.fillStyle = '#e08a4f'; circle(X0 + 12, cy, 6); circle(X0 + 52, cy, 6);
+    g.beginPath(); for (const k of [28, 34]) { g.moveTo(X0 + 20, Y0 + k); g.lineTo(X0 + 44, Y0 + k); } ln(1.5, '#b5835a');
+  } else if (id === 'croton') { // a lyre: two horns and its strings (a string halved sings an octave)
+    g.beginPath(); g.moveTo(X0 + 20, Y0 + 50); g.quadraticCurveTo(X0 + 10, Y0 + 24, X0 + 20, Y0 + 12); g.moveTo(X0 + 44, Y0 + 50); g.quadraticCurveTo(X0 + 54, Y0 + 24, X0 + 44, Y0 + 12);
+    g.moveTo(X0 + 16, Y0 + 20); g.lineTo(X0 + 48, Y0 + 20); g.moveTo(X0 + 18, Y0 + 50); g.lineTo(X0 + 46, Y0 + 50); ln(3, '#8a6a3a');
+    g.beginPath(); for (const k of [26, 32, 38]) { g.moveTo(X0 + k, Y0 + 20); g.lineTo(X0 + k, Y0 + 50); } ln(1, '#5b4a2e');
+  } else if (id === 'ujjain') { // a gold cusped niche
+    g.beginPath(); g.moveTo(X0 + 14, Y0 + 56); g.lineTo(X0 + 14, Y0 + 28); for (let i = 0; i < 3; i++) g.arc(X0 + 19 + i * 13, Y0 + 24 - (i === 1) * 4, 6.5, Math.PI, 0); g.lineTo(X0 + 50, Y0 + 56); ln(3, '#f2c14e');
+  } else if (id === 'elea') { // a stoa column
+    rr(X0 + 22, Y0 + 8, 20, 6, 2, '#cfc6dd'); rr(X0 + 25, Y0 + 14, 14, 38, 1, '#cfc6dd'); rr(X0 + 20, Y0 + 52, 24, 6, 2, '#cfc6dd');
+  } else if (!LOOKS[id] && !opened(id)) { // sealed: a chain across the wall
+    g.beginPath(); for (let i = 0; i < 4; i++) g.ellipse(X0 + 10 + i * 15, cy, 8, 5, 0, 0, 7); ln(3, '#9a9dab');
+  }
+}
+// A host: the land's hero standing by its door, or a signpost with the two heroes a pair land needs.
+function host(X0, Y0, id, now) {
+  const w = world(id), cx = X0 + CELL / 2, cy = Y0 + CELL / 2, st = landLook(id);
+  g.fillStyle = st.floor; g.fillRect(X0, Y0, CELL, CELL);
+  if (w.hero) { g.fillStyle = 'rgba(0,0,0,.18)'; g.beginPath(); g.ellipse(cx, cy + 26, 18, 5, 0, 0, 7); g.fill(); return sprite(g, cx, cy, CELL * 0.9, w.hero, reduced ? 0 : now, 'down'); }
+  g.fillStyle = C.doorFrame; g.fillRect(cx - 3, cy, 6, 30);
+  rr(X0 + 3, Y0 + 6, CELL - 6, 30, 6, C.sign); g.strokeStyle = C.doorFrame; g.lineWidth = 2; g.stroke();
+  const two = w.needs.filter(n => CHARACTERS[n]);
+  if (two.length) two.forEach((n, i) => { const hx = cx + (i ? 14 : -14); g.fillStyle = CHARACTERS[n].color; circle(hx, Y0 + 21, 11); sprite(g, hx, Y0 + 21, CELL * 0.6, n, 0, 'right', 0, true); });
+  else text('÷0', cx, Y0 + 21, 15, INK);
+}
+function wrap(m, width) { // the message's own line breaks, then word-wrap to the HUD's width
+  g.font = `14px ${FONT}`;
+  return m.split('\n').flatMap(par => par.split(' ').reduce((ls, wd) => {
+    const t = ls.length ? `${ls[ls.length - 1]} ${wd}` : wd;
+    if (ls.length && g.measureText(t).width <= width) ls[ls.length - 1] = t; else ls.push(wd);
+    return ls;
+  }, []));
 }
