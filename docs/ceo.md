@@ -48,7 +48,7 @@ This file is stable. The volatile state lives in `docs/handoff/ceo.md`.
 7. **Tell the commissioner** in a few lines.
 
 ## Brief template
-> Repo /home/mastachi/edu-games. [Goal plus the commissioner's words, quoted.] Read [exact files/sections; `tail -n 20 docs/decisions.md` for rules]. Use code-review-graph to find functions. [Concrete rulings and scope.] Touch [paths] only. Run `node --test test/ | tail -3`, commit your paths only, do not push. Log decisions. Report in under N words, with open questions.
+> Repo /home/mastachi/edu-games. First call code-review-graph `get_minimal_context` for [function names]; read no file whole. [Goal plus the commissioner's words, quoted.] Read [exact files/sections; `tail -n 20 docs/decisions.md` for rules]. Use code-review-graph to find functions. [Concrete rulings and scope.] Touch [paths] only. Run `node --test test/ | tail -3`, commit your paths only, do not push. Log decisions. Report in under N words, with open questions.
 
 **Put the context in the brief.** Before briefing, find the exact function and line range with code-review-graph and paste it in ("edit `drawHill`, craft/play.js:110-130, so that…"). The agent should read tens of lines, not explore. Agents start cold either way, so pre-spawning idle agents saves nothing; a precise brief does.
 
@@ -66,8 +66,4 @@ Give mechanical briefs `effort: "lower"`.
 ## Wrap-up protocol (when the commissioner says "wrap up")
 1. Let running agents finish or stop them, then commit and push. The tree must end clean.
 2. Rewrite `docs/handoff/ceo.md`: the state, what's in flight, the "Next" list, and open questions. Update this charter if how you work has changed.
-3. Update memory, then give the commissioner the start prompt:
-
-```
-You're the MathBlox CEO. Read docs/ceo.md, then docs/handoff/ceo.md, docs/vision.md, and `tail -n 25 docs/decisions.md` — nothing else until a task needs it. Delegate per the charter and work the handoff's "Next" list autonomously, token-thrifty.
-```
+3. Update memory, then give the commissioner the start prompt: **`Resume as CEO`** (CLAUDE.md expands it).

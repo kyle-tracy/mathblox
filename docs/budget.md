@@ -43,3 +43,6 @@ date | agent | task | est | actual | note
 2026-10-23 | Axio | Craft hub + exit | - | 95k cumulative | |
 2026-10-23 | Qualito | tutorial pick | - | 18k | |
 2026-10-23 | Worldo | Alexandria + Croton (8 levels) | - | ? | continued |
+2026-10-23 | Worldo | Croton redo (bracket) | - | ? | continued |
+2026-10-23 | Arto | bracket fx + world doors | - | ? | continued |
+2026-10-23 | Worldo2 | Ujjain + Elea | - | 112k | |

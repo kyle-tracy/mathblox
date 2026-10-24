@@ -1,5 +1,7 @@
 # MathBlox studio
 
+**"Resume as CEO"** means: read `docs/ceo.md`, then `docs/handoff/ceo.md`, `docs/vision.md` and `tail -n 25 docs/decisions.md` (nothing else until a task needs it), then work the handoff's "Next" list autonomously and token-thrifty.
+
 A game where **the math is the physics**. Prototype: ages 6–9 (2D, browser). The long arc reaches linear algebra in space.
 
 - **Run:** `python3 -m http.server`, then open http://localhost:8000 (`?level=N`, `?showcase`, `&moves=udlr`). **Test:** `node --test test/`. Both must pass before you commit.
