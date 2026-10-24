@@ -1,6 +1,7 @@
 // Board renderer: tiles, axes, blocks, doors, player; effects come from fx.js.
 import { cv, g, CELL, PAD, reduced, TS, INK, WHITE, C, LANE, pal, px, ease, rr, circle, text, FONT, dotPos, face, door, gate, equation, rod, pebble, socketGlyph } from './look.js';
-import { state, prev, orig, fx, fills, tMove } from './state.js';
+import { state, prev, orig, fx, fills, tMove, lastDir } from './state.js';
+import { sprite, castUi } from './cast.js';
 import { drawFx, signBox, signPost } from './fx.js';
 import { laneValues } from '../core/world.js';
 import { inside } from '../core/push.js';
@@ -158,6 +159,12 @@ export function tile(t, x, y, now) {
   }
 }
 
+// Brahmagupta's flip: the block turns over like a coin, showing its opposite on the way down.
+function flip(o, X, Y, now) {
+  const f = fx.findLast(f => f.type === 'negate' && f.at.x === o.x && f.at.y === o.y), q = f && !reduced ? (now - f.t0) / (300 * TS) : 1;
+  if (q < 1) { g.translate(X + CELL / 2, 0); g.scale(Math.max(0.05, Math.abs(Math.cos(Math.PI * q))), 1); g.translate(-X - CELL / 2, 0); }
+}
+
 export function draw(now) {
   const H = state.tiles.length, W = state.tiles[0].length;
   g.fillStyle = C.floor; g.fillRect(0, 0, cv.width, cv.height);
@@ -192,11 +199,12 @@ export function draw(now) {
     const [X, Y] = px(x, y);
     if (o.gate) gate(X, Y, lift(o));
     else if (o.kind === 'door') door(X, Y, o.value);
-    else if (o.kind === 'op') opBlock(X, Y, o.op, s);
+    else if (o.kind === 'op') { g.save(); flip(o, X, Y, now); opBlock(X, Y, o.op, s); g.restore(); }
     else {
       const rows = sp?.type === 'multiply' && o.shape && !reduced ? Math.max(1, Math.ceil(o.shape[0] * Math.min(1, (now - sp.t0) / (300 * TS)))) : undefined;
       const turn = fx.find(f => f.type === 'rotate' && f.at.x === o.x && f.at.y === o.y), q = turn && !reduced ? ease((now - turn.t0) / (250 * TS)) : 1;
       g.save(); if (q < 1) { g.translate(X + CELL / 2, Y + CELL / 2); g.rotate((q - 1) * Math.PI / 2); g.translate(-X - CELL / 2, -Y - CELL / 2); } // swings about its anchor
+      flip(o, X, Y, now);
       piece(X, Y, o, s, rows); g.restore();
     }
   }
@@ -207,11 +215,16 @@ export function draw(now) {
 
   drawFx(now);
 
-  // Player (a friendly blob).
+  // Player: whoever is up. Pythagoras arcs over what he leaps; a swap pops a ring in the newcomer's colour.
   const [PX, PY] = px(prev.player.x + (state.player.x - prev.player.x) * k, prev.player.y + (state.player.y - prev.player.y) * k);
-  g.fillStyle = C.player; circle(PX + CELL / 2, PY + CELL / 2, CELL * 0.33);
-  g.fillStyle = WHITE; for (const d of [-1, 1]) circle(PX + CELL / 2 + d * 9, PY + CELL / 2 - 5, 6);
-  g.fillStyle = INK; for (const d of [-1, 1]) circle(PX + CELL / 2 + d * 9, PY + CELL / 2 - 4, 3);
+  const leap = fx.findLast(f => f.type === 'leap'), lt = leap ? (now - leap.t0) / 110 : 1;
+  const hop = !reduced && lt < 1 ? Math.sin(Math.PI * lt) * CELL * 0.6 : 0;
+  const tw = leap ? Math.max(0, 1 - (now - leap.t0) / 900) : 0;
+  sprite(g, PX + CELL / 2, PY + CELL / 2 - hop, CELL, state.mover, reduced ? 0 : now, lastDir, reduced ? 0 : tw);
+  const sw = fx.findLast(f => f.type === 'swap'), st = sw ? (now - sw.t0) / 350 : 1;
+  if (st < 1) { g.globalAlpha = 1 - st; g.strokeStyle = sw.color; g.lineWidth = 4;
+    g.beginPath(); g.arc(PX + CELL / 2, PY + CELL / 2, CELL * (reduced ? 0.48 : 0.3 + 0.3 * st), 0, 7); g.stroke(); g.globalAlpha = 1; }
+  castUi();
 
   const w = fx.find(f => f.type === 'win');
   if (w && !reduced) for (let i = 0; i < 24; i++) { const t = (now - w.t0) / 1000, a = i * 0.26; if (t > 1.5) break;

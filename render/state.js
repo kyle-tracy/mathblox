@@ -3,6 +3,7 @@
 import { step, parseLevel, DIRS } from '../core/world.js';
 import { inside } from '../core/push.js';
 import { LEVELS } from '../levels/levels.js';
+import { CHARACTERS } from '../levels/characters.js';
 import { SHOWCASE } from '../levels/showcase.js';
 import { cv, CELL, PAD } from './look.js';
 import { tone, pitch, boing } from './audio.js';
@@ -58,6 +59,10 @@ export const tileAt = (s, x, y) => s.tiles[y]?.[x] ?? '#';
 export function feedback(e, before) {
   const t0 = performance.now(), [dx, dy] = DIRS[lastDir]; // bounces carry no dir: use the input's
   if (e.type === 'push') tone(110, 0.06, 'sine');
+  // Characters: a swap pops; a negate flips (a note and its mirror); a leap is an octave, 2:1; a refused leap boings softly.
+  if (e.type === 'swap') { fx.push({ type: 'swap', t0, color: CHARACTERS[e.mover]?.color ?? '#ef476f' }); tone(520, 0.05, 'sine', 260); tone(780, 0.06, 'triangle', 0, 0.05); }
+  if (e.type === 'negate') { fx.push({ type: 'negate', at: e.at, t0, wob: e.at }); tone(pitch(7), 0.1, 'triangle', -120); tone(pitch(0), 0.12, 'triangle', 120, 0.1); }
+  if (e.type === 'leap') { fx.push({ type: 'leap', t0 }); tone(pitch(0), 0.12, 'sine'); tone(pitch(12), 0.2, 'sine', 0, 0.1); }
   if (e.type === 'merge' || e.type === 'carve') {
     // Operands as they stood before the push; reading order (left->right, top->bottom) is layout, not math.
     const gone = before.objects.filter(o => !state.objects.some(s => s.id === o.id));
@@ -89,8 +94,8 @@ export function feedback(e, before) {
   }
   const exit = e.type === 'bounce' && e.reason === 'wall' && tileAt(state, e.at.x, e.at.y) === 'E'; // a block pushed into E
   if (e.type === 'bounce' && (e.reason !== 'wall' || exit)) {
-    boing(); if (e.reason === 'storm') tone(520, 0.6, 'sine', -400, 0.08); // a silly wind-down whoosh, never a buzzer
-    const wob = objAt(state, e.at.x, e.at.y) ? e.at : { x: e.at.x - dx, y: e.at.y - dy };
+    if (e.reason === 'leap') tone(200, 0.16, 'sine', 70); else boing(); if (e.reason === 'storm') tone(520, 0.6, 'sine', -400, 0.08); // a silly wind-down whoosh, never a buzzer
+    const wob = objAt(state, e.at.x, e.at.y) || e.reason === 'leap' ? e.at : { x: e.at.x - dx, y: e.at.y - dy }; // a leap never wobbles what it jumps over
     const f = { ...e, t0, wob, linger: !exit, ...(exit && { reason: 'exit' }) };
     if (e.reason === 'too-long') { // trench cells it would cover, read from tiles; the event says how much sticks out
       f.n = objAt(state, wob.x, wob.y)?.value ?? 0; f.cells = [];

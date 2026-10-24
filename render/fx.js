@@ -192,6 +192,12 @@ function bundleFx(f, t, X, Y) { // ten loose dots slide into one column, then th
   const q = ease(t / (300 * TS)); g.fillStyle = INK;
   for (let i = 0; i < 10; i++) { const [dx, dy] = dotPos(i, 0, -8, 9); circle(X + CELL / 2 + dx * (1 - q), Y + CELL / 2 + dy * (1 - q) + (i * 4.8 - 22) * q, 3); }
 }
+function landing(f, t, X, Y) { // Pythagoras can't land here: a dashed ring where his feet would go, and a cross
+  g.save(); g.globalAlpha = Math.max(0.35, 1 - t / 600); g.strokeStyle = INK; g.lineWidth = 3; g.setLineDash([5, 5]);
+  g.beginPath(); g.arc(X + CELL / 2, Y + CELL / 2, CELL * 0.3, 0, 7); g.stroke(); g.setLineDash([]);
+  for (const d of [-1, 1]) { g.beginPath(); g.moveTo(X + CELL / 2 - 9, Y + CELL / 2 - 9 * d); g.lineTo(X + CELL / 2 + 9, Y + CELL / 2 + 9 * d); g.stroke(); }
+  g.restore();
+}
 function bounceFx(f, t, X, Y, now) {
   if (f.reason === 'storm') storm(f, t, X, Y);
   if (f.reason === 'no-room') ghostCells(f.ghost, true);
@@ -204,6 +210,7 @@ function bounceFx(f, t, X, Y, now) {
   if (f.reason === 'zero-fill') zeroFill(f, t, X, Y);
   if (f.reason === 'gates') falseGates(f, t);
   if (f.reason === 'too-long') tooLong(f, t);
+  if (f.reason === 'leap' && state.tiles[f.at.y]?.[f.at.x]) landing(f, t, X, Y); // off the board: just the boing
   if (f.reason === 'not-whole') wantWhole(X, Y, avoid(f.at), must(f));
 }
 
