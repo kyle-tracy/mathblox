@@ -2,6 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { newCraft, step, DISTRICTS, SITES } from '../core/craft.js';
+import { recruits, canEnter, parties } from '../core/progress.js';
 
 const M = { u: 'up', d: 'down', l: 'left', r: 'right', g: 'grab' };
 const play = moves => { let s = newCraft(), ev = []; for (const c of moves) { const r = step(s, M[c]); s = r.state; ev.push(...r.events); } return { s, ev }; };
@@ -18,14 +19,53 @@ test('districts do not overlap; door and host sit inside, side by side', () => {
   }
 });
 
-test('the Tally-Keeper can walk to every door and host (pits count as fillable, blocks ignored)', () => {
-  const s = newCraft(), ok = (x, y) => s.tiles[y]?.[x] === '.' || `${x},${y}` in s.ground, seen = new Set([`${s.player.x},${s.player.y}`]);
-  for (const q = [[s.player.x, s.player.y]]; q.length;) {
-    const [x, y] = q.shift();
-    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) if (ok(x + dx, y + dy) && !seen.has(`${x + dx},${y + dy}`)) { seen.add(`${x + dx},${y + dy}`); q.push([x + dx, y + dy]); }
+// Walking only (no pushes, merges or flips), keyed on x, y and mover (Tab is free). ponytail: time is not in the key
+// (a path that meets the night creature may be missed); capped.
+const WALK = ['move', 'leap', 'nudge', 'swap', 'face', 'enter', 'dusk', 'dawn', 'mimic', 'doze'];
+function entered(start, cap = 30000) {
+  const key = s => `${s.player.x},${s.player.y},${s.mover}`, seen = new Set([key(start)]), got = new Set();
+  for (let q = [start]; q.length && seen.size < cap;) {
+    const s = q.shift();
+    for (const a of ['up', 'down', 'left', 'right', 'swap']) {
+      const r = step(s, a);
+      for (const e of r.events) if (e.type === 'enter' || e.reason === 'soon') got.add(e.world); // 'soon': at the door, world not built yet
+      if (r.events.some(e => !WALK.includes(e.type))) continue; // walk only: blocks and land stay put, so the key is exact
+      if (!seen.has(key(r.state))) { seen.add(key(r.state)); q.push(r.state); }
+    }
   }
-  const near = ([x, y]) => [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => seen.has(`${x + dx},${y + dy}`));
-  for (const [id, d] of Object.entries(DISTRICTS)) assert.ok(near(d.door) && near(d.host), id);
+  return got;
+}
+const ALL = Object.keys(DISTRICTS);
+test('every party a door admits reaches that door from camp (nudgers and the ford included)', () => {
+  for (const party of parties(recruits(ALL))) {
+    const got = entered({ ...newCraft(ALL, party), fire: 99 }); // terrain only: the far districts are a fed fire away (no doze)
+    for (const id of ALL) if (canEnter(id, party, ALL)) assert.ok(got.has(id), `${party} cannot reach ${id}`);
+  }
+});
+test('Pythagoras picked on any cell by the fire still reaches his doors (nudgers fix his parity)', () => {
+  const s0 = newCraft(['camp', 'alexandria', 'croton'], ['pythagoras']);
+  for (let dx = -2; dx <= 2; dx++) for (let dy = -2; dy <= 2; dy++) {
+    const s = structuredClone(s0), x = s.camp.x + dx, y = s.camp.y + dy;
+    if (s.tiles[y][x] !== '.' || s.objects.some(o => o.x === x && o.y === y)) continue;
+    s.player = { x, y };
+    if (['up', 'down', 'left', 'right'].every(d => step(s, d).state === s)) continue; // a pocket he can't leap out of: C picks again
+    const got = entered(s);
+    for (const id of ['camp', 'alexandria', 'ujjain']) assert.ok(got.has(id), `from ${x},${y}: ${id}`);
+  }
+});
+test('a nudger pushes you one cell on, if that cell is open', () => {
+  const s = newCraft(); s.player = { x: 5, y: 9 };
+  const r = step(s, 'right');
+  assert.deepEqual(r.state.player, { x: 7, y: 9 });
+  assert.deepEqual(r.events.at(-1), { type: 'nudge', at: { x: 6, y: 9 }, to: { x: 7, y: 9 } });
+  s.player = { x: 3, y: 8 }; // down onto (3,10)? no: (3,9) first, a plain step
+  const c = structuredClone(s); c.player = { x: 3, y: 11 }; c.objects = c.objects.filter(o => !(o.x === 3 && o.y === 11)); c.objects.push({ id: 90, x: 3, y: 9, kind: 'num', value: 1 });
+  assert.deepEqual(step(c, 'up').state.player, { x: 3, y: 10 }, 'blocked: you stay on the nudger');
+});
+test('the fire burns only at night: a day of walking never dozes you off', () => {
+  let s = newCraft();
+  for (let i = 0; i < 31; i++) s = step(s, i % 2 ? 'up' : 'down').state;
+  assert.equal(s.fire, 3); assert.equal(s.dozes, 0);
 });
 
 const facing = (s, [x, y], dir) => { const c = structuredClone(s), [dx, dy] = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }[dir]; c.player = { x: x - dx, y: y - dy }; return c; };

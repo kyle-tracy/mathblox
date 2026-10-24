@@ -10,7 +10,6 @@ import { HEROES } from './heroes.js';
 import { missing, world } from './progress.js';
 
 export const DAY = 48, NIGHT = 16, BAG = 2, START_HEAT = 3; // moves per day; the last NIGHT moves are night
-const burnEvery = t => (isNight(t) ? 4 : 8); // the fire eats 1 warmth every 8 moves, every 4 at night
 export const isNight = t => t % DAY >= DAY - NIGHT;
 export const dayOf = t => Math.floor(t / DAY) + 1;
 export const movesToSwitch = t => (isNight(t) ? DAY : DAY - NIGHT) - (t % DAY); // until dawn or dusk
@@ -20,38 +19,49 @@ export const movesToSwitch = t => (isNight(t) ? DAY : DAY - NIGHT) - (t % DAY); 
 // each pit cell has its own height (−3), and any block pushed or placed in adds to it, from any side.
 // −3 + 3 = 0 is flat ground; −3 + 2 = −1 is still a pit; −3 + 5 = 2 is a hill: a 2 block left standing there.
 const OY = 5, W = 48, H = 19, ROAD = [OY + 1, OY + 7], CAMP = { x: 2, y: OY + 4 }; // rows 1-4 and 14-17 are districts
-const RIVERS = [[10, -3], [22, -2], [23, -3], [36, -2]]; // [column, height] down every road row
+const RIVERS = [[10, -3], [22, -2], [23, -3], [36, -2]]; // [column, height] down every road row but the x-axis (camp's row: a ford, 0 deep)
+const riverRows = () => [...Array(ROAD[1] - ROAD[0] + 1)].map((_, i) => ROAD[0] + i).filter(y => y !== CAMP.y);
 const STAMPS = [
   [4, 2, '2'], [5, 2, '+'], [7, 2, '3'], // 0:00: merge 2+3, feed 5
   [3, 6, '1'], [5, 6, '9'], [6, 6, '-'], [8, 6, '6'], // 0:40: 9−6 = 3 bridges the −3 (or burn the 9: it regrows at dawn)
   [14, 5, '4'], [15, 5, '+'], [17, 5, '1'], [15, 7, '7'], [16, 7, '-'], [18, 7, '2'], [19, 2, '8'], // 5 fills −2 and leaves a 3 for the −3
   [29, 3, '3'], [30, 3, '×'], [32, 3, '3'], [33, 6, '2'], [26, 1, '6'], [31, 7, '4'], // a 3×3 platform burns as 9
   [40, 2, '9'], [41, 4, '+'], [43, 4, '9'], [44, 6, '8'], [42, 6, '5'], [45, 2, '7'], // far side: bonfire wood
-  [6, 3, '#'], [13, 1, '#'], [20, 1, '#'], [20, 2, '#'], [27, 6, '#'], [27, 7, '#'], [34, 1, '#'], [39, 7, '#'], [46, 4, '#'],
+  [6, 3, '#'], [13, 1, '#'], [20, 1, '#'], [20, 2, '#'], [27, 6, '#'], [27, 7, '#'], [34, 1, '#'], [40, 7, '#'], [46, 4, '#'],
 ].map(([x, y, ch]) => [x, y + OY, ch]); // authored in road rows 1-7
 // The night creature: shy, past the first river, wearing one equation per night (□ is the block you give it).
 const MIMIC_SPOTS = [[15, 3], [17, 1], [13, 6], [19, 4]].map(([x, y]) => [x, y + OY]), MIMIC_EQS = ['□+3=8', '□+1=5', '□+4=7'];
-// Districts: one walled area per world, opening onto the road by a gap (gate) in the door's column. The door (a solid
-// cell at the back) enters the world; the host beside it (hero or signpost) greets. In curriculum order away from camp,
-// alternating top and bottom. Rivers cut only the road, so a district sits on the side of the river its gate opens to:
-// Pythagoras's pair (vectors) past the 1-wide river at 36 he can leap. The real gate is `needs` (core/progress.js).
-const district = (x, w, top, dx) => ({ x, y: top ? 1 : ROAD[1] + 2, w, h: 4, door: [dx, top ? 1 : H - 2], host: [dx - 1, top ? 1 : H - 2],
-  gate: [dx, top ? ROAD[0] - 1 : ROAD[1] + 1] });
+// Districts: one walled area per world, opening onto the road by a gap (gate) in an odd column. Inside, you stand on
+// the gate's column (`stand`) beside the door (a solid cell that enters the world); the host next to the door (hero
+// or signpost) greets. In curriculum order away from camp, alternating top and bottom. Rivers cut only the road, so a
+// district sits on the side of the river its gate opens to: Pythagoras's pairs past the 1-wide river at 36 he can leap.
+// Gate, stand and door approach all sit on odd x and odd y: the cells Pythagoras (who leaps 2) reaches from camp;
+// Croton's and the Keep's gates sit where Euclid's slide stops (the rock at 40 is his stop) (he must reach Croton alone; anyone may go to the Keep).
+// The real gate is `needs` (core/progress.js).
+const district = (x, w, top, g, side = 1, y = top ? 1 : H - 2) => ({ x, y: top ? 1 : ROAD[1] + 2, w, h: 4,
+  gate: [g, top ? ROAD[0] - 1 : ROAD[1] + 1], stand: [g, y], door: [g + side, y], host: [g + 2 * side, y] }); // side −1: door left of the gate
 export const DISTRICTS = {
-  camp: { x: 1, y: ROAD[0], w: 9, h: 7, door: [1, CAMP.y], host: [1, CAMP.y - 1] }, // the camp itself; host: the Tally-Keeper
-  alexandria: district(1, 8, true, 5), croton: district(1, 8, false, 8),
-  ujjain: district(10, 10, true, 14), elea: district(10, 11, false, 17),
-  distrib: district(21, 8, true, 25), under: district(22, 9, false, 28), series: district(30, 6, true, 33),
-  vectors: district(32, 8, false, 37), rotation: district(37, 5, true, 38), motion: district(43, 4, true, 45),
-  dungeon: district(41, 6, false, 45),
+  camp: { x: 1, y: ROAD[0], w: 9, h: 7, stand: [1, CAMP.y - 2], door: [1, CAMP.y - 1], host: [1, CAMP.y] }, // the camp itself; host: the Tally-Keeper
+  alexandria: district(1, 8, true, 3), croton: district(1, 9, false, 9, -1),
+  ujjain: district(10, 10, true, 15), elea: district(11, 10, false, 13),
+  distrib: district(21, 8, true, 25), under: district(22, 9, false, 25), series: district(30, 6, true, 33),
+  vectors: district(32, 8, false, 37), rotation: district(37, 5, true, 37), motion: district(43, 4, true, 43),
+  dungeon: district(41, 6, false, 41),
 };
+// Nudgers (pistons): a road tile that pushes whoever ends a move on it 1 cell onward, if that cell is open floor.
+// Pythagoras leaps 2, so he keeps his parity, and gates, stands and the ford are on odd x, odd y; landing on a
+// nudger flips one parity. Picked at camp on any cell, he gets back on track: (6,9) leaping right, (3,10) leaping
+// up, (4,10) leaping right then (3,10).
+export const NUDGERS = [[6, 9], [3, 10], [4, 10]];
+const NUDGE = new Set(NUDGERS.map(String));
+export const LAYOUT = 3; // bump when the map changes: older saves are dropped
 export const SITES = Object.fromEntries(Object.entries(DISTRICTS).map(([id, d]) => [id, d.door]));
 const keyed = f => Object.fromEntries(Object.entries(DISTRICTS).map(([id, d]) => [d[f].join(), id]));
 export function craftMap() {
   const rows = [...Array(H)].map(() => Array(W).fill('#')), open = (x, y, w, h) => { for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) rows[j][i] = '.'; };
   open(1, ROAD[0], W - 2, ROAD[1] - ROAD[0] + 1);
   for (const d of Object.values(DISTRICTS)) { open(d.x, d.y, d.w, d.h); if (d.gate) open(...d.gate, 1, 1); }
-  for (const [x] of RIVERS) for (let y = ROAD[0]; y <= ROAD[1]; y++) rows[y][x] = '#'; // solid to the engine; heights live in s.ground
+  for (const [x] of RIVERS) for (const y of riverRows()) rows[y][x] = '#'; // solid to the engine; heights live in s.ground
   for (const [x, y, ch] of STAMPS) rows[y][x] = ch;
   for (const d of Object.values(DISTRICTS)) rows[d.door[1]][d.door[0]] = rows[d.host[1]][d.host[0]] = '#';
   rows[CAMP.y][CAMP.x] = '#'; // the fire is solid too; pushes into it are caught below
@@ -62,9 +72,9 @@ export function craftMap() {
 // done: finished world ids; party: the heroes you take out (Tab swaps between them).
 export function newCraft(done = [], party = ['tally']) {
   const s = parseLevel({ name: 'craft', map: craftMap(), cast: party }), ground = {};
-  for (const [x, h] of RIVERS) for (let y = ROAD[0]; y <= ROAD[1]; y++) ground[`${x},${y}`] = h;
+  for (const [x, h] of RIVERS) for (const y of riverRows()) ground[`${x},${y}`] = h;
   const spawns = s.objects.map(({ x, y, kind, value, op }) => ({ x, y, kind, ...(kind === 'num' ? { value } : { op }) }));
-  return { ...s, camp: CAMP, ground, spawns, fire: START_HEAT, bag: [], t: 0, facing: 'right', dozes: 0, pet: null,
+  return { ...s, layout: LAYOUT, camp: CAMP, ground, spawns, fire: START_HEAT, bag: [], t: 0, facing: 'right', dozes: 0, pet: null,
     done: [...done], sites: keyed('door'), hosts: keyed('host') };
 }
 
@@ -136,6 +146,11 @@ function go(state, dir) {
   const r = HEROES[state.mover](state, dir, CRAFT_API), n = r.state;
   if (n !== state && (n.player.x !== state.player.x || n.player.y !== state.player.y)) {
     n.facing = dir;
+    const to = { x: n.player.x + dx, y: n.player.y + dy };
+    if (NUDGE.has(`${n.player.x},${n.player.y}`) && tileAt(n, to.x, to.y) === '.' && !objAt(n, to.x, to.y)) {
+      r.events.push({ type: 'nudge', at: { ...n.player }, to });
+      n.player = to;
+    }
     if (n.pet && state.pet) n.pet = { ...state.player }; // it follows you (to where you stood: after a leap it hops after you)
   }
   return r;
@@ -158,8 +173,8 @@ export function choose(state, party) {
 }
 // Back from a world: stand on the floor beside its door (or at camp if a block now stands there).
 export function atSite(state, id) {
-  const s = structuredClone(state), [x, y] = SITES[id];
-  const p = Object.values(DIRS).map(([dx, dy]) => ({ x: x + dx, y: y + dy })).find(q => tileAt(s, q.x, q.y) === '.' && !objAt(s, q.x, q.y));
+  const s = structuredClone(state), [x, y] = SITES[id], [sx, sy] = DISTRICTS[id].stand;
+  const p = [[sx - x, sy - y], ...Object.values(DIRS)].map(([dx, dy]) => ({ x: x + dx, y: y + dy })).find(q => tileAt(s, q.x, q.y) === '.' && !objAt(s, q.x, q.y));
   s.player = p ?? wakeSpot(s);
   if (s.pet) s.pet = { ...s.player };
   return s;
@@ -239,14 +254,15 @@ function dawn(s, events) {
   events.push({ type: 'dawn', ids: grown });
 }
 
-// Time passes only on a real move (bumping a wall is free). The fire burns down; at 0 you doze off
+// Time passes only on a real move (bumping a wall is free). The fire burns only at night (1 warmth every 4 moves;
+// daytime is for exploring); at 0 you doze off
 // and wake at camp next morning, fire relit. Nothing is lost: the bag and the world stay as they were.
 function tick(s, events) {
   if (events[0]?.type === 'face') return;
   const night = isNight(s.t);
   s.t++;
   if (isNight(s.t) !== night) (night ? dawn : dusk)(s, events);
-  if (s.t % burnEvery(s.t) === 0) s.fire = Math.max(0, s.fire - 1);
+  if (isNight(s.t) && s.t % 4 === 0) s.fire = Math.max(0, s.fire - 1);
   if (s.fire > 0) return;
   s.player = wakeSpot(s);
   if (s.pet) s.pet = { ...s.player };

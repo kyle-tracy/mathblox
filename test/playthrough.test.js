@@ -23,15 +23,15 @@ test('every placed level resolves and its stored solution wins', () => {
   }
 });
 
-// ponytail: keyed on player x,y, mover (Tab is free) and ground heights; blocks ignored (ignores time/heat/blocks moved), capped at 20k states.
+// ponytail: keyed on player x,y and mover (Tab is free); ground, blocks, time and heat are left out of the key (a found path is still real), capped at 20k states.
 function reaches(start, id) {
-  const seen = new Set([`${start.player.x},${start.player.y},${start.mover},${JSON.stringify(start.ground)}`]), q = [start];
+  const seen = new Set([`${start.player.x},${start.player.y},${start.mover}`]), q = [start];
   while (q.length && seen.size < 20000) {
     const s = q.shift();
     for (const d of ['up', 'down', 'left', 'right', 'swap']) {
       const r = step(s, d);
       if (r.events.some(e => e.type === 'enter' && e.world === id)) return true;
-      const k = `${r.state.player.x},${r.state.player.y},${r.state.mover},${JSON.stringify(r.state.ground)}`;
+      const k = `${r.state.player.x},${r.state.player.y},${r.state.mover}`;
       if (!seen.has(k)) { seen.add(k); q.push(r.state); }
     }
   }

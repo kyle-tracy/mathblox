@@ -16,7 +16,7 @@ const VW = 15, VH = 9, PAD = 40, HUD = 100; // view in cells; margins for the ax
 const from = new URLSearchParams(location.search).get('from'), moves = new URLSearchParams(location.search).get('moves'), done = getDone(); // read before the URL is replaced
 let saved = null;
 if (from && world(from)) try { saved = JSON.parse(localStorage.getItem('mathblox.craft')); } catch { /* no storage: a fresh Craft */ }
-if (saved && String(saved.tiles?.map(r => r.length)) !== String(newCraft().tiles.map(r => r.length))) saved = null; // a save from an older map
+if (saved?.layout !== newCraft().layout) saved = null; // a save from an older map
 let s = from && world(from) ? atSite({ ...(saved ?? newCraft(done)), done }, from) : newCraft(done), history = [], msg = '', msgT = 0;
 cv.width = VW * CELL + PAD; cv.height = VH * CELL + PAD + HUD;
 document.getElementById('name').textContent = 'MathBlox: the Road of Lands';

@@ -20,14 +20,14 @@ test('canEnter: the party must hold every needed recruit; the dungeon needs 2 pa
 
 const from = (s, x, y) => { s.player = { x, y }; return s; };
 test('site doors: enter with the right party, bounce with the missing heroes, a pair world with levels opens', () => {
-  let r = step(from(newCraft(), 14, 2), 'up');
+  let r = step(from(newCraft(), 15, 1), 'right');
   assert.deepEqual([r.events[0].reason, r.events[0].missing], ['needs', ['pythagoras']]);
-  r = step(from(newCraft(['alexandria', 'croton'], ['pythagoras']), 14, 2), 'up');
-  assert.deepEqual(r.events[0], { type: 'enter', world: 'ujjain', at: { x: 14, y: 1 } });
-  assert.equal(step(from(newCraft(), 1, 10), 'up').events[0].world, 'camp');
-  assert.equal(step(from(newCraft(['alexandria', 'ujjain'], ['euclid', 'brahmagupta']), 25, 2), 'up').events[0].world, 'distrib'); // has a level now
+  r = step(from(newCraft(['alexandria', 'croton'], ['pythagoras']), 15, 1), 'right');
+  assert.deepEqual(r.events[0], { type: 'enter', world: 'ujjain', at: { x: 16, y: 1 } });
+  assert.equal(step(from(newCraft(), 1, 7), 'down').events[0].world, 'camp');
+  assert.equal(step(from(newCraft(['alexandria', 'ujjain'], ['euclid', 'brahmagupta']), 25, 1), 'right').events[0].world, 'distrib'); // has a level now
   const back = atSite(newCraft(), 'motion');
-  assert.deepEqual([back.player.x, back.player.y], [SITES.motion[0], SITES.motion[1] + 1]);
+  assert.deepEqual([back.player.x, back.player.y], [SITES.motion[0] - 1, SITES.motion[1]]);
 });
 
 test('every world door has a free cell inside it to come back to (finished or left early)', () => {
