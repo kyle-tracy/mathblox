@@ -9,7 +9,7 @@ import { recruits, parties, canEnter, world, missing } from '../core/progress.js
 import { ghostCells, wantWhole } from '../render/fx.js';
 import { tone, pitch, boing, muted, setMute, muteBtn } from '../render/audio.js';
 import { isNat, parts } from '../core/value.js';
-import { newCraft, step, heightAt, bagSize, isNight, dayOf, movesToSwitch, choose, atSite, DAY, NIGHT, DISTRICTS } from '../core/craft.js';
+import { newCraft, step, heightAt, bagSize, isNight, dayOf, movesToSwitch, choose, atSite, DAY, NIGHT, DISTRICTS, NUDGERS } from '../core/craft.js';
 
 const VW = 15, VH = 9, PAD = 40, HUD = 100; // view in cells; margins for the axes and the HUD
 // Back from a world (?craft&from=id): the Craft you left (saved on the way in, if storage allows), standing at its door.
@@ -53,7 +53,8 @@ function act(a) {
     if (e.type === 'bounce') { boing(); if (SAY[e.reason]) say(SAY[e.reason]);
       const [dx, dy] = a === 'grab' ? [0, 0] : { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }[a], hit = r.state.objects.find(o => o.x === e.at.x && o.y === e.at.y);
       bump = { ...e, t0: performance.now(), wob: hit && !hit.mimic ? e.at : { x: e.at.x - dx, y: e.at.y - dy } }; }
-    if (['feed', 'hop', 'tame'].includes(e.type)) fxs.push({ ...e, t0: performance.now() }); if (fxs.length > 8) fxs.shift();
+    if (e.type === 'nudge') { tone(85, 0.09, 'square', -40); tone(170, 0.05, 'triangle', 0, 0.02); } // a piston's thunk
+    if (['feed', 'hop', 'tame', 'nudge'].includes(e.type)) fxs.push({ ...e, t0: performance.now() }); if (fxs.length > 8) fxs.shift();
     if (e.type === 'push') tone(110, 0.06, 'sine');
     if (e.type === 'merge' || e.type === 'carve' || e.type === 'multiply' || e.type === 'share') tone(pitch(isNat(e.value) ? e.value : 0), 0.18, 'triangle');
     if (e.type === 'feed') { for (let i = 0; i < e.value; i++) tone(pitch(i * 2), 0.05, 'sawtooth', -40, i * 0.03); say(`The fire eats ${e.value}. Warmth ${e.heat}!`); }
@@ -137,6 +138,8 @@ function draw(now) {
     g.strokeStyle = C.grid; g.lineWidth = 1; g.strokeRect(X(x) + 0.5, Y(y) + 0.5, CELL, CELL);
   }
   if (ART === 'c') { pixelate(4); pits.forEach(f => f()); } // chunky terrain; pits (their depth numerals) and pieces stay sharp to read
+  const shove = fxs.find(f => f.type === 'nudge' && age(f) < T(260));
+  for (const [x, y] of NUDGERS) if (x >= cam && x < cam + VW && y >= camY && y < camY + VH) piston(X(x), Y(y), shove?.at.x === x && shove?.at.y === y ? shove : null);
   ambient(X, Y, cam, camY, live);
   // Axes: camp is the origin (a frame of reference; labels count cells from camp, y up).
   g.strokeStyle = C.axis; g.lineWidth = 2; g.setLineDash([6, 4]);
@@ -172,7 +175,8 @@ function draw(now) {
     host(X(x), Y(y), id, live, Math.abs(x - s.player.x) + Math.abs(y - s.player.y) <= 3 ? (x > s.player.x ? 'left' : x < s.player.x ? 'right' : y > s.player.y ? 'up' : 'down') : 'down');
   }
   // Player: the hero you are now, facing the way you face (what Space picks up).
-  const px = X(s.player.x) + CELL / 2, py = Y(s.player.y) + CELL / 2;
+  const sl = shove && !reduced ? 1 - Math.min(1, age(shove) / T(160)) : 0; // shoved: you slide off the piston onto your cell
+  const px = X(s.player.x) + CELL / 2 + (shove ? (shove.at.x - shove.to.x) * CELL * sl : 0), py = Y(s.player.y) + CELL / 2 + (shove ? (shove.at.y - shove.to.y) * CELL * sl : 0);
   flatShadow(() => sprite(g, px, py, CELL * 0.95, s.mover, live, s.facing, 0, false, blinking(live, 0)));
   if (ART === 'b') paper();
   // Light: night is a deep blue shade with a clear circle as wide as the fire's warmth; the last moves of day turn amber.
@@ -404,4 +408,19 @@ function paper() { // style b: warm the whole board, lay a paper grain over it, 
   g.save(); g.fillStyle = g.createPattern(grain, 'repeat'); g.fillRect(PAD, HUD, w, h);
   const v = g.createRadialGradient(PAD + w / 2, HUD + h / 2, h * 0.45, PAD + w / 2, HUD + h / 2, w * 0.62); v.addColorStop(0, 'rgba(80,50,20,0)'); v.addColorStop(1, 'rgba(80,50,20,.22)');
   g.fillStyle = v; g.fillRect(PAD, HUD, w, h); g.restore();
+}
+
+// A nudger is a piston set in the road (Minecraft's, top-down): a stone body, a wooden head and four chevrons for
+// "onward, whichever way you came". On `nudge` the head punches out toward where you were shoved, then pulls back.
+function piston(X0, Y0, f) {
+  const cx = X0 + CELL / 2, cy = Y0 + CELL / 2;
+  rr(X0 + 3, Y0 + 3, CELL - 6, CELL - 6, ART === 'c' ? 0 : 8, '#7d8496'); g.strokeStyle = INK; g.lineWidth = 2; g.stroke();
+  g.beginPath(); for (const [dx, dy] of [[0, -1], [1, 0], [0, 1], [-1, 0]]) { const ex = cx + dx * 24, ey = cy + dy * 24; // chevrons on the rim
+    g.moveTo(ex - dy * 5 - dx * 4, ey - dx * 5 - dy * 4); g.lineTo(ex, ey); g.lineTo(ex + dy * 5 - dx * 4, ey + dx * 5 - dy * 4); }
+  g.lineWidth = 2.5; g.strokeStyle = '#e6e2d6'; g.stroke();
+  let ox = 0, oy = 0;
+  if (f) { const q = reduced ? 0.5 : Math.sin(Math.PI * Math.min(1, age(f) / T(260))); ox = (f.to.x - f.at.x) * CELL * 0.55 * q; oy = (f.to.y - f.at.y) * CELL * 0.55 * q;
+    g.strokeStyle = '#4a4e5c'; g.lineWidth = 8; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + ox, cy + oy); g.stroke(); } // the rod
+  rr(cx - 15 + ox, cy - 15 + oy, 30, 30, 4, '#c8935a'); g.strokeStyle = '#6b4420'; g.lineWidth = 2; g.stroke(); // the wooden head
+  g.beginPath(); for (const k of [-5, 5]) { g.moveTo(cx - 13 + ox, cy + k + oy); g.lineTo(cx + 13 + ox, cy + k + oy); } g.lineWidth = 1.5; g.stroke(); // its planks
 }
