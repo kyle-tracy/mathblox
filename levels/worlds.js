@@ -7,7 +7,7 @@ export const WORLDS = [
   { id: 'alexandria', name: 'Alexandria', hero: 'euclid', concept: 'commutativity', needs: [],
     levels: ['The Line Goes On', 'Fair From Either Side', 'Minus Reads Left to Right', 'Clear the Line'] },
   { id: 'croton', name: 'Croton', hero: 'pythagoras', concept: 'associativity', needs: ['euclid'],
-    levels: ['Over the Wall', 'Start in the Middle', 'Brackets Matter for Minus', 'Take Away a Group'] },
+    levels: ['The Leap Is a Bracket', 'Either Plus First', 'Minus Minds the Order', 'Take Away Nothing', 'Dodge the Storm'] },
   { id: 'ujjain', name: 'Ujjain', hero: 'brahmagupta', concept: 'negatives and zero', needs: ['pythagoras'],
     levels: ['A Debt Counts Twice'] },
   { id: 'elea', name: 'Elea', hero: 'zeno', concept: 'fractions and halving', needs: ['brahmagupta'],
