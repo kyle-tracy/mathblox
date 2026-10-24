@@ -10,7 +10,7 @@ export const CHARACTERS = {
     trivia: 'His book Elements was taught for about 2,000 years, yet we know almost nothing about his life. His very first proof assumes two circles cross — something his own rules never promised.',
   },
   pythagoras: {
-    name: 'Pythagoras', move: 'Leaps 2 squares, over anything. Never pushes.', color: '#edae49',
+    name: 'Pythagoras', move: 'Leaps 2 squares, over anything. Leap across a sign and its two neighbours join, like a bracket.', color: '#edae49',
     trivia: 'Halve a string and it sings the same note, higher: 2 to 1. Babylonian scribes knew "his" triangle rule 1,000 years before him. Old stories say his followers refused to eat beans.',
   },
   brahmagupta: {

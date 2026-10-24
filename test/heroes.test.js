@@ -50,3 +50,19 @@ test('a change pad turns your body into its hero and ends a slide', () => {
 test('a pad without a hero is a level error', () => {
   assert.throws(() => parseLevel({ name: 't', map: ['#@*#'] }), /pad 2,0 has no hero/);
 });
+
+test('Pythagoras brackets: leaping across a sign calculates its two neighbours where the sign was', () => {
+  // 9 − 4 − 2 in row 1; he stands above a − and leaps down across it.
+  let s = parseLevel({ name: 't', map: ['#.@....#', '#9-4-2.#', '#......#'], cast: ['pythagoras'] });
+  let r = step(s, 'down'); // across the first −: (9 − 4)
+  assert.equal(r.events.find(e => e.type === 'bracket').value, 5);
+  assert.deepEqual(r.state.objects.filter(o => o.kind === 'num').map(o => o.value).sort(), [2, 5]);
+  s = parseLevel({ name: 't', map: ['#...@..#', '#9-4-2.#', '#......#'], cast: ['pythagoras'] });
+  r = step(s, 'down'); // across the second −: (4 − 2)
+  assert.equal(r.events.find(e => e.type === 'bracket').value, 2);
+});
+
+test('Pythagoras bracket over ÷0 is the storm, and nothing moves', () => {
+  const s = parseLevel({ name: 't', map: ['#.@..#', '#5÷0.#', '#....#'], cast: ['pythagoras'] });
+  assert.equal(step(s, 'down').state, s);
+});
