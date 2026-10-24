@@ -38,3 +38,4 @@ date | agent | task | est | actual | note
 2026-10-23 | Worldo | 4 character intro levels | - | 68k |
 2026-10-23 | Qualito | QC 4 character levels | - | 62k | all KEEP |
 2026-10-23 | Matho | world beats (curriculum §7) | - | ? | continued |
+2026-10-23 | Arto | bodies, pads, HUD roster | - | ? | continued |
