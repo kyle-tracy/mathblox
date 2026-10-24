@@ -6,8 +6,8 @@ A game where **the math is the physics**. Prototype: ages 6–9 (2D, browser). T
 - **Studio memory is `docs/`.** `docs/decisions.md` is the current-rules summary; log new decisions under its "Log" heading as `- YYYY-MM-DD [who] decision — why`.
 - **Read narrowly.** Read `docs/INDEX.md`, then only the files your task names. Before opening a whole source file, use code-review-graph `query` / `impact` (CLI or MCP) to find the function you need, then read just that range. Grep the archive (`docs/archive/`) instead of reading it.
 - **File map:**
-  - `core/world.js`: `parseLevel`, `step`, `laneValues`; `move()` delegates to `core/push.js` (`resolveChain`, `unlockDoor`, `fillTrench`, `tickPads`). `core/math.js`: ops, doors, equations. `core/value.js`: exact rationals.
-  - `levels/levels.js`: index only, play order. One file per world: `meadow.js` (L1), `balance.js` (L2), `merge.js` (L3), `carve.js` (L4–5), `lanes.js` (L6–11), `fields.js` (L12–22, ×÷), `sandbox.js`. `showcase.js`: visual-QA rooms.
+  - `core/world.js`: `parseLevel`, `step`, `laneValues`, `MOVERS` (characters); `move()` delegates to `core/push.js` (`resolveChain`, `unlockDoor`, `fillTrench`, `tickPads`). `core/math.js`: ops, doors, equations. `core/value.js`: exact rationals.
+  - `levels/levels.js`: index only, play order. One file per world: `meadow.js` (L1), `balance.js` (L2), `cast.js` (character intros L3, L7, L11, L22), `merge.js`, `carve.js`, `lanes.js`, `fields.js` (×÷), `sandbox.js`; `characters.js` (names, trivia). Play order lives in `levels.js`. `showcase.js`: visual-QA rooms.
   - `render/`: `look.js` (canvas, palette, primitives), `draw.js` (board, blocks), `fx.js` (one function per effect, `FX` table), `state.js` (state, undo, events to fx/sound), `audio.js`. `game.js`: input and boot.
   - `test/`: `node --test test/*.test.js`; `solver.js` is the BFS bot.
   - `docs/`: `INDEX.md` (what to read), `decisions.md`, `workflow.md`, `gates/`, `archive/`.
