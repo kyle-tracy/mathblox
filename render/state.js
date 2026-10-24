@@ -60,6 +60,8 @@ export function feedback(e, before) {
   const t0 = performance.now(), [dx, dy] = DIRS[lastDir]; // bounces carry no dir: use the input's
   if (e.type === 'push') tone(110, 0.06, 'sine');
   // Characters: a swap pops; a negate flips (a note and its mirror); a leap is an octave, 2:1; a refused leap boings softly.
+  if (e.type === 'swap' && before.others?.length) prev = state; // control jumps to another body: no slide across the board
+  if (e.type === 'change') { fx.push({ type: 'change', t0, color: CHARACTERS[e.mover]?.color ?? '#ef476f' }); tone(300, 0.22, 'sine', 500); [12, 16, 19].forEach((n, i) => tone(pitch(n), 0.06, 'triangle', 0, 0.12 + i * 0.05)); }
   if (e.type === 'swap') { fx.push({ type: 'swap', t0, color: CHARACTERS[e.mover]?.color ?? '#ef476f' }); tone(520, 0.05, 'sine', 260); tone(780, 0.06, 'triangle', 0, 0.05); }
   if (e.type === 'negate') { fx.push({ type: 'negate', at: e.at, t0, wob: e.at }); tone(pitch(7), 0.1, 'triangle', -120); tone(pitch(0), 0.12, 'triangle', 120, 0.1); }
   if (e.type === 'leap') { fx.push({ type: 'leap', t0 }); tone(pitch(0), 0.12, 'sine'); tone(pitch(12), 0.2, 'sine', 0, 0.1); }

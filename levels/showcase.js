@@ -96,5 +96,20 @@ export const SHOWCASE = [
     ],
     platforms: [{ x: 7, y: 4, rows: 2, cols: 2 }],
     doors: {},
+  },  {
+    // moves=sdrrrr: swap to Zeno, then Euclid... walk onto the change pads (Pythagoras, Brahmagupta) to see the puff.
+    name: 'Cast Bodies',
+    skill: 'QA: several bodies (others faded), change pads in each hero colour, transform puff, HUD roster',
+    map: [
+      '##########',
+      '#@..*.*..#',
+      '#........#',
+      '#..2..-3.#',
+      '#....*..E#',
+      '##########',
+    ],
+    bodies: [{ id: 'zeno', x: 1, y: 3 }, { id: 'euclid', x: 8, y: 1 }],
+    pads: { '4,1': 'pythagoras', '6,1': 'brahmagupta', '5,4': 'zeno' },
+    doors: {},
   },
 ];

@@ -2,6 +2,7 @@
 import { cv, g, CELL, PAD, reduced, TS, INK, WHITE, C, LANE, pal, px, ease, rr, circle, text, FONT, dotPos, face, door, gate, equation, rod, pebble, socketGlyph } from './look.js';
 import { state, prev, orig, fx, fills, tMove, lastDir } from './state.js';
 import { sprite, castUi } from './cast.js';
+import { CHARACTERS } from '../levels/characters.js';
 import { drawFx, signBox, signPost } from './fx.js';
 import { laneValues } from '../core/world.js';
 import { inside } from '../core/push.js';
@@ -157,6 +158,13 @@ export function tile(t, x, y, now) {
       text('+1', cx, cy - 4, 17, WHITE); g.fillStyle = WHITE; circle(cx, cy + 12, 3.5); }
     else { g.strokeStyle = '#a99f8e'; g.lineWidth = 2; g.setLineDash([4, 4]); g.beginPath(); g.arc(cx, cy, CELL * 0.33, 0, 7); g.stroke(); g.setLineDash([]); text('+1', cx, cy, 15, '#a99f8e'); }
   }
+  if (t === '*') { // change pad: a floor medallion in the hero's colour, their prop in the middle (step on to become them)
+    const id = state.pads[`${x},${y}`], cx = X + CELL / 2, cy = Y + CELL / 2;
+    g.fillStyle = CHARACTERS[id]?.color ?? C.player; circle(cx, cy, CELL * 0.42);
+    g.strokeStyle = INK; g.lineWidth = 2.5; g.beginPath(); g.arc(cx, cy, CELL * 0.42, 0, 7); g.stroke();
+    g.fillStyle = C.floor; for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; circle(cx + Math.cos(a) * CELL * 0.36, cy + Math.sin(a) * CELL * 0.36, 2); }
+    circle(cx, cy, CELL * 0.27); sprite(g, cx, cy, CELL * 1.05, id, 0, 'right', 0, true);
+  }
 }
 
 // Brahmagupta's flip: the block turns over like a coin, showing its opposite on the way down.
@@ -215,6 +223,9 @@ export function draw(now) {
 
   drawFx(now);
 
+  // Bodies you aren't playing: a touch faded, eyes front, breathing gently, so the one you control stands out.
+  for (const b of state.others) { const [X, Y] = px(b.x, b.y); g.globalAlpha = 0.78;
+    sprite(g, X + CELL / 2, Y + CELL / 2 + (reduced ? 0 : Math.sin(now / 500 + b.x + b.y) * 1.5), CELL * 0.94, b.id, reduced ? 0 : now, 'down'); g.globalAlpha = 1; }
   // Player: whoever is up. Pythagoras arcs over what he leaps; a swap pops a ring in the newcomer's colour.
   const dist = Math.abs(state.player.x - prev.player.x) + Math.abs(state.player.y - prev.player.y); // a slide travels, it doesn't teleport
   const kp = reduced ? 1 : Math.min(1, (now - tMove) / Math.min(450, 110 + 40 * Math.max(0, dist - 1)));
@@ -223,6 +234,10 @@ export function draw(now) {
   const hop = !reduced && lt < 1 ? Math.sin(Math.PI * lt) * CELL * 0.6 : 0;
   const tw = leap ? Math.max(0, 1 - (now - leap.t0) / 900) : 0;
   sprite(g, PX + CELL / 2, PY + CELL / 2 - hop, CELL, state.mover, reduced ? 0 : now, lastDir, reduced ? 0 : tw);
+  const ch = fx.findLast(f => f.type === 'change'), ct = ch ? (now - ch.t0) / 450 : 1;
+  if (ct < 1 && !reduced) { g.globalAlpha = 1 - ct; g.fillStyle = ch.color; // a transform puff: six clouds burst out of the pad
+    for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3, r = CELL * (0.15 + 0.4 * ct); circle(PX + CELL / 2 + Math.cos(a) * r, PY + CELL / 2 + Math.sin(a) * r, CELL * 0.14 * (1 - ct * 0.5)); }
+    g.globalAlpha = 1; }
   const sw = fx.findLast(f => f.type === 'swap'), st = sw ? (now - sw.t0) / 350 : 1;
   if (st < 1) { g.globalAlpha = 1 - st; g.strokeStyle = sw.color; g.lineWidth = 4;
     g.beginPath(); g.arc(PX + CELL / 2, PY + CELL / 2, CELL * (reduced ? 0.48 : 0.3 + 0.3 * st), 0, 7); g.stroke(); g.globalAlpha = 1; }
