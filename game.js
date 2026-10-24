@@ -1,10 +1,12 @@
 // Entry: wires input (keyboard, buttons, swipe) to the game. Rules live in core/, drawing in render/.
 import { cv, reduced, setReduced } from './render/look.js';
-import { lvlIdx, won, load, act, undo, restart, fit, leave, Q } from './render/state.js';
+import { lvlIdx, won, load, act, undo, restart, fit, leave, Q, getDone } from './render/state.js';
 import { muted, setMute, muteBtn } from './render/audio.js';
 import { draw } from './render/draw.js';
 
-if (Q.has('craft')) import('./craft/play.js'); // the open-world prototype owns its own input and loop
+// Bare URL: camp's tutorial first, then the overworld (spec: the game opens at camp). ?level=N still plays the full list.
+if (!location.search) location.replace(getDone().includes('camp') ? '?craft' : '?world=camp');
+else if (Q.has('craft')) import('./craft/play.js'); // the open-world prototype owns its own input and loop
 else {
   // ---- input: keyboard, buttons, swipe ----
   const KEYS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', w: 'up', s: 'down', a: 'left', d: 'right' };

@@ -2,37 +2,6 @@
 // Zeno walks half the open runway (rounded up) and pushes only when touching a block, so every room is about where his halves land.
 export default [
   {
-    name: 'A Third of Nine',
-    cast: ['zeno'],
-    solution: 'drrrrrrrrulrrdddddddddd',
-    skill: 'Elea beat 3 (§7) + S9: 9 ÷ 3 shares into 3, 3, 3, one for each door below that wants 3',
-    beat: 'twist',
-    misconception: '"a bigger denominator means a bigger piece": ÷4 shares 9 into 2, 2, 2, 2 and a pebble, ÷2 into 4, 4 and a pebble; only thirds fill three doors that want 3',
-    choice: 'which divisor to push the 9 over, then how to land above it (halves: up, left, right, right)',
-    map: [
-      '###############',
-      '#@............#',
-      '#.....9.......#',
-      '###÷###÷###÷###',
-      '###4###2###3###',
-      '###.###.###.###',
-      '###.###.###.###',
-      '###A###B###C###',
-      '###F###G###H###',
-      '###I###J###K###',
-      '###E###E###E###',
-      '###############',
-    ],
-    doors: { A: 3, B: 3, C: 3, F: 3, G: 3, H: 3, I: 3, J: 3, K: 3 },
-    teaches: ['share'],
-  },
-];
-
-// Held out (2026-10-23, solutions replay): test/p3.test.js BFS-checks every ÷ level for no-room and runs out of memory on
-// these long Zeno rooms. Restore into the default list (order: Ever Smaller Steps, Quarter Past Half, then A Third of Nine,
-// then Half of What Is Left) once Testo bounds that check.
-export const held = [
-  {
     name: 'Ever Smaller Steps',
     cast: ['zeno'],
     solution: 'drrrrrrrurlrddddddd',
@@ -75,6 +44,31 @@ export const held = [
     ],
     lanes: { '△': { row: 5 } },
     doors: { A: '△ = 1' },
+  },
+  {
+    name: 'A Third of Nine',
+    cast: ['zeno'],
+    solution: 'drrrrrrrrulrrdddddddddd',
+    skill: 'Elea beat 3 (§7) + S9: 9 ÷ 3 shares into 3, 3, 3, one for each door below that wants 3',
+    beat: 'twist',
+    misconception: '"a bigger denominator means a bigger piece": ÷4 shares 9 into 2, 2, 2, 2 and a pebble, ÷2 into 4, 4 and a pebble; only thirds fill three doors that want 3',
+    choice: 'which divisor to push the 9 over, then how to land above it (halves: up, left, right, right)',
+    map: [
+      '###############',
+      '#@............#',
+      '#.....9.......#',
+      '###÷###÷###÷###',
+      '###4###2###3###',
+      '###.###.###.###',
+      '###.###.###.###',
+      '###A###B###C###',
+      '###F###G###H###',
+      '###I###J###K###',
+      '###E###E###E###',
+      '###############',
+    ],
+    doors: { A: 3, B: 3, C: 3, F: 3, G: 3, H: 3, I: 3, J: 3, K: 3 },
+    teaches: ['share'],
   },
   {
     name: 'Half of What Is Left',

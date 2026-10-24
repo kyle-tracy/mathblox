@@ -217,7 +217,9 @@ test('solver key tells 3×4 from 4×3 and a rod from ten cubes', () => {
 // No-room validator: along a winning route, no push may hit no-room (it would read as "can't divide").
 function noRoomOnRoute(level) {
   let s = parseLevel(level);
-  for (const d of solve(s, 3e6) ?? []) { // an unsolvable level is reported by core.test.js
+  const D = { u: 'up', d: 'down', l: 'left', r: 'right', s: 'swap' };
+  // Replay the stored route (bounded, no BFS memory blowup on long rooms); BFS only if a level has none.
+  for (const d of level.solution ? [...level.solution].map(c => D[c]) : solve(s, 3e6) ?? []) { // an unsolvable level is reported by core.test.js
     for (const e of Object.keys(DIRS)) if (step(s, e).events.some(ev => ev.reason === 'no-room')) return true;
     s = step(s, d).state;
   }

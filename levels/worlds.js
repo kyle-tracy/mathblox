@@ -11,7 +11,7 @@ export const WORLDS = [
   { id: 'ujjain', name: 'Ujjain', hero: 'brahmagupta', concept: 'negatives and zero', needs: ['pythagoras'],
     levels: ['Turn One Over', 'Flip It Back', 'Full of Nothing', 'The Other Way Round'] },
   { id: 'elea', name: 'Elea', hero: 'zeno', concept: 'fractions and halving', needs: ['brahmagupta'],
-    levels: ['A Third of Nine', 'Keep the Pebble', 'Small Shared by Big'] },
+    levels: ['Ever Smaller Steps', 'Quarter Past Half', 'A Third of Nine', 'Half of What Is Left', 'Keep the Pebble', 'Small Shared by Big'] },
   { id: 'rotation', name: 'The Turning Court', concept: 'imaginary numbers: i² = −1', needs: ['brahmagupta', 'pythagoras'], levels: [] },
   { id: 'motion', name: 'The Racetrack', concept: 'speed, velocity, acceleration, limits', needs: ['euclid', 'zeno'], levels: [] },
   { id: 'distrib', name: 'The Market', concept: 'distributivity', needs: ['euclid', 'brahmagupta'], levels: ['Be Someone Else'] },
