@@ -1,10 +1,9 @@
 // Title screen (bare URL only): the tutorial is optional. Two big choices; finished Camp before → the Road is the default.
 // Behind the title, number blocks drift up past a campfire; reduced motion paints one still frame.
-import { cv, g, reduced, CELL } from './look.js';
+import { cv, g, reduced, CELL, TITLE } from './look.js';
 import { block } from './draw.js';
 import { getDone } from './state.js';
 
-export const TITLE = 'MathBlox'; // the name is being reworked: change it here only
 
 const camped = getDone().includes('camp');
 document.title = TITLE;

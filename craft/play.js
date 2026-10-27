@@ -1,6 +1,6 @@
 // Craft prototype view + input (?craft). Crude on purpose: Arto polishes later.
 // Never does math: every value, height and warmth comes from core/craft.js state and events.
-import { cv, g, CELL, INK, WHITE, C, rr, circle, text, dotPos, equation, reduced, TS, FONT, ART } from '../render/look.js';
+import { cv, g, CELL, INK, WHITE, C, rr, circle, text, dotPos, equation, reduced, TS, FONT, ART, TITLE } from '../render/look.js';
 import { piece, opBlock, label } from '../render/draw.js';
 import { sprite } from '../render/cast.js';
 import { getDone } from '../render/state.js';
@@ -22,7 +22,8 @@ let saved = null;
 if (from && world(from)) try { saved = JSON.parse(localStorage.getItem('mathblox.craft')); } catch { /* no storage: a fresh Craft */ }
 if (saved?.layout !== newCraft().layout) saved = null; // a save from an older map
 let s = from && world(from) ? atSite({ ...(saved ?? newCraft(done)), done }, from) : newCraft(done), history = [], msg = '', msgT = 0;
-document.getElementById('name').textContent = 'MathBlox: the Road of Lands';
+const HUB = 'Sumhenge'; // the hub's name, here only
+document.getElementById('name').textContent = `${TITLE}: ${HUB}`;
 const say = m => { msg = m; msgT = performance.now(); };
 if (from) window.history.replaceState(null, '', '?craft'); // a reload starts here, not from the save we came back from
 const who = id => CHARACTERS[id]?.name ?? id, about = w => w.kid ?? w.concept; // kid words first (levels/worlds.js)
@@ -141,7 +142,7 @@ function draw(now) {
     g.strokeStyle = C.grid; g.lineWidth = 1; g.strokeRect(X(x) + 0.5, Y(y) + 0.5, CELL, CELL);
   }
   if (ART === 'c') { pixelate(4); pits.forEach(f => f()); } // chunky terrain; pits (their depth numerals) and pieces stay sharp to read
-  landmarks(X, Y, cam, live);
+  landmarks(X, Y, cam, live); henge(X, Y, cam);
   const shove = fxs.find(f => f.type === 'nudge' && age(f) < T(260));
   for (const [x, y] of NUDGERS) if (x >= cam && x < cam + VW && y >= camY && y < camY + VH) piston(X(x), Y(y), shove?.at.x === x && shove?.at.y === y ? shove : null);
   ambient(X, Y, cam, camY, live);
@@ -396,6 +397,7 @@ function lands(cam, camY, t) {
   s.tiles.forEach((row, y) => [...row].forEach((c, x) => { if (c === '#' && !heightAt(s, x, y)) return; const id = LAND[`${x},${y}`];
     g.fillStyle = heightAt(s, x, y) ? '#4f9be8' : id ? landLook(id).floor : '#cfc4ae'; g.fillRect(x0 + x * k, y0 + y * k, k, k); }));
   g.globalAlpha = 1;
+  g.fillStyle = '#9aa0a6'; for (const [x, y] of STONES) g.fillRect(x0 + x * k + 1, y0 + y * k, k - 2, k); // Sumhenge
   for (const [id, d] of Object.entries(DISTRICTS)) { g.fillStyle = landLook(id).wall; circle(x0 + (d.door[0] + 0.5) * k, y0 + (d.door[1] + 0.5) * k, 4.5); g.strokeStyle = WHITE; g.lineWidth = 1.5; g.stroke(); }
   g.strokeStyle = WHITE; g.lineWidth = 1.5; g.strokeRect(x0 + cam * k, y0 + camY * k, VW * k, VH * k);
   if (reduced || t % 800 < 560) { g.fillStyle = C.player; circle(x0 + (s.player.x + 0.5) * k, y0 + (s.player.y + 0.5) * k, 6); g.strokeStyle = WHITE; g.stroke(); }
@@ -465,6 +467,34 @@ function landmarks(X, Y, cam, t) {
         if (!reduced && t % 2600 < 160) { g.beginPath(); g.moveTo(cx, by - 0.9 * h); g.lineTo(cx - 0.15 * u, by - 0.84 * h); g.lineTo(cx + 0.05 * u, by - 0.84 * h); g.lineTo(cx - 0.1 * u, by - 0.76 * h); g.lineWidth = 3; g.strokeStyle = '#ffd166'; g.stroke(); } },
     })[id]?.();
     g.restore();
+  }
+}
+// Sumhenge: standing stones ring the fire at the origin, a horseshoe open to the road (like Stonehenge's opens to the
+// sunrise), with lintels across four pairs. Scenery only: every stone stands on a cell that is already solid (border
+// walls, the camp's two rocks), never on a door, host or walkable cell. Each stone carries tally marks counting 1-5 round the ring.
+const STONES = (() => { const t = newCraft([]), k = [];
+  const want = [...[0, 1, 4, 5, 6, 7, 8, 9].map(x => [x, 5]), ...[7, 9, 11].map(y => [0, y]), ...[0, 1, 2, 3, 4, 5, 6, 7, 8].map(x => [x, 13]), [6, 8], [7, 10]];
+  for (const [x, y] of want) if (t.tiles[y]?.[x] === '#' && !heightAt(t, x, y) && !t.sites[`${x},${y}`] && !t.hosts?.[`${x},${y}`]) k.push([x, y]);
+  return k; })();
+const LINTELS = [[4, 5], [7, 5], [3, 13], [6, 13]]; // the left stone of each trilithon
+function henge(X, Y, cam) {
+  if (cam > 11) return;
+  const fx = X(s.camp.x) + CELL / 2, fy = Y(s.camp.y) + CELL / 2; // the henge bank: a flat ring on the ground, never a wall
+  g.setLineDash([10, 8]); g.lineWidth = 4; g.strokeStyle = 'rgba(122,92,67,.35)'; g.beginPath(); g.ellipse(fx, fy, CELL * 3.6, CELL * 3.2, 0, 0, 7); g.stroke(); g.setLineDash([]);
+  const has = new Set(STONES.map(String)), w = CELL * 0.62, h = CELL * 1.2;
+  STONES.forEach(([x, y], i) => {
+    const cx = X(x) + CELL / 2, by = Y(y) + CELL - 4, lx = cx - w / 2, ty = by - h;
+    g.fillStyle = 'rgba(0,0,0,.18)'; g.beginPath(); g.ellipse(cx + 4, by, w * 0.6, 6, 0, 0, 7); g.fill();
+    g.beginPath(); g.moveTo(lx, by); g.lineTo(lx + 2, ty + 8); g.quadraticCurveTo(cx, ty - 4, lx + w - 2, ty + 8); g.lineTo(lx + w, by); g.closePath();
+    g.fillStyle = '#a7adb4'; g.fill(); g.fillStyle = '#868c94'; g.fillRect(lx + w * 0.68, ty + 8, w * 0.32 - 1, h - 8); // the shaded side
+    g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke();
+    g.strokeStyle = 'rgba(29,31,46,.55)'; g.lineWidth = 2; g.beginPath(); const n = i % 5 + 1; // tally marks: four strokes, the fifth across
+    for (let j = 0; j < Math.min(4, n); j++) { g.moveTo(lx + 7 + j * 5, ty + 22); g.lineTo(lx + 7 + j * 5, ty + 38); }
+    if (n === 5) { g.moveTo(lx + 4, ty + 34); g.lineTo(lx + 26, ty + 26); } g.stroke();
+  });
+  for (const [x, y] of LINTELS) if (has.has(`${x},${y}`) && has.has(`${x + 1},${y}`)) {
+    const lx = X(x) + CELL / 2 - w / 2 - 4, ty = Y(y) + CELL - 4 - h - 8;
+    g.beginPath(); g.roundRect(lx, ty, CELL + w + 8, 16, 4); g.fillStyle = '#9aa0a6'; g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke();
   }
 }
 function flatShadow(f) { // style a: a hard flat drop shadow under things that stand up
