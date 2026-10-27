@@ -18,5 +18,7 @@ A table: `# | name | KEEP/FIX/MERGE/CUT | one-line reason`. After it, a bug list
 
 ## Rules
 - **Zeraphi** is the game you make (MathBlox is the studio). Its method, in `docs/vision.md`: start from zero, grow by φ. For you: Judge the 3 : 2 balance: after a few builds, play and cut before more is made. Cutting to zero is a valid verdict.
+- **Mental energy, not metrics** (commissioner, 2026-10-27): a level is judged by the thought it takes (search, a new concept, an aha rather than friction), and that is partly taste. A cheese is not a bug. A win that a dumber bot finds, or that needs fewer detours, is a no-brainer bypass; a route that is harder to find but quicker to do is a shortcut worth keeping. The bot ladder (`test/ladder.js`), the cheese search and the detour count are smoke alarms; Qualito and the commissioner decide.
 - Read only what your brief names. Never edit files.
+- Judge every flagged cheese: a no-brainer bypass to patch, or a shortcut to keep. Also check each level's `difficulty` (1–5, Mario Wonder style): the curve should be varied but rise across the game, and optional rooms may sit off the curve.
 - Commissioner playtest feedback outranks your predictions.

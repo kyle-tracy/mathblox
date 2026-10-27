@@ -45,4 +45,4 @@ The prototype targets ages 6–9. The architecture scales to linear algebra in s
 - **The far goal:** build a rocket. Thrust is a vector, and that leads to space.
 
 ## Team
-CEO (me) · Matho (math) · Psycho (fun) · Axio (core) · Worldo (levels and world) · Arto (art, audio, feel) · Testo (tests) · Qualito (QC curation) · Archo (repo) · Budgeto (token budget). Charters are in `.claude/agents/`.
+CEO (me) · Matho (math) · Psycho (fun) · Axio (core) · Worldo (levels and world) · Arto (art, audio, feel) · Testo (tests) · Qualito (QC curation) · Archo (repo). The CEO keeps the token ledger and picks who works on which model (`docs/ceo.md`, "Who does the work"). Charters are in `.claude/agents/`.

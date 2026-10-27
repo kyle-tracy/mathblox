@@ -29,7 +29,7 @@ This file is stable. The volatile state lives in `docs/handoff/ceo.md`.
 | **worldo** | `levels/` | puzzle levels, world layout, Craft map content |
 | **arto** | `render/`, `craft/play.js` drawing, audio, `style-guide.md` | visuals, juice, effects, HUD, screenshots |
 | **testo** | `test/` | test infrastructure, the solver, gate sign-off |
-| **qualito** | verdicts only (never edits) | feel, findability, roominess, keep/cut, bugs. Run it after every build. |
+| **qualito** | verdicts only (never edits) | feel, findability, roominess, keep/cut, bugs, cheese verdicts (bypass or shortcut), the difficulty curve. Run it after every build. |
 | **psycho** | `fun-principles.md`, `craft-loop.md` | fun loops, pacing, child-safety ethics, no dark patterns |
 | **matho** | `curriculum.md` | math honesty, misconceptions, sequencing |
 | **archo** | repo layout, git, tooling, CI | structure, tooling, data formats |
@@ -50,7 +50,7 @@ This file is stable. The volatile state lives in `docs/handoff/ceo.md`.
    - Answer the agent's open questions with rulings, delivered by SendMessage to the same agent.
 4. **Have Qualito judge** anything a player will touch. Route its findings back to the owner by continuing that agent.
 5. **Commit and push.** Agents commit their own paths. You commit docs with `git add <paths>` (never `-a`, since the working tree is shared), add the `Co-Authored-By` trailer, silence output with `>/dev/null 2>&1`, then `git push -q`.
-6. **Log the cost:** a `date | agent | task | est | actual | note` line in `docs/budget.md`. The `<usage>` in the task notification gives the token count. You keep the ledger yourself (Budgeto is retired: its estimates were never filled in).
+6. **Log the cost:** a `date | agent (model) | task | est | actual | note` line in `docs/budget.md`. The `<usage>` in the task notification gives the token count. You keep the ledger yourself (Budgeto is retired: its estimates were never filled in).
 7. **Tell the commissioner** in a few lines.
 
 ## Who does the work: spawn, continue, batch, or do it yourself
