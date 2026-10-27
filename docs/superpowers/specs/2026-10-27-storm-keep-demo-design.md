@@ -14,7 +14,7 @@ Camp → Alexandria, Croton, Ujjain, Elea (each lights a stone) → **the Storm 
 - Brahmagupta, *Brāhmasphuṭasiddhānta*, 628 CE: the first rules for computing with zero. He said 0÷0 = 0 (wrong) and left n÷0 as a fraction with zero below.
 - Bhāskara II (12th c., also head of the Ujjain observatory): n÷0 is *khahara*, infinite, unchanged by anything you add or take away.
 - Today: n÷0 is **undefined**. That is the engine's ÷0 Storm (`core/math.js` returns `storm`).
-- Theme: an Indian **stepwell** (e.g. Chand Baori, 9th c.), a stone staircase cut down to still water. Bhāskara II guards the top; the storm churns in the pool at the bottom.
+- Theme: an Indian **stepwell** (e.g. Chand Baori, 8th–9th c.), a stone staircase cut down to still water. Bhāskara II guards the top; the storm churns in the pool at the bottom.
 
 ## The Keep: a walkable stepwell
 - The interior is a small walkable map on the Road's engine (`core/craft.js`), with a new layout, not a door menu.

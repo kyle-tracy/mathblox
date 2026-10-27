@@ -40,7 +40,7 @@ function greet(id) { // a host speaks: who they are and one fact, then what the 
     : `${w.name}: ${about(w)}.\n${w.levels.length ? how : `${need(w.needs)}. ${how}`}`);
 }
 const hero = from && world(from).hero;
-const ENDING = 'Bhāskara: "You cannot share by nothing. That is an answer too." Every stone at Sumhenge is lit. Walk anywhere you like.';
+const ENDING = 'Bhāskara called sharing by nothing "infinite". Today we say it has no answer. Every stone at Sumhenge is lit. Walk anywhere you like.';
 say(from === 'dungeon' && done.includes('dungeon') ? ENDING
   : hero && hero !== 'tally' && done.includes(from) ? `${who(hero)} joins you! Press C at camp to pick who comes along.`
   : 'Push blocks together to do math. A shy ? wants a number. Space picks up / puts down.');
