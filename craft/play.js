@@ -27,17 +27,22 @@ document.getElementById('name').textContent = `${TITLE}: ${HUB}`;
 const say = m => { msg = m; msgT = performance.now(); };
 if (from) window.history.replaceState(null, '', '?craft'); // a reload starts here, not from the save we came back from
 const who = id => CHARACTERS[id]?.name ?? id, about = w => w.kid ?? w.concept; // kid words first (levels/worlds.js)
-const bring = ms => ms.map(m => (m.startsWith('pairs:') ? `${m.slice(6)} finished pair worlds` : who(m))).join(' and ');
+const bring = ms => ms.map(m => (m.startsWith('heroes:') ? `all ${m.slice(7)} heroes` : who(m))).join(' and ');
+// What a door is waiting for, as a sentence: heroes to bring, or rooms to finish first (needs never mix the two).
+const need = ms => (ms[0]?.startsWith('done:') ? `Finish ${ms.map(m => world(m.slice(5)).name).join(' and ')} first` : `Bring ${bring(ms)}`);
 // ponytail: the greet's fact is the trivia's first sentence, cut at its first clause if long; a `greet` field in CHARACTERS (Worldo) is cleaner.
 const short = t => { const s1 = t.split(/(?<=\.) /)[0]; return s1.length > 70 ? `${s1.split(/[,:] | and /)[0]}.` : s1; };
 function greet(id) { // a host speaks: who they are and one fact, then what the land teaches and whether you can go in
-  const w = world(id), miss = missing(id, s.cast, s.done);
-  const how = !w.levels.length ? 'Still being built.' : miss.length ? `Bring ${bring(miss)}.` : s.done.includes(id) ? 'Walk in to play again!' : 'Walk in!';
-  say(w.hero ? `${who(w.hero)}. ${short(CHARACTERS[w.hero].trivia)}\n${w.name}: ${about(w)}. ${how}`
-    : `${w.name}: ${about(w)}.\n${w.levels.length ? how : `Bring ${bring(w.needs)}. ${how}`}`);
+  const w = world(id), miss = missing(id, s.cast, s.done), h = w.hero ?? w.host;
+  const how = !w.levels.length ? 'Beyond the demo, for now.' : miss.length ? `${need(miss)}.` : s.done.includes(id) ? 'Walk in to play again!' : 'Walk in!';
+  say(h ? `${who(h)}. ${short(CHARACTERS[h].trivia)}\n${w.name}: ${about(w)}. ${how}`
+    : `${w.name}: ${about(w)}.\n${w.levels.length ? how : `${need(w.needs)}. ${how}`}`);
 }
 const hero = from && world(from).hero;
-say(hero && hero !== 'tally' && done.includes(from) ? `${who(hero)} joins you! Press C at camp to pick who comes along.` : 'Push blocks together to do math. A shy ? wants a number. Space picks up / puts down.');
+const ENDING = 'Bhāskara: "You cannot share by nothing. That is an answer too." Every stone at Sumhenge is lit. Walk anywhere you like.';
+say(from === 'dungeon' && done.includes('dungeon') ? ENDING
+  : hero && hero !== 'tally' && done.includes(from) ? `${who(hero)} joins you! Press C at camp to pick who comes along.`
+  : 'Push blocks together to do math. A shy ? wants a number. Space picks up / puts down.');
 
 const SAY = { 'bag-full': 'Your bag is full.', 'not-whole': 'Only whole numbers burn.',
   'zero-fill': '0 is nothing: it can\'t burn or fill.', socket: 'The fire wants a number.', empty: 'Nothing to put down.', storm: '÷ 0: a storm! Nothing happens.' };
@@ -48,9 +53,9 @@ function act(a) {
   else if (r.state !== s) s = r.state; // turned to face a wall: no time, no undo entry needed
   for (const e of r.events) {
     if (e.type === 'enter') { try { localStorage.setItem('mathblox.craft', JSON.stringify(s)); } catch { /* fine */ } location.search = `?world=${e.world}`; }
-    if (e.reason === 'needs') say(`${world(e.world).name}: bring ${bring(e.missing)}.`);
+    if (e.reason === 'needs') say(`${world(e.world).name}: ${need(e.missing)}.`);
     if (e.type === 'greet') { tone(pitch(4), 0.08, 'sine'); tone(pitch(7), 0.1, 'sine', 0, 0.08); greet(e.world); }
-    if (e.reason === 'soon') say(`${world(e.world).name} (${about(world(e.world))}) is still being built.`);
+    if (e.reason === 'soon') say(`${world(e.world).name} (${about(world(e.world))}) is beyond the demo, for now.`);
     if (e.type === 'swap') { tone(520, 0.05, 'sine', 260); say(`You are ${who(e.mover)}.`); }
     if (e.type === 'negate') { tone(pitch(7), 0.1, 'triangle', -120); tone(pitch(0), 0.12, 'triangle', 120, 0.1); }
     if (e.type === 'leap') { tone(pitch(0), 0.12, 'sine'); tone(pitch(12), 0.2, 'sine', 0, 0.1); }
