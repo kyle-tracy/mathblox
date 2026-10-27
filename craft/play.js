@@ -9,7 +9,7 @@ import { recruits, parties, canEnter, world, missing } from '../core/progress.js
 import { ghostCells, wantWhole } from '../render/fx.js';
 import { tone, pitch, boing, muted, setMute, muteBtn } from '../render/audio.js';
 import { isNat, parts } from '../core/value.js';
-import { newCraft, step, heightAt, bagSize, isNight, dayOf, choose, atSite, DAY, NIGHT, DISTRICTS, NUDGERS } from '../core/craft.js';
+import { newCraft, step, heightAt, bagSize, isNight, choose, atSite, DISTRICTS, NUDGERS } from '../core/craft.js';
 
 const PAD = 40, HUD = 100; // margins for the axes and the HUD
 // View in cells: wide screens see 19×11 of the land, tall ones (phones) 13×15; a lands map in the corner shows the rest.
@@ -36,7 +36,7 @@ function greet(id) { // a host speaks: who they are and one fact, then what the 
     : `${w.name}: ${about(w)}.\n${w.levels.length ? how : `Bring ${bring(w.needs)}. ${how}`}`);
 }
 const hero = from && world(from).hero;
-say(hero && hero !== 'tally' && done.includes(from) ? `${who(hero)} joins you! Press C at camp to pick who comes along.` : 'Push blocks together to do math. Feed number blocks to the fire, where the lines cross. Space picks up / puts down.');
+say(hero && hero !== 'tally' && done.includes(from) ? `${who(hero)} joins you! Press C at camp to pick who comes along.` : 'Push blocks together to do math. A shy ? wants a number. Space picks up / puts down.');
 
 const SAY = { 'bag-full': 'Your bag is full.', 'not-whole': 'Only whole numbers burn.',
   'zero-fill': '0 is nothing: it can\'t burn or fill.', socket: 'The fire wants a number.', empty: 'Nothing to put down.', storm: '÷ 0: a storm! Nothing happens.' };
@@ -120,7 +120,7 @@ function creature(cx, cy, spec) {
 }
 
 function draw(now) {
-  const W = s.tiles[0].length, cam = Math.max(0, Math.min(W - VW, s.player.x - (VW >> 1))), camY = Math.max(0, Math.min(s.tiles.length - VH, s.player.y - (VH >> 1)));
+  const W = s.tiles[0].length, cam = Math.max(0, Math.min(W - VW, s.player.x - (VW >> 1))), camY = Math.max(-2, Math.min(s.tiles.length - VH, s.player.y - (VH >> 1)));
   const X = x => PAD + (x - cam) * CELL, Y = y => HUD + (y - camY) * CELL;
   const wob = (x, y) => { // the bumped piece shakes (a rubbery no, never a buzzer)
     if (!bump || reduced || age(bump) > 400 || !bump.wob || bump.wob.x !== x || bump.wob.y !== y) return 0;
@@ -128,7 +128,8 @@ function draw(now) {
   };
   g.fillStyle = '#2b2d42'; g.fillRect(0, 0, cv.width, cv.height);
   const live = reduced ? 0 : now, pits = []; // every ambient motion runs on this clock: frozen in reduced motion
-  for (let y = camY; y < camY + VH; y++) for (let x = cam; x < cam + VW; x++) {
+  if (camY < 0) sky(X, Y, cam, live);
+  for (let y = Math.max(0, camY); y < camY + VH; y++) for (let x = cam; x < cam + VW; x++) {
     const t = s.tiles[y][x], h = heightAt(s, x, y);
     const id = LAND[`${x},${y}`], st = id && landLook(id), wall = t === '#' && !h;
     const fl = st?.floor ?? C.floor, wl = st?.wall ?? C.wall;
@@ -140,6 +141,7 @@ function draw(now) {
     g.strokeStyle = C.grid; g.lineWidth = 1; g.strokeRect(X(x) + 0.5, Y(y) + 0.5, CELL, CELL);
   }
   if (ART === 'c') { pixelate(4); pits.forEach(f => f()); } // chunky terrain; pits (their depth numerals) and pieces stay sharp to read
+  landmarks(X, Y, cam, live);
   const shove = fxs.find(f => f.type === 'nudge' && age(f) < T(260));
   for (const [x, y] of NUDGERS) if (x >= cam && x < cam + VW && y >= camY && y < camY + VH) piston(X(x), Y(y), shove?.at.x === x && shove?.at.y === y ? shove : null);
   ambient(X, Y, cam, camY, live);
@@ -206,16 +208,11 @@ function draw(now) {
   if (tame) hearts(X(tame.at.x) + CELL / 2, Y(tame.at.y) + CELL / 2, reduced ? 0.3 : age(tame) / T(600));
   g.fillStyle = '#f4efe4'; g.fillRect(0, HUD + VH * CELL, cv.width, PAD); g.fillRect(0, HUD, PAD, VH * CELL);
   for (let x = cam; x < cam + VW; x++) text(x - s.camp.x, X(x) + CELL / 2, HUD + VH * CELL + 20, 17, C.axis, x === s.camp.x);
-  for (let y = camY; y < camY + VH; y++) text(s.camp.y - y, PAD / 2, Y(y) + CELL / 2, 17, C.axis, y === s.camp.y);
+  for (let y = Math.max(0, camY); y < camY + VH; y++) text(s.camp.y - y, PAD / 2, Y(y) + CELL / 2, 17, C.axis, y === s.camp.y);
   lands(cam, camY, now);
   // HUD: sun or moon and a day track (amber day, blue night, a dot for now), warmth as a flame with one ember per unit, the bag.
   g.fillStyle = '#2b2d42'; g.fillRect(0, 0, cv.width, HUD);
-  sun(24, 24, night); text(`Day ${dayOf(s.t)}`, 84, 22, 20, WHITE);
-  const tw = 120, dayW = tw * (DAY - NIGHT) / DAY, at = tw * (s.t % DAY) / DAY;
-  rr(16, 44, dayW, 10, 4, '#ffd166'); rr(16 + dayW, 44, tw - dayW, 10, 4, '#3a4a8a');
-  g.fillStyle = WHITE; circle(16 + at, 49, 6); g.strokeStyle = INK; g.lineWidth = 2; g.stroke();
-  flame(172, 50, 34, 13); text(s.fire, 172, 40, 13, INK);
-  g.fillStyle = '#ffd166'; for (let i = 0; i < Math.min(20, s.fire); i++) { const [ex, ey] = dotPos(i, 210, 18, 7); circle(ex, ey, 2.6); }
+  sun(40, 34, night); // the Road is free to walk: no day counter, no warmth meter (the fire on the map is a toy)
   text('bag', 262, 30, 16, '#c9d6ea', false);
   for (let i = 0; i < bagSize(s); i++) {
     const bx = 290 + i * 54, o = s.bag[i];
@@ -393,15 +390,82 @@ function ambient(X, Y, cam, camY, t) { // pennants over each gate, cloud shadows
 // The lands map: the whole Road at 5px a cell, every district in its own colours, its door a dot, you blinking, the view framed.
 // It moves to the top corner when you walk under it.
 function lands(cam, camY, t) {
-  const k = 5, mw = s.tiles[0].length * k, mh = s.tiles.length * k, low = s.player.x - cam >= VW - 5 && s.player.y - camY >= VH - 3;
+  const k = 6, mw = s.tiles[0].length * k, mh = s.tiles.length * k, low = s.player.x - cam >= VW - 6 && s.player.y - camY >= VH - 3;
   const x0 = PAD + VW * CELL - mw - 8, y0 = low ? HUD + 8 : HUD + VH * CELL - mh - 8;
-  g.globalAlpha = 0.9; rr(x0 - 4, y0 - 4, mw + 8, mh + 8, 6, INK);
-  s.tiles.forEach((row, y) => [...row].forEach((c, x) => { const st = LAND[`${x},${y}`] && landLook(LAND[`${x},${y}`]);
-    g.fillStyle = heightAt(s, x, y) ? C.pit : c === '#' ? st?.wall ?? C.wall : st?.floor ?? C.floor; g.fillRect(x0 + x * k, y0 + y * k, k, k); }));
+  g.globalAlpha = 0.92; rr(x0 - 5, y0 - 5, mw + 10, mh + 10, 8, INK);
+  s.tiles.forEach((row, y) => [...row].forEach((c, x) => { if (c === '#' && !heightAt(s, x, y)) return; const id = LAND[`${x},${y}`];
+    g.fillStyle = heightAt(s, x, y) ? '#4f9be8' : id ? landLook(id).floor : '#cfc4ae'; g.fillRect(x0 + x * k, y0 + y * k, k, k); }));
   g.globalAlpha = 1;
-  for (const d of Object.values(DISTRICTS)) { g.fillStyle = INK; circle(x0 + (d.door[0] + 0.5) * k, y0 + (d.door[1] + 0.5) * k, 3.5); }
+  for (const [id, d] of Object.entries(DISTRICTS)) { g.fillStyle = landLook(id).wall; circle(x0 + (d.door[0] + 0.5) * k, y0 + (d.door[1] + 0.5) * k, 4.5); g.strokeStyle = WHITE; g.lineWidth = 1.5; g.stroke(); }
   g.strokeStyle = WHITE; g.lineWidth = 1.5; g.strokeRect(x0 + cam * k, y0 + camY * k, VW * k, VH * k);
-  if (reduced || t % 800 < 560) { g.fillStyle = C.player; circle(x0 + (s.player.x + 0.5) * k, y0 + (s.player.y + 0.5) * k, 4); g.strokeStyle = WHITE; g.stroke(); }
+  if (reduced || t % 800 < 560) { g.fillStyle = C.player; circle(x0 + (s.player.x + 0.5) * k, y0 + (s.player.y + 0.5) * k, 6); g.strokeStyle = WHITE; g.stroke(); }
+}
+// Sky above the map (the camera rises 2 rows when you're up top): far hills on the horizon, drifting clouds.
+function sky(X, Y, cam, t) {
+  const night = isNight(s.t), top = Y(-2), bot = Y(0), grad = g.createLinearGradient(0, top, 0, bot);
+  grad.addColorStop(0, night ? '#1b2250' : '#8ecae6'); grad.addColorStop(1, night ? '#3a4a8a' : '#d8eef5');
+  g.fillStyle = grad; g.fillRect(PAD, top, VW * CELL, bot - top);
+  for (let i = 0; i < 3; i++) { g.fillStyle = night ? 'rgba(255,255,255,.12)' : 'rgba(255,255,255,.85)';
+    const cx = PAD + (((i * 470 + t / 60 - cam * CELL * 0.3) % (VW * CELL + 200)) + VW * CELL + 200) % (VW * CELL + 200) - 100, cy = top + 30 + i * 22;
+    circle(cx, cy, 18); circle(cx + 20, cy - 6, 22); circle(cx + 42, cy, 16); }
+  g.fillStyle = night ? '#2b3a5a' : '#a9c98d'; g.beginPath(); g.moveTo(PAD, bot); // far hills, slower than the land (parallax)
+  for (let x = 0; x <= VW * CELL; x += 16) g.lineTo(PAD + x, bot - 18 - 14 * Math.sin((x + cam * CELL * 0.5) / 90) - 8 * Math.sin((x + cam * CELL * 0.5) / 37));
+  g.lineTo(PAD + VW * CELL, bot); g.fill();
+}
+// One tall era landmark per district, at the end away from its gate, drawn under every piece, door and host.
+// Top districts' landmarks stand at the front and rise to the sky; bottom ones stand at the back and peek over the wall onto the road.
+function landmarks(X, Y, cam, t) {
+  const u = CELL, line = (w = 3) => { g.lineWidth = w; g.strokeStyle = INK; g.stroke(); }, box = (x, y, w, h, c) => { g.beginPath(); g.rect(x, y, w, h); g.fillStyle = c; g.fill(); line(); };
+  const tri = (pts, c) => { g.beginPath(); pts.forEach(([a, b], i) => (i ? g.lineTo(a, b) : g.moveTo(a, b))); g.closePath(); g.fillStyle = c; g.fill(); line(); };
+  for (const [id, d] of Object.entries(DISTRICTS)) {
+    if (id === 'camp' || d.x + d.w < cam - 1 || d.x > cam + VW + 1) continue;
+    const gx = d.gate[0], far = gx - d.x > d.x + d.w - 1 - gx ? d.x + 0.9 : d.x + d.w - 0.9, top = d.y < 6;
+    const cx = X(far), by = top ? Y(d.y + d.h) - 6 : Y(d.y + d.h + 1) - 10, h = top ? 4.6 * u : 5.6 * u, sealed = !opened(id);
+    g.save(); if (sealed) g.globalAlpha = 0.75;
+    ({
+      alexandria() { // the Pharos: three tiers and a fire on top
+        box(cx - 0.7 * u, by - 0.45 * h, 1.4 * u, 0.45 * h, '#f2e3c6'); box(cx - 0.5 * u, by - 0.75 * h, u, 0.3 * h, '#e8d3a8'); box(cx - 0.3 * u, by - 0.9 * h, 0.6 * u, 0.15 * h, '#e08a4f');
+        for (let i = 1; i < 4; i++) box(cx - 0.12 * u, by - i * 0.13 * h, 0.24 * u, 0.07 * h, '#3b2a1a'); flame(cx, by - 0.9 * h, 0.12 * h * (1 + 0.1 * Math.sin(t / 120)), 14); },
+      croton() { // a temple on its hill
+        tri([[cx - 1.1 * u, by], [cx - 0.4 * u, by - 0.5 * h], [cx + 0.4 * u, by - 0.5 * h], [cx + 1.1 * u, by]], '#9bb07a');
+        box(cx - 0.75 * u, by - 0.56 * h, 1.5 * u, 0.06 * h, '#f7f2e6');
+        for (let i = 0; i < 4; i++) box(cx - 0.62 * u + i * 0.38 * u, by - 0.86 * h, 0.16 * u, 0.3 * h, '#f7f2e6');
+        tri([[cx - 0.8 * u, by - 0.86 * h], [cx, by - h], [cx + 0.8 * u, by - 0.86 * h]], '#d9ccaa'); },
+      ujjain() { // the Samrat Yantra: a giant stair-sundial, a small dome
+        tri([[cx - 0.8 * u, by], [cx + 0.5 * u, by - h], [cx + 0.5 * u, by]], '#e6a15a');
+        for (let i = 1; i < 8; i++) { g.beginPath(); g.moveTo(cx - 0.8 * u + i * 1.3 * u / 8, by - i * h / 8); g.lineTo(cx + 0.5 * u, by - i * h / 8); line(1.5); }
+        box(cx + 0.5 * u, by - 0.3 * h, 0.5 * u, 0.3 * h, '#00798c'); g.beginPath(); g.arc(cx + 0.75 * u, by - 0.3 * h, 0.25 * u, Math.PI, 0); g.fillStyle = '#f2c14e'; g.fill(); line(); },
+      elea() { // stoa columns under one long beam
+        for (let i = 0; i < 3; i++) box(cx - 0.75 * u + i * 0.6 * u, by - 0.9 * h, 0.3 * u, 0.9 * h, '#e7e0f1');
+        box(cx - 0.95 * u, by - h, 1.9 * u, 0.1 * h, '#6a4c93'); },
+      distrib() { // a market pole with bunting and a striped awning
+        box(cx - 0.08 * u, by - h, 0.16 * u, h, '#8a5a2b'); box(cx - 0.8 * u, by - 0.3 * h, 1.6 * u, 0.3 * h, '#f4efe4');
+        for (let i = 0; i < 4; i++) tri([[cx - 0.9 * u + i * 0.45 * u, by - 0.36 * h], [cx - 0.45 * u + i * 0.45 * u, by - 0.36 * h], [cx - 0.675 * u + i * 0.45 * u, by - 0.28 * h]], i % 2 ? '#ef476f' : '#ffd166');
+        tri([[cx + 0.08 * u, by - h], [cx + 0.7 * u, by - 0.93 * h], [cx + 0.08 * u, by - 0.86 * h]], '#06d6a0'); },
+      under() { // a mine headframe: an A-frame and a wheel
+        tri([[cx - 0.8 * u, by], [cx, by - 0.9 * h], [cx + 0.8 * u, by]], 'rgba(0,0,0,0)'); g.beginPath(); g.arc(cx, by - 0.9 * h, 0.35 * u, 0, 7); g.fillStyle = '#c9ccd6'; g.fill(); line();
+        g.save(); g.translate(cx, by - 0.9 * h); g.rotate(t / 900); for (let i = 0; i < 3; i++) { g.rotate(Math.PI / 3); g.beginPath(); g.moveTo(-0.35 * u, 0); g.lineTo(0.35 * u, 0); line(2); } g.restore(); },
+      series() { // a stair that climbs out of sight
+        g.beginPath(); g.moveTo(cx - u, by); for (let i = 0; i < 9; i++) { g.lineTo(cx - u + i * 0.22 * u, by - (i + 1) * h / 9); g.lineTo(cx - u + (i + 1) * 0.22 * u, by - (i + 1) * h / 9); }
+        g.lineTo(cx - u + 9 * 0.22 * u, by); g.closePath(); g.fillStyle = '#cfc6dd'; g.fill(); line(); },
+      vectors() { // the observatory: a dome on a tower, its telescope pointing out
+        box(cx - 0.45 * u, by - 0.7 * h, 0.9 * u, 0.7 * h, '#e6e7ec'); g.beginPath(); g.arc(cx, by - 0.7 * h, 0.55 * u, Math.PI, 0); g.fillStyle = '#4f9be8'; g.fill(); line();
+        g.save(); g.translate(cx, by - 0.78 * h); g.rotate(-0.6); box(0, -0.08 * u, 0.9 * u, 0.16 * u, INK); g.restore(); },
+      rotation() { // a windmill whose sails turn
+        tri([[cx - 0.5 * u, by], [cx - 0.25 * u, by - 0.75 * h], [cx + 0.25 * u, by - 0.75 * h], [cx + 0.5 * u, by]], '#e7a6dc');
+        g.save(); g.translate(cx, by - 0.75 * h); g.rotate(t / 1500); for (let i = 0; i < 4; i++) { g.rotate(Math.PI / 2); box(0.08 * u, -0.1 * u, 0.85 * u, 0.2 * u, '#f4efe4'); } g.restore(); },
+      motion() { // a tall pole with a chequered flag
+        box(cx - 0.06 * u, by - h, 0.12 * u, h, '#3a3f4b'); const fw = 0.8 * u, fh = 0.5 * u, wave = Math.sin(t / 300) * 4;
+        for (let i = 0; i < 4; i++) for (let j = 0; j < 2; j++) { g.fillStyle = (i + j) % 2 ? INK : WHITE; g.fillRect(cx + 0.06 * u + i * fw / 4, by - h + j * fh / 2 + wave * (i / 4), fw / 4, fh / 2); } },
+      dungeon() { // the Storm Keep: a dark tower under its own cloud
+        box(cx - 0.6 * u, by - 0.75 * h, 1.2 * u, 0.75 * h, '#4a4d58');
+        for (let i = 0; i < 3; i++) box(cx - 0.6 * u + i * 0.45 * u, by - 0.82 * h, 0.3 * u, 0.07 * h, '#4a4d58');
+        box(cx - 0.15 * u, by - 0.5 * h, 0.3 * u, 0.12 * h, '#ffd166');
+        g.fillStyle = '#5b6475'; circle(cx - 0.4 * u, by - 0.93 * h, 0.3 * u); circle(cx + 0.1 * u, by - h, 0.38 * u); circle(cx + 0.55 * u, by - 0.93 * h, 0.28 * u);
+        if (!reduced && t % 2600 < 160) { g.beginPath(); g.moveTo(cx, by - 0.9 * h); g.lineTo(cx - 0.15 * u, by - 0.84 * h); g.lineTo(cx + 0.05 * u, by - 0.84 * h); g.lineTo(cx - 0.1 * u, by - 0.76 * h); g.lineWidth = 3; g.strokeStyle = '#ffd166'; g.stroke(); } },
+    })[id]?.();
+    g.restore();
+  }
 }
 function flatShadow(f) { // style a: a hard flat drop shadow under things that stand up
   if (ART !== 'a') return f();
