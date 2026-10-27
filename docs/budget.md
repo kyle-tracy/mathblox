@@ -53,3 +53,5 @@ date | agent | task | est | actual | note
 2026-10-27 | Testo (sonnet) | bot ladder calibration | ~50k | 43k | tier fails to separate; detours weak |
 2026-10-27 | Worldo (opus) | Keep rooms (unfinished) | - | ? | 6 drafts saved to docs/handoff/keep-draft.js |
 2026-10-27 | Arto (opus) | stepwell art + lit stones | - | 72k | done |
+2026-10-27 | Matho (opus) | Keep history check | ~15k | 18k | ending line fixed |
+2026-10-27 | Worldo (opus) | Keep rooms finished + Task 6 test | ~80k | 107k | 6 rooms, 165 pass |
