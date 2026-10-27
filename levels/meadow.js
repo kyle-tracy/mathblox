@@ -6,6 +6,7 @@ export default [
     solution: 'rrrrrrrrrrrrr',
     skill: 'S3 merge + S1 n fills n holes + S2 lock (onboarding free sample)',
     beat: 'introduce',
+    difficulty: 1,
     misconception: 'none yet: 1-wide corridor; the 3 you make fills exactly 3 holes, the other 3 opens the 3-door',
     choice: 'none: forced onboarding push',
     evidence: false,

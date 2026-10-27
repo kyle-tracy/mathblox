@@ -6,6 +6,7 @@ export default [
     solution: 'dddrrulurrrrrrurddldrrr',
     skill: 'S4 Void: a + 0 = a',
     beat: 'twist',
+    difficulty: 2,
     misconception: '"adding always makes bigger" / "zero is nothing": the 5 is stuck behind its + in the nook; 0+5 frees it as a 5 that opens the 5-door, while 2+5 frees a 7 (7 vs 5)',
     choice: 'what to add to free the 5 unchanged: the 0 or the 2',
     map: [

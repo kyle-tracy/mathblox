@@ -7,6 +7,7 @@ export default [
     solution: 'rdurrdurrrrrr',
     skill: 'S11 V1: a lane is a named total, △ = 5',
     beat: 'practice',
+    difficulty: 2,
     misconception: '"△ is one block": there is no 5, so the box needs 3+2 or 4+1; 3+4 shows 7 vs 5, push one back out',
     choice: 'which blocks go in the △ row: 3+2 or 4+1',
     map: [
@@ -26,6 +27,7 @@ export default [
     solution: 'rudrrrrrrrr',
     skill: 'S11 V2: △ − 2 = 4, solve by removing',
     beat: 'practice',
+    difficulty: 1,
     misconception: '"to solve, add": the lane starts at 10 (8 vs 4); taking blocks out is the move',
     choice: 'what to take out of the △ row: the 4, or the 3 and the 1',
     map: [
@@ -44,6 +46,7 @@ export default [
     solution: 'rdurrdrddrrrr',
     skill: 'S11 V4: 10 − △ = 3',
     beat: 'twist',
+    difficulty: 3,
     misconception: '"adding more makes it bigger": putting the 3 in shows 7 vs 3; more in △ makes 10 − △ smaller',
     choice: 'which blocks make △ = 7: 3+4 or 5+2 (the 3 alone is bait)',
     map: [
@@ -63,6 +66,7 @@ export default [
     solution: 'drrdrrurdddddd',
     skill: 'S11 V5: △ + 2 = ○ + 2, then □ = △ − 1',
     beat: 'combine',
+    difficulty: 4,
     misconception: '"different symbols must be different numbers": △ is 1+4 on the sealed shelf and ○ must be 5 too; filling ○ with the room\'s 4+1 spends the 4 the door needs',
     choice: 'fill the ○ column with the 5 or with 3+2 (both keep the 4 as the key); 4+1 is the bait',
     map: [
@@ -87,6 +91,7 @@ export default [
     solution: 'rdurrrrrrrrr',
     skill: 'S11 V3: △ + △ = 8 with an empty lane (same symbol, same value)',
     beat: 'practice',
+    difficulty: 2,
     misconception: '"letter = object" (one block per △): a 4 for each △ makes △ = 8 and the scale reads 16 vs 8',
     choice: 'what goes in the empty △ row: one 4, or 2+2',
     map: [
@@ -105,6 +110,7 @@ export default [
     solution: 'rdurrrdlldlddrddddd',
     skill: 'S11 V6: △ + ○ = 10 and △ − ○ = 2, crossing lanes',
     beat: 'master',
+    difficulty: 4,
     misconception: '"each equation can use its own value": △=4, ○=6 (4 pushed into the row) opens A, and B reads ? vs 2; △=8, ○=2 (the 2 on the crossing) opens A, and B reads 6 vs 2',
     choice: '△ = 6 and ○ = 4 is the only pair that opens both gates, but many fillings make it: △ from the 6 or 2+4, ○ from the 4 or 3+1, or a 4 on the crossing counted in both lanes (△ = 2+4, ○ = 4)',
     map: [

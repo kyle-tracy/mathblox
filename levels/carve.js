@@ -6,6 +6,7 @@ export default [
     solution: 'drurrdlulddddddd',
     skill: 'S6 missing addend by carving (7 = 3+□) + S4/S5 a − a leaves a Void (4 = □+4)',
     beat: 'combine',
+    difficulty: 3,
     misconception: '"the door says +, so the answer is on the door": the 3 at 7 = 3+□ shows 6 vs 7, the part is 7−3 = 4; then "take it all away and nothing is there": 5−5 leaves the Void that 4 = □+4 needs',
     choice: 'which pair is the missing part and which pair makes nothing: 5−5 for the top door, 7−3 for the bottom, and the Void must lead the line down the shaft; pushing 7−3 from the right still reads 7−3, while 3 alone at 7 = 3+□ shows 6 vs 7',
     map: [
@@ -28,6 +29,7 @@ export default [
     solution: 'rrrrrurdurdduldldrrrrrrr',
     skill: 'S6 round trip (3+4)−4 = 3 or (3+4)−3 = 4 + S2: 7 = □+4 or 7 = □+3',
     beat: 'master',
+    difficulty: 3,
     misconception: '"merging makes a new thing": the forced 3+4 still holds both parts; carve the 4 back out and the 3 returns, or carve the 3 out and the 4 returns. The 7 itself shows 7 vs 11 at the top door (7 vs 10 at the bottom)',
     choice: 'which part to carve back out of the 7: the 4 (7−4 = 3 for 7 = □+4, top) or the 3 (7−3 = 4 for 7 = □+3, bottom)',
     map: [

@@ -10,6 +10,7 @@ export default [
     solution: 'drrrurr',
     skill: 'Pythagoras intro (leap 2 over anything, never push; a leap across a sign joins its neighbours) + S3 echo: 4+3 = 7',
     beat: 'introduce',
+    difficulty: 2,
     misconception: '"to join numbers you have to push them": Pythagoras never pushes; he leaps the wall, then leaps across the + and (4+3) becomes one 7 where the sign was',
     choice: 'which way to cross the +: only a leap across it (from above or below) joins 4 and 3; leaping along the row is a plain hop',
     evidence: false,
@@ -29,6 +30,7 @@ export default [
     solution: 'rrdlrrr',
     skill: 'S7 associativity of + (Croton beats 1-2): (2+3)+4 and 2+(3+4) both make 9',
     beat: 'practice',
+    difficulty: 2,
     misconception: '"you must go top to bottom (left to right)": either + can be leapt first; the first result waits in its cell and the second leap reaches over the gap to it. Both orders open △ = 9',
     choice: 'which + to leap first (it does not matter, which is the discovery)',
     map: [
@@ -48,6 +50,7 @@ export default [
     solution: 'drruldrr',
     skill: 'S7 non-associativity of − (Croton beat 3): 9 − (4 − 2) = 7, (9 − 4) − 2 = 3',
     beat: 'twist',
+    difficulty: 3,
     misconception: '"every operation regroups freely": leaping the first − makes 5, then 5 − 2 = 3 (the lock shows 3 vs 7); leaping the second − first makes 2, then 9 − 2 = 7',
     choice: 'which − to leap first; the nearer one is the bait',
     map: [
@@ -66,6 +69,7 @@ export default [
     solution: 'lldrulldl',
     skill: 'S4/S7 chained brackets: 9 − ((3 − 2) − 1) = 9 − 0 = 9',
     beat: 'combine',
+    difficulty: 4,
     misconception: '"taking away always leaves less": the lock wants 9 from 9 − 3 − 2 − 1; only middle, then right, then left makes the inner part 0, and 9 − 0 is still 9 (the five orders give 3, 5, 7, 7, 9)',
     choice: 'a three-leap plan: which result must feed which sign so the part taken away is nothing',
     map: [
@@ -84,6 +88,7 @@ export default [
     solution: 'rdrurrr',
     skill: 'S9/S10 grouping around ÷ (Croton beat 4): (6 ÷ 2) − 2 = 1, but 6 ÷ (2 − 2) is 6 ÷ 0',
     beat: 'master',
+    difficulty: 4,
     misconception: '"there is only one right order, and it is always the far one" (after Minus Minds the Order): leaping the − first makes 0, and the ÷ leap then storms and bounces; here the near sign must go first',
     choice: 'which sign to leap first so nothing is ever divided by 0',
     map: [

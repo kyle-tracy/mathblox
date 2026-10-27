@@ -8,6 +8,7 @@ export default [
     solution: 'dddrrrrrrrrudrdd',
     skill: 'Brahmagupta intro (a number and its opposite) + S11 echo: the △ row 7, 2, 4 totals 13; the gate wants 5',
     beat: 'introduce',
+    difficulty: 2,
     misconception: '"turning a 4 into a debt takes away 4": flipping the 4 drops 13 by 8, to 5. Flipping the 7 shows −7+2+4 = −1, and flipping it again brings back 7',
     choice: 'which one number to turn into its opposite so the row totals 5: no block can be taken out, only turned over',
     map: [
@@ -30,6 +31,7 @@ export default [
     solution: 'drrdrrrddrruuldrrruddrdd',
     skill: 'Ujjain beat 1 (§7): −(−3) = 3; the △ row 4, 3, 3 totals 10 and the way in wants 4',
     beat: 'twist',
+    difficulty: 3,
     misconception: '"two minuses are just more minus": the 3 in the wall must go negative to open A, and the ○ column gate B wants it back to 3, so it is flipped twice; the far 3 then pays the debt instead',
     choice: 'flip the wall 3 to get in, then work out that the far 3 can carry the debt so the wall 3 can be turned back',
     map: [
@@ -53,6 +55,7 @@ export default [
     solution: 'ddddrrrrrudrddrrrdrd',
     skill: 'Ujjain beat 2 (§7): 3 + (−3) = 0 in a row and a column that share one 3; the 0 is its own opposite',
     beat: 'combine',
+    difficulty: 3,
     misconception: '"zero means nothing happened" / "zero means empty": both lanes are full of blocks and must total 0; flipping the 0 changes nothing',
     choice: 'whether the shared 3 becomes the debt (then the column needs the 2 flipped) or stays (then the 2, the 1 and the 5 go negative)',
     map: [
@@ -78,6 +81,7 @@ export default [
     solution: 'ddrrdrdlldlrrrr',
     skill: 'Ujjain beats 3–4 (§7): 2 − 5 is a real −3, and its opposite is 3 = 5 − 2 = −2 + 5 = −2 − (−5)',
     beat: 'master',
+    difficulty: 4,
     misconception: '"you can\'t take a bigger from a smaller" and "to get 3 the row must say 5 − 2": the row reads 2 − 5 in reading order and no push can swap it, yet flipping makes 3',
     choice: 'what to flip so 2 − 5 makes 3: flip the answer (−3), or flip two signs before (−2 + 5, or −2 − (−5)); one flip alone gives 7 or −7',
     map: [

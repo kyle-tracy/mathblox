@@ -6,6 +6,7 @@ export default [
     solution: 'ululllluurrrr',
     skill: 'free play (S1, S3, S4) with spare blocks; exit key by the door',
     beat: 'rest',
+    difficulty: 1,
     misconception: 'none: no goal beyond play',
     choice: 'what to build before leaving (1+2+3+4 = 10 is possible)',
     map: [

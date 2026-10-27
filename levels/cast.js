@@ -7,6 +7,7 @@ export default [
     solution: 'luulurdddd',
     skill: 'Euclid intro (slide to the first thing in the way) + S1 merge echo: 2+3 = 5',
     beat: 'introduce',
+    difficulty: 2,
     misconception: '"I can stop wherever I like": Euclid only stops against something; no wall stops him above the 2, so the stray 4 has to be pushed to the top row and used as a brake',
     choice: 'which block to turn into a brake, and where to put it, so Euclid stops in the column above 2+3',
     evidence: false,
@@ -30,6 +31,7 @@ export default [
     solution: 'dsdrsrsrsllllld',
     skill: 'Pythagoras intro (leap 2, never push) + S1 merge echo: 4+3 = 7',
     beat: 'introduce',
+    difficulty: 2,
     misconception: '"to move a block toward the door, start beside it": the 4+3 is sealed in a tunnel with the door behind it; no one can pull, so Pythagoras leaps over the wall and over the block, then the Tally-Keeper pushes it back',
     choice: 'who goes where: Pythagoras crosses walls and blocks but cannot push; the Tally-Keeper pushes but cannot cross',
     map: [
@@ -51,6 +53,7 @@ export default [
     solution: 'ddrrrrrrurrrr',
     skill: 'Brahmagupta intro (a number and its opposite) + S11 echo: △ = 5 from 7, 2, 4',
     beat: 'introduce',
+    difficulty: 3,
     misconception: '"turning a 4 into a debt takes away 4": the row is 13; flipping the 4 drops it by 8, to 5. No set of blocks taken out makes 5, and flipping the 7 shows −7+2+4 = −1',
     choice: 'which number to flip (or take out one, flip another: 7−2) so the △ row totals 5',
     map: [
@@ -70,6 +73,7 @@ export default [
     solution: 'llrldddddddd',
     skill: 'Zeno intro (half the open runway, rounded up) + S9 echo: half of 5 is 2 with a pebble, and the pebble walks too',
     beat: 'introduce',
+    difficulty: 3,
     misconception: '"press toward it and you get there": from the corner Zeno always lands in the middle first; only 5−1 makes 4, and its shaft is a zig-zag of halves away (11→6→3→7→4)',
     choice: 'which shaft makes 4 (2+3, 5−1, 1+2 or 4−1), then which halves land Zeno above it',
     evidence: false,
@@ -94,6 +98,7 @@ export default [
     solution: 'ulsuullsrddldrrrr',
     skill: 'two bodies: a standing friend is a wall (Euclid stops on Pythagoras) + leap parity + S1 echo: 2+3 = 5',
     beat: 'combine',
+    difficulty: 4,
     misconception: '"my friend is in the way": nothing stops Euclid above the 2, so Pythagoras leaps up to the top row (he only lands on every other cell) and stands as the brake; then Euclid drops the 2 into the door row and curls it into +3',
     choice: 'where to park Pythagoras so Euclid stops in the 2\'s column, and which cells Pythagoras can reach by 2-leaps',
     map: [
@@ -117,6 +122,7 @@ export default [
     solution: 'drrullurrr',
     skill: 'change pads: a pad turns you into its hero and stops a slide + S11 echo: 5+3 to 2 by one flip',
     beat: 'combine',
+    difficulty: 3,
     misconception: '"one hero does it all": Euclid cannot flip a sign and Brahmagupta cannot push; the bottom pad catches Euclid\'s slide and makes him Brahmagupta, the top pad makes him Euclid again. Flipping the 5 shows −5+3 = −2',
     choice: 'which sign to flip (the + or the 3; the 5 is bait), then which pad to step on to push',
     map: [

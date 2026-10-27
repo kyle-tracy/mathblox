@@ -1,3 +1,9 @@
+// Difficulty (1-5, mental energy not move count):
+// 1 = one idea, seen almost at once (L1, intro rooms).
+// 2 = one idea plus a small trap or order choice.
+// 3 = two ideas must combine, or a wrong first habit must be dropped.
+// 4 = a non-obvious plan of several steps (Share by Less and Less: 2÷½=4).
+// 5 = finale: an earlier habit misleads, and only one of many orderings works (The Last Share).
 // Curated slice (Worldo, 2026-10-21, Qualito cut; character intros 2026-10-23): 28 levels + Sandbox. Meadow 1, Balance 1, Merge 1, Carve 2, Lanes 6, Fields 11, Cast 6 (spliced in, see below).
 // Each level: skill IDs (docs/curriculum.md), beat (fun-principles §2), misconception surfaced, `choice` (the thought the
 // level forces, which no other level forces the same way; from L2 on the answer is never "just walk". Two routes are not required), and `teaches`: events NO winning path may skip (test/cheese.test.js).

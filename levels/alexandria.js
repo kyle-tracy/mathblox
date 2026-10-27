@@ -8,6 +8,7 @@ export default [
     solution: 'luulurdddd',
     skill: 'Euclid intro (slide to the first thing in the way; a push curls) + S3 echo: 2+3 = 5',
     beat: 'introduce',
+    difficulty: 2,
     misconception: '"I can stop wherever I like": Euclid only stops against something; no wall stops him above the 2, so the stray 4 is curled to the top row and used as a brake',
     choice: 'which block to turn into a brake, and where to put it, so Euclid stops in the column above 2+3',
     evidence: false,
@@ -31,6 +32,7 @@ export default [
     solution: 'urdluldrdllll',
     skill: 'S7 commutativity (Alexandria beat 1): 2 slid into 3+ from the right is still 5',
     beat: 'practice',
+    difficulty: 1,
     misconception: '"which side you push from changes the sum": the columns lead Euclid to the right end of the row, so the 2 travels into + and 3 from the right, and the 5 that comes out is the same 5',
     choice: 'which columns stop Euclid where (a route of brakes to the row\'s right end), trusting that the sum does not care about direction',
     map: [
@@ -52,6 +54,7 @@ export default [
     solution: 'lurdlllll',
     skill: 'S7 non-commutativity of − (Alexandria beat 3): a row reads left to right whatever way it is pushed',
     beat: 'twist',
+    difficulty: 3,
     misconception: '"− works backwards too": the near row 2 − 5 pushed from the right is still 2 − 5 = −3 (the door shows −3 vs 3); only the top row, 5 − 2, makes 3, even when Euclid hits the 2 first',
     choice: 'which row to push: the one whose reading order says 5 − 2, not the one whose 5 Euclid touches first',
     map: [
@@ -73,6 +76,7 @@ export default [
     solution: 'urdluudrullll',
     skill: 'S7 order and grouping (Alexandria beat 4): a curl merges with the first thing in its path',
     beat: 'combine',
+    difficulty: 4,
     misconception: '"order never matters": curling the 2 left hits the 4 first and shoves it along instead of reaching 3+; the 4 has to be curled out of the row first so 2 and 3 meet',
     choice: 'what to clear out of the path, and which column lets Euclid stop under the 4 to kick it out',
     map: [

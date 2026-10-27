@@ -7,6 +7,7 @@ export default [
     solution: 'srrdsdrsurdsdrd',
     skill: 'Market beat 1: −(a + b) = −a + −b; the box (△ row) must owe 7, and a box has no total block to flip',
     beat: 'introduce',
+    difficulty: 2,
     misconception: '"negate only the first": a box of 3 and 4 with only the 3 turned owes nothing, it holds 1; every piece in the box must turn',
     choice: 'which blocks Euclid slides into the box to make a 7 (3 and 4, or 2 and 5), then turning every one of them',
     map: [
@@ -29,6 +30,7 @@ export default [
     solution: 'srrrrddrdruursddd',
     skill: 'Market beat 2: −(a + b) = −a − b; the 3 is boxed in, so the flip of the + carries it',
     beat: 'twist',
+    difficulty: 3,
     misconception: '"flip everything you see" / "negate only the first": the 3 cannot be reached, and −4 + 3 = −1; turning the + makes −4 − 3 = −7. Or add first and turn the 7',
     choice: 'how to negate a piece Brahmagupta cannot touch: turn the sign in front of it, or merge 4 + 3 and turn the whole',
     map: [
@@ -50,6 +52,7 @@ export default [
     solution: 'sdddrrusrsdlluuurrdlldsrrr',
     skill: 'Market beats 3–4: 3 × (2 + 4) = 3 × 2 + 3 × 4 = 18; × first makes the row 3 × 2 + 4 a 10',
     beat: 'combine',
+    difficulty: 4,
     misconception: '"3 × (2 + 4) = 3 × 2 + 4": pushed as it stands, the row makes 6 + 4 = 10 and the door stays shut; the 3 must reach the 4 too',
     choice: 'add 2 + 4 first and build one 3 × 6 array, or give the 4 its own 3 × (the spare) and merge 6 + 12',
     map: [

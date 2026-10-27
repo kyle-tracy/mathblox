@@ -7,6 +7,7 @@ export default [
     solution: 'drrrrrrrurlrddddddd',
     skill: 'Zeno intro (half the open runway, rounded up) + S9 echo: 8 ÷ 2 shares into 4 and 4; the door wants 4',
     beat: 'introduce',
+    difficulty: 2,
     misconception: '"halves are always the same size" / "press toward it and you get there": from a wall Zeno covers 8, then 4, 2, 1; to stand above the door column he mixes long and short halves (up, right, left, right)',
     choice: 'where to leave the two 4s, then which halves land Zeno right above one of them in the door column',
     map: [
@@ -31,6 +32,7 @@ export default [
     solution: 'rlldddduurrdddduurldddduurrrr',
     skill: 'Elea beat 2 (§7): 1 ÷ 2 is exactly ½; ½ + ¼ + ¼ = 1 (or ½ + ⅓ + ⅙) in the △ row',
     beat: 'twist',
+    difficulty: 4,
     misconception: '"½ + ¼ = 2/6" (whole-number bias): after two pieces the row reads ¾, and only a whole opens A. The ½ shaft is the hardest to stand above (from the far end, right then left)',
     choice: 'which shares to drop into the row so it totals exactly 1: a piece stays where it lands',
     map: [
@@ -51,6 +53,7 @@ export default [
     solution: 'drrrrrrrrulrrdddddddddd',
     skill: 'Elea beat 3 (§7) + S9: 9 ÷ 3 shares into 3, 3, 3, one for each door below that wants 3',
     beat: 'twist',
+    difficulty: 3,
     misconception: '"a bigger denominator means a bigger piece": ÷4 shares 9 into 2, 2, 2, 2 and a pebble, ÷2 into 4, 4 and a pebble; only thirds fill three doors that want 3',
     choice: 'which divisor to push the 9 over, then how to land above it (halves: up, left, right, right)',
     map: [
@@ -77,6 +80,7 @@ export default [
     solution: 'rrrdddddddduuulrdddddddduullddddddduuulrlldddddddduuurrrr',
     skill: 'Elea beats 1, 2 and 4 (§7): ½ + ¼ + ⅛ + ⅛ = 1; each share is half the last and the gap halves too (½, ¾, ⅞, 1)',
     beat: 'master',
+    difficulty: 4,
     misconception: '"half of what is left, again and again, never arrives" and "a ⅓ can fill any gap": on a grid the last ⅛ equals the gap, so the row closes; ⅓ never makes a whole with halves, quarters and eighths',
     choice: 'which four shares make exactly 1, and how to aim Zeno above each in an open room where blocks are the only stoppers',
     map: [
