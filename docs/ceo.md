@@ -43,7 +43,7 @@ This file is stable. The volatile state lives in `docs/handoff/ceo.md`.
 
 ## The loop for every piece of work
 1. **Rule quickly yourself** on any math or design question that doesn't need building. Log it in decisions.md as `- YYYY-MM-DD [CEO] ruling — why`.
-   **Do small jobs yourself:** if writing the brief would cost about as much as the fix (a few lines, a doc, a one-file tweak), just do it. Spawn only for a big, self-contained build or for Qualito's fresh-eyes check.
+   **Do small jobs yourself:** if writing the brief would cost about as much as the fix, just do it. For anything bigger, walk the ladder in "Who does the work" below.
 2. **Brief one owner.** Use the brief template below. Run the agent in the background, in parallel only when the agents' paths don't overlap.
 3. **On completion:**
    - Verify with `node --test test/ 2>&1 | grep -E "^ℹ (pass|fail)"`.
@@ -52,6 +52,29 @@ This file is stable. The volatile state lives in `docs/handoff/ceo.md`.
 5. **Commit and push.** Agents commit their own paths. You commit docs with `git add <paths>` (never `-a`, since the working tree is shared), add the `Co-Authored-By` trailer, silence output with `>/dev/null 2>&1`, then `git push -q`.
 6. **Log the cost:** a `date | agent | task | est | actual | note` line in `docs/budget.md`. The `<usage>` in the task notification gives the token count. You keep the ledger yourself (Budgeto is retired: its estimates were never filled in).
 7. **Tell the commissioner** in a few lines.
+
+## Who does the work: spawn, continue, batch, or do it yourself
+Decide this for each task in a plan, not for the plan as a whole. Spawning is not "who's the owner"; it's a cost.
+
+**The prices** (recalibrate them from `budget.md` at each gate):
+- cold spawn ≈ 45k before any work;
+- continuing a warm agent ≈ 8k;
+- CEO inline ≈ the reads and edits themselves, but they stay in your context and are re-sent every turn for the rest of the session. So inline gets dearer the earlier in a session it happens and the more it reads.
+
+**Walk the ladder; stop at the first rung that decides it:**
+1. **Zero.** Does the task need to exist? A task that only exists because the plan template wanted a step (a second review, a separate test task) gets cut or folded.
+2. **Independence.** Does the value come from *not* sharing your context? That means judging, feel and fun, QC, or checking your own ruling. Then spawn a fresh agent (Qualito, Matho), whatever the size. A warm agent has your blind spots.
+3. **Warmth.** Does a running or just-finished agent already hold this context (same files, same world)? Then continue it, even across owners' nearby paths. 8k beats 45k, and it beats re-teaching.
+4. **Brief ≈ fix.** Would the brief be about as long as the change (≲ 30 lines, files you've already read)? Then do it yourself. That includes a test someone else owns, if the plan already spells out its code.
+5. **Coupling.** Do consecutive tasks touch the same files in order? Then give them to one agent and continue it between tasks, never one spawn per task. Shared files in a shared tree also mean serial, never parallel: path-only commits can't split one file's hunks.
+6. **Weight.** Is it big or exploratory (it would put ≳ 30k of reading into your window, or needs search or iteration such as level design, map layout, art)? Then delegate. It protects the context you need to run the studio.
+7. **Parallel.** Do the paths not overlap and is wall time worth more than the extra spawn? Then run agents in parallel; otherwise run them in series.
+
+**How deep a review goes depends on what the tests don't cover.** Tests plus stored-solution replays check mechanics. Qualito checks feel. Add a separate code reviewer only for engine (`core/`) logic that no test reaches. Per-task double review is for plans with no test suite, which isn't us.
+
+**Write the decision down.** Each plan gets a row per task: who does it, which rung decided it, and the estimated cost. Log the actual cost in `budget.md`. When an estimate is off by more than 2×, fix the prices above, not just that one row.
+
+*Worked example, Storm Keep plan (2026-10-27):* 7 tasks went from 7 cold spawns (≈315k) to 3 spawns + 1 continuation (≈150k). Tasks 1–3 went to one Axio agent continued between tasks (rung 5). The rooms went to the Worldo agent already warm from The Market (rung 3). The playthrough test was folded into Worldo's check (rungs 1 and 4). Arto ran in parallel (rung 7). Qualito ran fresh at the end (rung 2).
 
 ## Brief template
 > Repo /home/mastachi/edu-games. First call code-review-graph `get_minimal_context` for [function names]; read no file whole. [Goal plus the commissioner's words, quoted.] Read [exact files/sections; `tail -n 20 docs/decisions.md` for rules]. Use code-review-graph to find functions. [Concrete rulings and scope.] Touch [paths] only. Run `node --test test/ | tail -3`, commit your paths only, do not push. Log decisions. Report in under N words, with open questions.
