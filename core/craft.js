@@ -9,7 +9,7 @@ import { objAt, tileAt, setTile, bounce } from './push.js';
 import { HEROES } from './heroes.js';
 import { missing, world } from './progress.js';
 
-export const DAY = 48, NIGHT = 16, BAG = 2, START_HEAT = 3; // moves per day; the last NIGHT moves are night
+export const DAY = 48, NIGHT = 16, BAG = 1, START_HEAT = 3; // moves per day; the last NIGHT moves are night
 export const isNight = t => t % DAY >= DAY - NIGHT;
 export const dayOf = t => Math.floor(t / DAY) + 1;
 
@@ -17,7 +17,7 @@ export const dayOf = t => Math.floor(t / DAY) + 1;
 // Camp (the fire) is the origin. The land is a number:
 // each pit cell has its own height (−3), and any block pushed or placed in adds to it, from any side.
 // −3 + 3 = 0 is flat ground; −3 + 2 = −1 is still a pit; −3 + 5 = 2 is a hill: a 2 block left standing there.
-const OY = 5, W = 48, H = 19, ROAD = [OY + 1, OY + 7], CAMP = { x: 2, y: OY + 4 }; // rows 1-4 and 14-17 are districts
+const OY = 5, W = 48, H = 27, ROAD = [OY + 1, OY + 7], CAMP = { x: 2, y: OY + 4 }; // rows 1-4 and 14-17 are districts
 const RIVERS = [[10, -3], [22, -2], [23, -3], [36, -2]]; // [column, height] down every road row but the x-axis (camp's row: a ford, 0 deep)
 const riverRows = () => [...Array(ROAD[1] - ROAD[0] + 1)].map((_, i) => ROAD[0] + i).filter(y => y !== CAMP.y);
 const STAMPS = [
@@ -28,6 +28,8 @@ const STAMPS = [
   [40, 2, '9'], [41, 4, '+'], [43, 4, '9'], [44, 6, '8'], [42, 6, '5'], [45, 2, '7'], // far side: bonfire wood
   [6, 3, '#'], [13, 1, '#'], [20, 1, '#'], [20, 2, '#'], [27, 6, '#'], [27, 7, '#'], [34, 1, '#'], [40, 7, '#'], [46, 4, '#'], [7, 5, '#'], // (7,10): sets Euclid on the x-axis from the camp's west side 
 ].map(([x, y, ch]) => [x, y + OY, ch]); // authored in road rows 1-7
+// Stepwell slide stops for solo Euclid (absolute coords): he must halt on each landing's stand and above each stair.
+STAMPS.push([44, 17, '#'], [43, 20, '#'], [38, 20, '#'], [40, 23, '#'], [44, 22, '#']);
 // The creature: shy, past the first river, wearing one equation per day (□ is the block you give it).
 const MIMIC_SPOTS = [[15, 3], [17, 1], [13, 6], [19, 4]].map(([x, y]) => [x, y + OY]), MIMIC_EQS = ['□+3=8', '□+1=5', '□+4=7'];
 // Districts: one walled area per world, opening onto the road by a gap (gate) in an odd column. Inside, you stand on
@@ -37,7 +39,7 @@ const MIMIC_SPOTS = [[15, 3], [17, 1], [13, 6], [19, 4]].map(([x, y]) => [x, y +
 // Gate, stand and door approach all sit on odd x and odd y: the cells Pythagoras (who leaps 2) reaches from camp;
 // Croton's and the Keep's gates sit where Euclid's slide stops (the rock at 40 is his stop) (he must reach Croton alone; anyone may go to the Keep).
 // The real gate is `needs` (core/progress.js).
-const district = (x, w, top, g, side = 1, y = top ? 1 : H - 2) => ({ x, y: top ? 1 : ROAD[1] + 2, w, h: 4,
+const district = (x, w, top, g, side = 1, y = top ? 1 : ROAD[1] + 5) => ({ x, y: top ? 1 : ROAD[1] + 2, w, h: 4,
   gate: [g, top ? ROAD[0] - 1 : ROAD[1] + 1], stand: [g, y], door: [g + side, y], host: [g + 2 * side, y] }); // side −1: door left of the gate
 export const DISTRICTS = {
   camp: { x: 1, y: ROAD[0], w: 9, h: 7, stand: [1, CAMP.y - 2], door: [1, CAMP.y - 1], host: [2, CAMP.y - 1] }, // the camp itself; host: the Tally-Keeper, above the fire
@@ -45,21 +47,34 @@ export const DISTRICTS = {
   ujjain: district(10, 10, true, 15), elea: district(11, 10, false, 13),
   distrib: district(21, 8, true, 25), under: district(22, 9, false, 25), series: district(30, 6, true, 33),
   vectors: district(32, 8, false, 37), rotation: district(37, 5, true, 37), motion: district(43, 4, true, 43),
-  dungeon: district(41, 6, false, 41),
+  // The Storm Keep: a stepwell under the Road. Top terrace = the old Keep district (STEPWELL[0], gate KEEP_GATE); a stair
+  // at (43,18) leads down to the upper landings (row 19), stairs at (37,21) and (41,21) to the lower ones (row 23), and one
+  // at (41,24) to the pool (row 25). Doors gate by `needs` (heroes:4, then done:...), never by walls.
+  'keep-euclid': { x: 33, y: 19, w: 3, h: 1, stand: [35, 19], door: [34, 19], host: [33, 19] },
+  'keep-pythagoras': { x: 43, y: 19, w: 3, h: 1, stand: [43, 19], door: [44, 19], host: [45, 19] },
+  'keep-brahmagupta': { x: 33, y: 23, w: 3, h: 1, stand: [35, 23], door: [34, 23], host: [33, 23] },
+  'keep-zeno': { x: 43, y: 23, w: 3, h: 1, stand: [43, 23], door: [44, 23], host: [45, 23] },
+  dungeon: { x: 39, y: 25, w: 3, h: 1, stand: [41, 25], door: [40, 25], host: [39, 25] }, // the pool; host: Bhāskara's carved stone
 };
+// Open floor that belongs to no district: [x, y, w, h]. Terraces, the stairs between them, the pool's ledge.
+const STEPWELL = [[41, ROAD[1] + 2, 6, 4], [43, 18, 1, 1], [33, 19, 13, 2], [37, 21, 1, 1], [41, 21, 1, 1], [33, 22, 13, 2], [41, 24, 1, 1], [36, 25, 7, 1],
+  [32, 20, 1, 1]]; // last: the alcove, a dead-end niche off the upper terrace (Brahmagupta's 0÷0 = 0 carving; optional, Arto draws it)
+const KEEP_GATE = [41, ROAD[1] + 1]; // where the old Keep district's gate was: anyone may go down
 // Nudgers (pistons): a road tile that pushes whoever ends a move on it 1 cell onward, if that cell is open floor.
 // Pythagoras leaps 2, so he keeps his parity, and gates, stands and the ford are on odd x, odd y; landing on a
 // nudger flips one parity. Picked at camp on any cell, he gets back on track: (6,9) leaping right, (3,10) leaping
 // up, (4,10) leaping right then (3,10), (6,3) leaping right.
 export const NUDGERS = [[6, 9], [3, 10], [4, 10], [6, 3]]; // (6,3) in Alexandria: picked at (2,7) he leaps up through its wide gate
 const NUDGE = new Set(NUDGERS.map(String));
-export const LAYOUT = 4; // bump when the map changes: older saves are dropped
+export const LAYOUT = 5; // bump when the map changes: older saves are dropped
 export const SITES = Object.fromEntries(Object.entries(DISTRICTS).map(([id, d]) => [id, d.door]));
 const keyed = f => Object.fromEntries(Object.entries(DISTRICTS).map(([id, d]) => [d[f].join(), id]));
 export function craftMap() {
   const rows = [...Array(H)].map(() => Array(W).fill('#')), open = (x, y, w, h) => { for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) rows[j][i] = '.'; };
   open(1, ROAD[0], W - 2, ROAD[1] - ROAD[0] + 1);
   for (const d of Object.values(DISTRICTS)) { open(d.x, d.y, d.w, d.h); if (d.gate) open(...d.gate, 1, 1); }
+  for (const r of STEPWELL) open(...r);
+  open(...KEEP_GATE, 1, 1);
   rows[ROAD[0] - 1][2] = '.'; // Alexandria's gate is 2 wide, so Pythagoras picked at (2,7) is never boxed in
   for (const [x] of RIVERS) for (const y of riverRows()) rows[y][x] = '#'; // solid to the engine; heights live in s.ground
   for (const [x, y, ch] of STAMPS) rows[y][x] = ch;
@@ -81,7 +96,7 @@ export function newCraft(done = [], party = ['tally']) {
 }
 
 export const heightAt = (s, x, y) => s.ground[`${x},${y}`] ?? 0;
-export const bagSize = s => BAG * (s.pet ? 2 : 1); // a tamed creature carries as much again
+export const bagSize = () => BAG; // one held block: the party is the toolkit (spec 2026-10-27)
 const sign = v => Math.sign(parts(v)[0]);
 const nextId = s => Math.max(-1, ...s.objects.map(o => o.id), ...s.bag.map(o => o.id)) + 1;
 const isFire = (s, x, y) => x === s.camp.x && y === s.camp.y;

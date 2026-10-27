@@ -75,7 +75,7 @@ test('by day, from the start: a "?" creature waits past the first river; the rig
     const ok = give(5, how);
     assert.ok(ok.events.some(e => e.type === 'tame'), how);
     assert.ok(ok.state.pet && !ok.state.objects.some(o => o.mimic));
-    assert.equal(bagSize(ok.state), 4, 'the helper doubles the bag');
+    assert.equal(bagSize(ok.state), 1, 'one held block, pet or not (2026-10-27)');
     const no = give(4, how), m2 = no.state.objects.find(o => o.mimic);
     assert.ok(no.events.some(e => e.type === 'hop'), how);
     assert.ok(m2.x !== m.x || m2.y !== m.y, 'hopped to another spot');
