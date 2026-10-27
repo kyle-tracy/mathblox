@@ -16,8 +16,8 @@ export const WORLDS = [
   { id: 'motion', name: 'The Racetrack', kid: 'how fast things go', concept: 'speed, velocity, acceleration, limits', needs: ['euclid', 'zeno'], levels: [] },
   { id: 'distrib', name: 'The Market', kid: 'share a sum out', concept: 'distributivity', needs: ['euclid', 'brahmagupta'], levels: ['Be Someone Else', 'Owe the Whole Box', 'The Sign Carries It', 'Three for Every Piece'] },
   // Bonus rooms (Toad Houses): optional, beside the path, no reward yet (collectibles undesigned). Light no stone.
-  { id: 'campfire', name: 'The Campfire', kid: 'feed the fire', concept: 'adding up', bonus: true, needs: [], levels: [] },
-  { id: 'hut', name: "The Creature's Hut", kid: 'what number does it want?', concept: 'missing numbers', bonus: true, needs: [], levels: [] },
+  { id: 'campfire', name: 'The Campfire', kid: 'feed the fire', concept: 'adding up', bonus: true, needs: [], levels: ['Feed the Fire'] },
+  { id: 'hut', name: "The Creature's Hut", kid: 'what number does it want?', concept: 'missing numbers', bonus: true, needs: [], levels: ['Too Full to Be Tamed'] },
   { id: 'under', name: 'The Discrete Underground', kid: 'odd and even', concept: 'parity, mod, primes, graphs', needs: ['tally', 'pythagoras'], levels: [] }, // Tally's one return: parity
   { id: 'vectors', name: 'The Observatory', kid: 'how far and which way', concept: 'vectors and distance', needs: ['euclid', 'pythagoras'], levels: ['A Friend Is a Wall'] },
   { id: 'series', name: 'The Endless Stair', kid: 'steps that never end', concept: 'infinite series', needs: ['brahmagupta', 'zeno'], levels: [] },
