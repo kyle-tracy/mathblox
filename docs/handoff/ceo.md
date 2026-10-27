@@ -19,6 +19,5 @@ Nothing is running. The tree is clean and pushed (51b55ff+), and 151 tests pass.
 ## Next
 1. **Commissioner play-through:** they were told at wrap-up that it's ready. Act on their feedback first.
 2. **Style choice is open.** Honest read: B and C are too close to A (B ≈ a texture filter, C pixelates only the terrain props). Ask: lock A, or have Arto push B and C fully (outlined, shaded storybook; a full 16×16 pixel set)?
-3. **Demo due 2026-10-27:** re-verify the demo.md Craft strings by screenshot (the map moved 5 rows; tests say the events are unchanged).
-4. Worldo: a short `greet` field in CHARACTERS (greets currently cut down the trivia).
-5. Then the old Next: pair worlds (The Market first), the Storm Keep, more heroes.
+3. Demo due 2026-10-27: Craft strings re-verified 2026-10-26.
+4. Then the old Next: pair worlds (The Market first), the Storm Keep, more heroes.
