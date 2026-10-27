@@ -25,7 +25,7 @@ const fit = () => { const wide = matchMedia('(min-aspect-ratio: 5/4)').matches; 
   cv.style.width = `${cv.width * Math.max(0.3, Math.min(1.4, k))}px`; };
 fit(); addEventListener('resize', fit);
 
-// ---- Words (ported from the Road, craft/play.js) ----
+// ---- Words (door wording, greet, ending) ----
 let msg = '';
 const say = m => { msg = m; };
 const who = id => CHARACTERS[id]?.name ?? id, about = w => (w.kid ?? w.concept).replace(/[?!]$/, ''); // kid words first (levels/worlds.js)

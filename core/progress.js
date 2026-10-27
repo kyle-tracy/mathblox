@@ -14,5 +14,3 @@ export function missing(id, party, done) {
     : n.startsWith('done:') ? !done.includes(n.slice(5)) : !have.includes(n)));
 }
 export const canEnter = (id, party, done) => missing(id, party, done).length === 0;
-// Every party you can take out: each recruit alone, then every two of them.
-export const parties = r => [...r.map(a => [a]), ...r.flatMap((a, i) => r.slice(i + 1).map(b => [a, b]))];

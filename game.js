@@ -6,7 +6,6 @@ import { draw } from './render/draw.js';
 
 // Bare URL: the title screen (Camp or the Road; the tutorial is optional). Any query skips it, so QA and demo URLs are unchanged.
 if (!location.search) import('./render/title.js');
-else if (Q.has('craft')) import('./craft/play.js'); // the open-world prototype owns its own input and loop
 else if (Q.has('map')) import('./render/map.js'); // the path map: travel between places
 else {
   // ---- input: keyboard, buttons, swipe ----
