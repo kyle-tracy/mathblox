@@ -1,11 +1,11 @@
 // Entry: wires input (keyboard, buttons, swipe) to the game. Rules live in core/, drawing in render/.
 import { cv, reduced, setReduced } from './render/look.js';
-import { lvlIdx, won, load, act, undo, restart, fit, leave, Q, getDone } from './render/state.js';
+import { lvlIdx, won, load, act, undo, restart, fit, leave, Q } from './render/state.js';
 import { muted, setMute, muteBtn } from './render/audio.js';
 import { draw } from './render/draw.js';
 
-// Bare URL: camp's tutorial first, then the overworld (spec: the game opens at camp). ?level=N still plays the full list.
-if (!location.search) location.replace(getDone().includes('camp') ? '?craft' : '?world=camp');
+// Bare URL: the title screen (Camp or the Road; the tutorial is optional). Any query skips it, so QA and demo URLs are unchanged.
+if (!location.search) import('./render/title.js');
 else if (Q.has('craft')) import('./craft/play.js'); // the open-world prototype owns its own input and loop
 else {
   // ---- input: keyboard, buttons, swipe ----

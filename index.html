@@ -33,6 +33,17 @@
   #card .trivia { font-size: 16px; line-height: 1.45; margin: 10px 0; }
   #card small { opacity: 0.6; }
   #mute.off { background: linear-gradient(to top right, #8ecae6 45%, #2b2d42 46% 54%, #8ecae6 55%); }
+  /* title screen (render/title.js): the canvas is the backdrop, the choices sit on top */
+  body.title > :not(#c, #title, script) { display: none; }
+  body.title #c { position: fixed; inset: 0; border-radius: 0; }
+  #title { position: fixed; inset: 0; display: grid; place-content: center; justify-items: center; gap: 28px; padding: 16px; }
+  #title h1 { font: bold clamp(56px, 13vw, 128px) Verdana, "DejaVu Sans", sans-serif; color: #ffd166; text-shadow: 0 6px 0 #1d1f2e; }
+  #title div { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
+  #title button { width: 260px; padding: 18px; font-size: 28px; font-weight: bold; display: grid; gap: 6px; border: 6px solid transparent; }
+  #title button b { font-size: 56px; }
+  #title button small { font-size: 17px; font-weight: normal; }
+  #title button.pick { background: #ffd166; border-color: #f4efe4; transform: scale(1.06); }
+  #title button:focus-visible { outline: 6px solid #06d6a0; outline-offset: 4px; }
 </style>
 </head>
 <body>
