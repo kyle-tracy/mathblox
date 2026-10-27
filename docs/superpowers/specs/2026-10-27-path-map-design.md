@@ -8,6 +8,12 @@
 - Unlocks reuse `core/progress.js`: `missing(id, recruits(done), done)`. Party picking is gone: every recruited hero travels with you, and a world's hero needs mean "recruited".
 - The Tally-Keeper is not a map form. The troupe is the heroes you've recruited, walking together; before the first recruit, the Tally-Keeper walks you (Camp's guide). Inside levels, `cast` decides who you play, as today.
 
+## Meta-theme: graph theory (commissioner)
+The overworld *is* a graph, and it may say so, in an abstract sense: names, looks and small touches only, never a quiz.
+- Nodes are vertices and paths are edges. Sumhenge is the root. The demo's route is a walk from the root.
+- The look can echo graph drawings: dots joined by lines, edges that light as you walk them, a node's ring showing its degree.
+- Seeds for later, not demo scope: Euler's Königsberg bridges (1736) as a bonus node ("walk every bridge once"); the Discrete Underground world (`under`: parity, graphs) takes the map's own math as its subject.
+
 ## Layout: a φ spiral out from zero
 - **Sumhenge** at the origin: the stone circle and fire. One stone lights per finished hero world (`stonesLit`). The `ENDING` line plays here after the pool.
 - **Solo worlds** spiral outward in play order: Camp (at Sumhenge) → Alexandria → Croton → Ujjain → Elea.
