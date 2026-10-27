@@ -70,6 +70,13 @@ Decide this for each task in a plan, not for the plan as a whole. Spawning is no
 6. **Weight.** Is it big or exploratory (it would put ≳ 30k of reading into your window, or needs search or iteration such as level design, map layout, art)? Then delegate. It protects the context you need to run the studio.
 7. **Parallel.** Do the paths not overlap and is wall time worth more than the extra spawn? Then run agents in parallel; otherwise run them in series.
 
+**Which model:** once you've decided who does the work, choose how much mind it needs. Pass `model` on the spawn and leave charters at `inherit`, because one owner does both kinds of work.
+- **Haiku:** find-and-report, grep sweeps, moving pasted text, formatting. No judgment, and the output is checked against itself.
+- **Sonnet:** the code is already written in the brief or plan, and tests or replays are the arbiter. That covers mechanical edits, wiring, and an iterate-until-green task with a clear test.
+- **Opus (inherit):** taste and judgment, where no test can say "right". That covers level and room design, art direction, QC (Qualito), math honesty (Matho), new mechanics, and any brief where the agent must decide what to build.
+- **A failed cheap run costs a cold re-spawn** (≈45k plus the wasted run), because a continued agent keeps its model. So only go cheap when failure is likely to show up as a red test, not as a quiet bad design. Batch work goes to the model its hardest step needs.
+- Log the model in `budget.md` next to the tokens, so the ledger compares like with like.
+
 **How deep a review goes depends on what the tests don't cover.** Tests plus stored-solution replays check mechanics. Qualito checks feel. Add a separate code reviewer only for engine (`core/`) logic that no test reaches. Per-task double review is for plans with no test suite, which isn't us.
 
 **Write the decision down.** Each plan gets a row per task: who does it, which rung decided it, and the estimated cost. Log the actual cost in `budget.md`. When an estimate is off by more than 2×, fix the prices above, not just that one row.
