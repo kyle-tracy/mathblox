@@ -1,24 +1,22 @@
-# CEO handoff, 2026-10-24
+# CEO handoff, 2026-10-27
 
-Read `docs/ceo.md`, then this file, `docs/vision.md`, and `tail -n 25 docs/decisions.md`. The plan is still `docs/superpowers/specs/2026-10-23-characters-world-design.md`.
+Read `docs/ceo.md` (new: the "Who does the work" ladder and the "Which model" choice), then this file, `docs/vision.md`, and `tail -n 25 docs/decisions.md`. The plan is `docs/superpowers/plans/2026-10-27-storm-keep-demo.md` (spec: `docs/superpowers/specs/2026-10-27-storm-keep-demo-design.md`).
 
 ## What changed today
-- **Overworld (commissioner's ask):** a bare `/` opens Camp (`?world=camp`). Finishing Camp exits to the hub (`?craft`), now titled "the Road of Lands". The hub is a 48×19 map: the old strip is the road (rows 6–12), with one stylized **district** per world (`DISTRICTS` in core/craft.js). Each district has its door inside and its hero standing as the host; bumping the host greets you with a fact, a kid phrase (`kid` in worlds.js) and who to bring. Pair worlds have signposts.
-- **Fairness fixes (Qualito):**
-  - Fire burns only at night.
-  - Dozing wakes you at the last door you reached (`s.waypoint`).
-  - The rivers have a ford on the x-axis row.
-  - **Nudgers** (the commissioner's Minecraft-piston idea) shift Pythagoras's 2-leap parity.
-  - A test checks that every admitted party reaches its door from camp.
-- **Alive + style board (Arto):** ambient motion in the hub. `?craft&style=a|b|c` gives three art directions; a is the default.
-- **Other:** p3's no-room check replays stored routes, Elea's 3 held rooms are restored (Elea = 6, 34 levels), demo.md is keyed by level name, and `test/playthrough.test.js` walks the whole path.
+- **The demo has an ending (commissioner):** "a more succinct and complete demo"; survival-craft waits. The path is Camp → 4 solo worlds (each lights a Sumhenge stone) → **the Storm Keep**, a walkable Indian stepwell under the Road. Brahmagupta first tried ÷0 in 628 CE, and Bhāskara II guards the top. Two any-order tiers of landings, then the ÷0 boss pool. The Market stays as an optional side world. Inventory is one held block.
+- **Done:** the Market's 4 levels (Worldo). Plan Tasks 1–3 (Axio on Sonnet): `heroes:N` / `done:id` needs, `stonesLit`, map v5 with the stepwell (H 27, `LAYOUT` 5), `BAG` 1, door wording, landing hosts, the ending line. Style A is locked.
+- **Cheese philosophy (commissioner):** a cheese can be a feature (Mario Kart Ultra shortcuts). The measure is mental energy, partly taste. The bot ladder `test/ladder.js` doesn't yet separate favourites from trivial rooms (`docs/gates/ladder-calibration.md`). It's parked as a smoke alarm; Two Triangles Again is flagged (98% greedy wins).
+- **Difficulty 1–5 per level** (Mario Wonder style): varied, rising across the game; open-world rooms needn't all be mandatory. Worldo adds it, Qualito judges the curve.
+- **Methodology:** spawning is a per-task cost ladder, and the model is chosen per dispatch (Haiku / Sonnet / Opus). Charters are updated to match, and Budgeto's charter is deleted.
 
 ## In flight at wrap-up
-Nothing is running. The tree is clean and pushed (51b55ff+), and 151 tests pass. Axio's last fix (solo Pythagoras from every camp pick cell) is in, and the hub screenshot checked out.
+Worldo (Task 4+6: Keep rooms, playthrough test) and Arto (Task 5: stepwell art, lit stones) were told to commit what's green and stop. See their last commits in `git log` for what landed.
 
 ## Next
-0. Idea to weigh: **Fibonacci** (Leonardo of Pisa, who named zero *zephirum*) as a hero whose move grows by the sum of his last two; the name's own mathematician. Parents: Tally's +1 and Zeno's halving.
-1. **Commissioner play-through:** they were told at wrap-up that it's ready. Act on their feedback first.
-2. **Style choice is open.** Honest read: B and C are too close to A (B ≈ a texture filter, C pixelates only the terrain props). Ask: lock A, or have Arto push B and C fully (outlined, shaded storybook; a full 16×16 pixel set)?
-3. Demo due 2026-10-27: Craft strings re-verified 2026-10-26.
-4. Then the old Next: pair worlds (The Market first), the Storm Keep, more heroes.
+1. **Finish the Storm Keep plan:** whatever is left of Tasks 4–6 (check `git log` and the Keep worlds' `levels:` in `levels/worlds.js`). Then **Matho's history check** of the spec's History section and the `ENDING` line in craft/play.js. Then **Task 7, Qualito plays the whole demo** from the title to the ending (cheeses, the difficulty curve, whether the boss feels flat, whether the 1-block bag hurts).
+2. **Brainstorm collectibles** (commissioner is considering them: "for doing more/different ways or encouraging specific solutions"). Constraints: earned by a different thought, a fixed number, can't be bought, never expire, no nagging. Ties to the shortcut wink and the Museum idea.
+3. **Backfill `difficulty`** for the existing levels (Worldo, Sonnet-able once the scale is written down) and look at Two Triangles Again.
+4. Later: the Fibonacci hero idea; more pair worlds after the demo.
+
+## Open questions for the commissioner
+- None blocking. Collectibles design waits on a brainstorm with them.
