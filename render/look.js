@@ -10,7 +10,7 @@ export function setReduced(r, save = true) { // only the button saves: until the
 }
 let stored = null; try { stored = localStorage.getItem('reduced'); } catch { /* storage may be blocked */ }
 setReduced(stored ? stored === '1' : matchMedia('(prefers-reduced-motion: reduce)').matches, false);
-export const TITLE = 'MathBlox'; // the game's name is being reworked: change it here only (title screen, hub header)
+export const TITLE = 'Zeraphi'; // the game's name (commissioner, 2026-10-26): change it here only (title screen, hub header)
 export const FONT = 'Verdana, "DejaVu Sans", sans-serif'; // 1 has a base, 7 has none; 6/9 open and distinct
 export const INK = '#1d1f2e', WHITE = '#ffffff';
 export const C = { floor: '#f4efe4', wall: '#5b6475', grid: '#e2dacb', axis: '#3a3f4b', op: '#dfe3ea', door: '#5b3aa8',
