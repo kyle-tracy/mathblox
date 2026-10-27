@@ -5,8 +5,9 @@ import { piece, opBlock, label } from '../render/draw.js';
 import { sprite } from '../render/cast.js';
 import { getDone } from '../render/state.js';
 import { CHARACTERS } from '../levels/characters.js';
-import { recruits, parties, canEnter, world, missing } from '../core/progress.js';
-import { ghostCells, wantWhole } from '../render/fx.js';
+import { recruits, parties, canEnter, world, missing, stonesLit } from '../core/progress.js';
+import { WORLDS } from '../levels/worlds.js';
+import { ghostCells, wantWhole, storm } from '../render/fx.js';
 import { tone, pitch, boing, muted, setMute, muteBtn } from '../render/audio.js';
 import { isNat, parts } from '../core/value.js';
 import { newCraft, step, heightAt, bagSize, isNight, choose, atSite, DISTRICTS, NUDGERS } from '../core/craft.js';
@@ -126,7 +127,7 @@ function creature(cx, cy, spec) {
 }
 
 function draw(now) {
-  const W = s.tiles[0].length, cam = Math.max(0, Math.min(W - VW, s.player.x - (VW >> 1))), camY = Math.max(-2, Math.min(s.tiles.length - VH, s.player.y - (VH >> 1)));
+  const W = s.tiles[0].length, cam = Math.max(0, Math.min(W - VW, s.player.x - (VW >> 1))), camY = Math.max(-2, Math.min(s.tiles.length - VH, s.player.y - (inWell(s.player.x, s.player.y) ? 2 : VH >> 1))); // in the stepwell you look down, at the pool
   const X = x => PAD + (x - cam) * CELL, Y = y => HUD + (y - camY) * CELL;
   const wob = (x, y) => { // the bumped piece shakes (a rubbery no, never a buzzer)
     if (!bump || reduced || age(bump) > 400 || !bump.wob || bump.wob.x !== x || bump.wob.y !== y) return 0;
@@ -269,23 +270,24 @@ requestAnimationFrame(draw);
 // ---- World doors (style guide: docs/characters.md Art cue). Drawing only; who may enter comes from core/progress.js. ----
 const STYLE = { camp: ['#b5835a', '#7a4f2e'], alexandria: [INK, '#e08a4f'], croton: ['#f3ead2', '#c9b68a'], ujjain: ['#00798c', '#f2c14e'], elea: ['#cfc6dd', '#6a4c93'] };
 function siteDoor(X, Y, id, open, done, now) {
-  const w = world(id), cx = X + CELL / 2, [face, trim] = STYLE[id] ?? ['#8d8f9c', '#5b5e6b'], line = (lw, col) => { g.lineWidth = lw; g.strokeStyle = col; g.stroke(); };
+  if (id === 'dungeon') return pool(X, Y, done, now);
+  const w = world(id), era = home(id) ?? id, hero = w.hero ?? w.host, cx = X + CELL / 2, [face, trim] = STYLE[era] ?? ['#8d8f9c', '#5b5e6b'], line = (lw, col) => { g.lineWidth = lw; g.strokeStyle = col; g.stroke(); };
   const arch = (x, y, ww, hh) => { g.beginPath(); g.moveTo(x, y + hh); g.lineTo(x, y + ww / 2); g.arc(x + ww / 2, y + ww / 2, ww / 2, Math.PI, 0); g.lineTo(x + ww, y + hh); g.closePath(); };
   g.save(); if (!open && !done) g.globalAlpha = 0.75;
-  if (id === 'camp') { // a cave mouth in ochre rock, a hand stencil beside it
+  if (era === 'camp') { // a cave mouth in ochre rock, a hand stencil beside it
     g.fillStyle = face; g.beginPath(); g.ellipse(cx, Y + 40, 29, 26, 0, Math.PI, 0); g.lineTo(cx + 29, Y + 62); g.lineTo(cx - 29, Y + 62); g.fill(); line(2.5, INK);
     g.fillStyle = '#9c2f1f'; circle(X + 11, Y + 36, 3.5); for (const a of [-1, -0.4, 0.2, 0.8]) { g.beginPath(); g.moveTo(X + 11, Y + 34); g.lineTo(X + 11 + Math.sin(a) * 7, Y + 34 - Math.cos(a) * 7); line(2, '#9c2f1f'); }
-  } else if (id === 'alexandria') { // red-figure pottery: black ground, clay outlines, a meander band
+  } else if (era === 'alexandria') { // red-figure pottery: black ground, clay outlines, a meander band
     rr(X + 4, Y + 6, CELL - 8, CELL - 6, 6, face); arch(X + 12, Y + 18, CELL - 24, 42); line(3, trim);
     g.beginPath(); for (let i = X + 7; i < X + CELL - 10; i += 7) { g.moveTo(i, Y + 14); g.lineTo(i, Y + 9); g.lineTo(i + 5, Y + 9); g.lineTo(i + 5, Y + 12); g.lineTo(i + 2.5, Y + 12); } line(1.5, trim);
-  } else if (id === 'croton') { // a temple front: pediment over two columns
+  } else if (era === 'croton') { // a temple front: pediment over two columns
     g.fillStyle = face; g.beginPath(); g.moveTo(X + 3, Y + 18); g.lineTo(cx, Y + 3); g.lineTo(X + CELL - 3, Y + 18); g.closePath(); g.fill(); line(2, INK);
     for (const c of [X + 6, X + CELL - 16]) { rr(c, Y + 20, 10, 42, 2, face); g.beginPath(); g.rect(c, Y + 20, 10, 42); line(1.5, INK); for (const d of [3, 7]) { g.beginPath(); g.moveTo(c + d, Y + 23); g.lineTo(c + d, Y + 59); line(1, trim); } }
-  } else if (id === 'ujjain') { // a miniature-painting arch: cusped, teal and gold, a jewel at the crown
+  } else if (era === 'ujjain') { // a miniature-painting arch: cusped, teal and gold, a jewel at the crown
     rr(X + 5, Y + 4, CELL - 10, CELL - 4, 4, face); g.beginPath(); g.rect(X + 5, Y + 4, CELL - 10, CELL - 4); line(3, trim);
     g.beginPath(); g.moveTo(X + 14, Y + 62); g.lineTo(X + 14, Y + 30); for (let i = 0; i < 3; i++) g.arc(X + 19 + i * 13, Y + 26 - (i === 1) * 4, 6.5, Math.PI, 0); g.lineTo(X + CELL - 14, Y + 62); line(3, trim);
     g.fillStyle = '#e63946'; circle(cx, Y + 11, 3.5);
-  } else if (id === 'elea') { // a stoa: a long beam on slim columns
+  } else if (era === 'elea') { // a stoa: a long beam on slim columns
     rr(X + 2, Y + 8, CELL - 4, 9, 2, trim); for (const c of [X + 5, X + 18, X + CELL - 23, X + CELL - 10]) rr(c, Y + 17, 5, 45, 1, face);
   } else { // a pair world: a sealed slab carved with the two heroes it needs
     rr(X + 6, Y + 6, CELL - 12, CELL - 6, 8, face); g.beginPath(); g.moveTo(cx, Y + 8); g.lineTo(cx, Y + 60); line(2, trim);
@@ -293,10 +295,10 @@ function siteDoor(X, Y, id, open, done, now) {
     if (two.length) two.forEach((n, i) => { g.fillStyle = CHARACTERS[n].color; circle(cx + (i ? 12 : -12), Y + 30, 11); sprite(g, cx + (i ? 12 : -12), Y + 30, CELL * 0.75, n, 0, 'right', 0, true); });
     else text('÷0', cx, Y + 30, 16, WHITE);
   }
-  if (STYLE[id]) { // the doorway: lit with the hero inside when you may go in
-    const dw = id === 'croton' ? 22 : id === 'elea' ? 18 : 24;
-    arch(cx - dw / 2, Y + (id === 'croton' ? 26 : 30), dw, id === 'croton' ? 36 : 32); g.fillStyle = open ? '#ffd166' : '#2b2d42'; g.fill();
-    if (w.hero) sprite(g, cx, Y + 48, CELL * 0.75, w.hero, 0, 'right', 0, true);
+  if (STYLE[era]) { // the doorway: lit with the hero inside when you may go in
+    const dw = era === 'croton' ? 22 : era === 'elea' ? 18 : 24;
+    arch(cx - dw / 2, Y + (era === 'croton' ? 26 : 30), dw, era === 'croton' ? 36 : 32); g.fillStyle = open ? '#ffd166' : '#2b2d42'; g.fill();
+    if (hero) sprite(g, cx, Y + 48, CELL * 0.75, hero, 0, 'right', 0, true);
   }
   g.restore();
   if (done) { g.fillStyle = '#06d6a0'; circle(X + CELL - 10, Y + 12, 9); text('✓', X + CELL - 10, Y + 13, 13, INK); }
@@ -306,21 +308,28 @@ function siteDoor(X, Y, id, open, done, now) {
 // Floor tints the district; its ring of walls (the facade on the road side, row 5 or 13) wears the era's wall and props.
 const LAND = {};
 for (const [id, d] of Object.entries(DISTRICTS)) {
-  const ring = id === 'camp' ? 0 : 1; // the camp is the road's west end: no walls of its own
+  const ring = id === 'camp' || !DISTRICTS[id].gate ? 0 : 1; // the camp is the road's west end, the Keep's sites sit in the stepwell: no walls of their own
   for (let y = d.y - ring; y < d.y + d.h + ring; y++) for (let x = d.x - ring; x < d.x + d.w + ring; x++) {
     const inside = x >= d.x && x < d.x + d.w && y >= d.y && y < d.y + d.h;
     if (inside || !(`${x},${y}` in LAND)) LAND[`${x},${y}`] = id;
   }
 }
+// The stepwell (Chand Baori): every cell under the Keep gate that no district claims; Axio's STEPWELL lays it out.
+const inWell = (x, y) => y >= 18 || (x >= 40 && y >= 14);
+for (let y = 14; y < 27; y++) for (let x = 31; x < 48; x++) if (inWell(x, y) && !(`${x},${y}` in LAND)) LAND[`${x},${y}`] = 'well';
+const home = id => WORLDS.find(w => w.hero && w.hero === world(id)?.host)?.id; // a landing's hero's home world: its era look
 const LOOKS = { camp: { floor: '#efdcbf', wall: '#8a5a2b', line: '#d9bf98' }, alexandria: { floor: '#f2cfa8', wall: INK, line: '#e08a4f' },
   croton: { floor: '#f7f2e6', wall: '#d9ccaa', line: '#ddd3bd' }, ujjain: { floor: '#cfe6e2', wall: '#00798c', line: '#f2c14e' },
   elea: { floor: '#e7e0f1', wall: '#6a4c93', line: '#cfc6dd' }, pair: { floor: '#e6e7ec', wall: '#8d8f9c', line: '#c9ccd6' },
-  sealed: { floor: '#b9bcc6', wall: '#4a4d58', line: '#9a9dab' } };
+  sealed: { floor: '#b9bcc6', wall: '#4a4d58', line: '#9a9dab' }, well: { floor: '#e6bb7e', wall: '#b07a45', line: '#c48c52' },
+  dungeon: { floor: '#c99a5e', wall: '#8a5a2b', line: '#a8743f' } };
 const opened = id => canEnter(id, recruits(s.done), s.done) && world(id).levels.length > 0; // by recruits, not the party: C never repaints the land
-const landLook = id => (LOOKS[id] ?? (opened(id) ? LOOKS.pair : LOOKS.sealed));
+const landLook = id => (LOOKS[id] ?? (home(id) ? { ...LOOKS.well, floor: LOOKS[home(id)].floor, line: STYLE[home(id)][1] } : opened(id) ? LOOKS.pair : LOOKS.sealed));
 // Decals are flat and faint (never dots or numerals: dots mean quantity). Props sit on every other wall cell.
 function decal(id, st, X0, Y0, x, y, wall) {
   const ln = (lw, col) => { g.lineWidth = lw; g.strokeStyle = col; g.stroke(); }, cx = X0 + CELL / 2, cy = Y0 + CELL / 2;
+  if (id === 'well' || id === 'dungeon') return well(X0, Y0, x, y, wall, ln);
+  if (home(id)) id = home(id); // a landing wears its hero's era floor
   if (!wall) {
     g.beginPath();
     if (id === 'camp') for (const k of [16, 32, 48]) { g.moveTo(X0, Y0 + k); g.lineTo(X0 + CELL, Y0 + k); } // planks
@@ -343,15 +352,52 @@ function decal(id, st, X0, Y0, x, y, wall) {
     g.beginPath(); g.moveTo(X0 + 14, Y0 + 56); g.lineTo(X0 + 14, Y0 + 28); for (let i = 0; i < 3; i++) g.arc(X0 + 19 + i * 13, Y0 + 24 - (i === 1) * 4, 6.5, Math.PI, 0); g.lineTo(X0 + 50, Y0 + 56); ln(3, '#f2c14e');
   } else if (id === 'elea') { // a stoa column
     rr(X0 + 22, Y0 + 8, 20, 6, 2, '#cfc6dd'); rr(X0 + 25, Y0 + 14, 14, 38, 1, '#cfc6dd'); rr(X0 + 20, Y0 + 52, 24, 6, 2, '#cfc6dd');
+  } else if (!LOOKS[id] && !world(id).levels.length) { // beyond the demo: a ribbon and an unbroken wax seal, sealed like a letter not yet opened
+    g.beginPath(); g.moveTo(X0, cy); g.lineTo(X0 + CELL, cy); ln(4, '#c9ccd6'); g.fillStyle = '#b5523b'; circle(cx, cy, 9); g.beginPath(); g.arc(cx, cy, 5, 0, 7); ln(1.5, '#7f3426');
   } else if (!LOOKS[id] && !opened(id)) { // sealed: a chain across the wall
     g.beginPath(); for (let i = 0; i < 4; i++) g.ellipse(X0 + 10 + i * 15, cy, 8, 5, 0, 0, 7); ln(3, '#9a9dab');
   }
 }
+// The stepwell (Chand Baori): sandstone that darkens as you go down; walls carry criss-cross stair flights, floors are
+// terrace treads, the 1-wide stairs between terraces show their steps. Flat and faint like every decal (no dots, no numerals).
+function well(X0, Y0, x, y, wall, ln) {
+  g.fillStyle = `rgba(60,30,10,${0.03 * (y - 14)})`; g.fillRect(X0, Y0, CELL, CELL); // depth
+  if (x === 31 && y === 20) return carving(X0, Y0);
+  g.beginPath();
+  if (wall) { // two flights crossing: a zigzag up one way, a fainter one the other (alternating per cell, so they criss-cross)
+    const d = (x + y) % 2 ? 1 : -1, sx = d > 0 ? X0 + 6 : X0 + CELL - 6;
+    g.moveTo(sx, Y0 + CELL - 8); for (let i = 0; i < 5; i++) { g.lineTo(sx + d * i * 10.4, Y0 + CELL - 18 - i * 9); g.lineTo(sx + d * (i + 1) * 10.4, Y0 + CELL - 18 - i * 9); }
+    ln(3, '#ecc994'); g.beginPath(); g.moveTo(sx + d * 52, Y0 + CELL - 8); for (let i = 0; i < 5; i++) g.lineTo(sx + d * (52 - (i + 1) * 10.4), Y0 + CELL - 8 - (i + 1) * 9); ln(1.5, 'rgba(90,50,20,.45)');
+    return;
+  }
+  const stair = s.tiles[y][x - 1] === '#' && s.tiles[y][x + 1] === '#';
+  for (let k = stair ? 10 : 22; k < CELL; k += stair ? 10 : 22) { g.moveTo(X0, Y0 + k); g.lineTo(X0 + CELL, Y0 + k); }
+  ln(stair ? 2.5 : 2, stair ? 'rgba(110,62,24,.55)' : '#cf9f62');
+}
+// Brahmagupta's carving in the alcove's back wall: his 628 rule 0÷0 = 0 (a find, not a collectible; numerals on purpose).
+function carving(X0, Y0) {
+  rr(X0 + 5, Y0 + 14, CELL - 10, 36, 6, '#d9a868'); g.strokeStyle = 'rgba(90,50,20,.6)'; g.lineWidth = 2; g.stroke();
+  text('0÷0 = 0', X0 + CELL / 2, Y0 + 33, 13, '#6e3e18');
+}
+// The pool: dark water at the foot of the stairs, the ÷0 storm churning over it (still in reduced motion).
+function pool(X0, Y0, done, t) {
+  rr(X0 + 2, Y0 + 8, CELL - 4, CELL - 10, 10, '#16202e');
+  g.beginPath(); for (const k of [24, 38, 50]) { g.moveTo(X0 + 10, Y0 + k + Math.sin(t / 400 + k) * 2); g.quadraticCurveTo(X0 + CELL / 2, Y0 + k - 4, X0 + CELL - 10, Y0 + k + Math.sin(t / 500 + k) * 2); }
+  g.lineWidth = 1.5; g.strokeStyle = 'rgba(160,190,220,.35)'; g.stroke();
+  if (!done) storm({ churn: true }, t, X0, Y0 + 20);
+}
 // A host: the land's hero standing by its door, or a signpost with the two heroes a pair land needs.
 function host(X0, Y0, id, now, look = 'down') {
-  const w = world(id), cx = X0 + CELL / 2, cy = Y0 + CELL / 2, st = landLook(id);
+  const w = world(id), cx = X0 + CELL / 2, cy = Y0 + CELL / 2, st = landLook(id), hero = w.hero ?? w.host;
   g.fillStyle = st.floor; g.fillRect(X0, Y0, CELL, CELL);
-  if (w.hero && id !== 'camp') { g.fillStyle = 'rgba(0,0,0,.18)'; g.beginPath(); g.ellipse(cx, cy + 26, 18, 5, 0, 0, 7); g.fill(); return flatShadow(() => sprite(g, cx, cy, CELL * 0.9, w.hero, now, look, 0, false, blinking(now, cx))); } // looks your way when you come near
+  if (id === 'dungeon') { // Bhāskara's stele: n÷0 he called khahara, the infinite
+    g.fillStyle = 'rgba(0,0,0,.18)'; g.beginPath(); g.ellipse(cx + 3, Y0 + CELL - 6, 20, 5, 0, 0, 7); g.fill();
+    g.beginPath(); g.moveTo(X0 + 14, Y0 + CELL - 6); g.lineTo(X0 + 14, Y0 + 22); g.arc(cx, Y0 + 22, cx - X0 - 14, Math.PI, 0); g.lineTo(X0 + CELL - 14, Y0 + CELL - 6); g.closePath();
+    g.fillStyle = '#d9a868'; g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke();
+    g.beginPath(); g.arc(cx, Y0 + 20, 6, 0, 7); g.lineWidth = 1.5; g.strokeStyle = '#8a5a2b'; g.stroke(); // the observatory's sun
+    return text('÷0', cx, Y0 + 42, 15, '#6e3e18');
+  }
+  if (hero && id !== 'camp') { g.fillStyle = 'rgba(0,0,0,.18)'; g.beginPath(); g.ellipse(cx, cy + 26, 18, 5, 0, 0, 7); g.fill(); return flatShadow(() => sprite(g, cx, cy, CELL * 0.9, hero, now, look, 0, false, blinking(now, cx))); } // looks your way when you come near
   g.fillStyle = C.doorFrame; g.fillRect(cx - 3, cy, 6, 30);
   rr(X0 + 3, Y0 + 6, CELL - 6, 30, 6, C.sign); g.strokeStyle = C.doorFrame; g.lineWidth = 2; g.stroke();
   const two = id === 'camp' ? ['tally'] : w.needs.filter(n => CHARACTERS[n]); // camp: a signpost with Tally's sign and a flame, so it is never mistaken for you
@@ -425,9 +471,10 @@ function landmarks(X, Y, cam, t) {
   const u = CELL, line = (w = 3) => { g.lineWidth = w; g.strokeStyle = INK; g.stroke(); }, box = (x, y, w, h, c) => { g.beginPath(); g.rect(x, y, w, h); g.fillStyle = c; g.fill(); line(); };
   const tri = (pts, c) => { g.beginPath(); pts.forEach(([a, b], i) => (i ? g.lineTo(a, b) : g.moveTo(a, b))); g.closePath(); g.fillStyle = c; g.fill(); line(); };
   for (const [id, d] of Object.entries(DISTRICTS)) {
-    if (id === 'camp' || d.x + d.w < cam - 1 || d.x > cam + VW + 1) continue;
-    const gx = d.gate[0], far = gx - d.x > d.x + d.w - 1 - gx ? d.x + 0.9 : d.x + d.w - 0.9, top = d.y < 6;
-    const cx = X(far), by = top ? Y(d.y + d.h) - 6 : Y(d.y + d.h + 1) - 10, h = top ? 4.6 * u : 5.6 * u, sealed = !opened(id);
+    const keep = id === 'dungeon', lx = keep ? 41 : d.x, lw = keep ? 6 : d.w; // the Keep's landmark: on the top terrace (x 41-46), over the gate
+    if (id === 'camp' || (!d.gate && !keep) || lx + lw < cam - 1 || lx > cam + VW + 1) continue;
+    const far = keep ? 45.5 : d.gate[0] - d.x > d.x + d.w - 1 - d.gate[0] ? d.x + 0.9 : d.x + d.w - 0.9, top = !keep && d.y < 6;
+    const cx = X(far), by = keep ? Y(18) - 10 : top ? Y(d.y + d.h) - 6 : Y(d.y + d.h + 1) - 10, h = top ? 4.6 * u : 5.6 * u, sealed = !keep && !opened(id);
     g.save(); if (sealed) g.globalAlpha = 0.75;
     ({
       alexandria() { // the Pharos: three tiers and a fire on top
@@ -464,12 +511,11 @@ function landmarks(X, Y, cam, t) {
       motion() { // a tall pole with a chequered flag
         box(cx - 0.06 * u, by - h, 0.12 * u, h, '#3a3f4b'); const fw = 0.8 * u, fh = 0.5 * u, wave = Math.sin(t / 300) * 4;
         for (let i = 0; i < 4; i++) for (let j = 0; j < 2; j++) { g.fillStyle = (i + j) % 2 ? INK : WHITE; g.fillRect(cx + 0.06 * u + i * fw / 4, by - h + j * fh / 2 + wave * (i / 4), fw / 4, fh / 2); } },
-      dungeon() { // the Storm Keep: a dark tower under its own cloud
-        box(cx - 0.6 * u, by - 0.75 * h, 1.2 * u, 0.75 * h, '#4a4d58');
-        for (let i = 0; i < 3; i++) box(cx - 0.6 * u + i * 0.45 * u, by - 0.82 * h, 0.3 * u, 0.07 * h, '#4a4d58');
-        box(cx - 0.15 * u, by - 0.5 * h, 0.3 * u, 0.12 * h, '#ffd166');
-        g.fillStyle = '#5b6475'; circle(cx - 0.4 * u, by - 0.93 * h, 0.3 * u); circle(cx + 0.1 * u, by - h, 0.38 * u); circle(cx + 0.55 * u, by - 0.93 * h, 0.28 * u);
-        if (!reduced && t % 2600 < 160) { g.beginPath(); g.moveTo(cx, by - 0.9 * h); g.lineTo(cx - 0.15 * u, by - 0.84 * h); g.lineTo(cx + 0.05 * u, by - 0.84 * h); g.lineTo(cx - 0.1 * u, by - 0.76 * h); g.lineWidth = 3; g.strokeStyle = '#ffd166'; g.stroke(); } },
+      dungeon() { // the Storm Keep: a sandstone chhatri (a domed pavilion on four pillars) at the stepwell's lip, the storm churning over it
+        for (let i = 0; i < 4; i++) box(cx - 0.8 * u + i * 0.48 * u, by - 0.55 * h, 0.16 * u, 0.55 * h, '#e6bb7e');
+        box(cx - 0.95 * u, by - 0.62 * h, 1.9 * u, 0.07 * h, '#b07a45');
+        g.beginPath(); g.moveTo(cx - 0.75 * u, by - 0.62 * h); g.quadraticCurveTo(cx - 0.7 * u, by - 0.9 * h, cx, by - 0.92 * h); g.quadraticCurveTo(cx + 0.7 * u, by - 0.9 * h, cx + 0.75 * u, by - 0.62 * h); g.closePath(); g.fillStyle = '#d9a868'; g.fill(); line();
+        storm({ churn: true }, t, cx - u / 2, by - 0.98 * h); },
     })[id]?.();
     g.restore();
   }
@@ -484,8 +530,9 @@ const STONES = (() => { const t = newCraft([]), k = [];
 const LINTELS = [[4, 5], [7, 5], [3, 13], [6, 13]]; // the left stone of each trilithon
 function henge(X, Y, cam) {
   if (cam > 11) return;
+  const lit = stonesLit(s.done), glow = c => { g.shadowColor = c; g.shadowBlur = 14; }; // one light per finished hero world; Camp lights the bank
   const fx = X(s.camp.x) + CELL / 2, fy = Y(s.camp.y) + CELL / 2; // the henge bank: a flat ring on the ground, never a wall
-  g.setLineDash([10, 8]); g.lineWidth = 4; g.strokeStyle = 'rgba(122,92,67,.35)'; g.beginPath(); g.ellipse(fx, fy, CELL * 3.6, CELL * 3.2, 0, 0, 7); g.stroke(); g.setLineDash([]);
+  g.setLineDash([10, 8]); g.lineWidth = 4; g.strokeStyle = lit ? 'rgba(242,193,78,.6)' : 'rgba(122,92,67,.35)'; g.beginPath(); g.ellipse(fx, fy, CELL * 3.6, CELL * 3.2, 0, 0, 7); g.stroke(); g.setLineDash([]);
   const has = new Set(STONES.map(String)), w = CELL * 0.62, h = CELL * 1.2;
   STONES.forEach(([x, y], i) => {
     const cx = X(x) + CELL / 2, by = Y(y) + CELL - 4, lx = cx - w / 2, ty = by - h;
@@ -497,10 +544,11 @@ function henge(X, Y, cam) {
     for (let j = 0; j < Math.min(4, n); j++) { g.moveTo(lx + 7 + j * 5, ty + 22); g.lineTo(lx + 7 + j * 5, ty + 38); }
     if (n === 5) { g.moveTo(lx + 4, ty + 34); g.lineTo(lx + 26, ty + 26); } g.stroke();
   });
-  for (const [x, y] of LINTELS) if (has.has(`${x},${y}`) && has.has(`${x + 1},${y}`)) {
-    const lx = X(x) + CELL / 2 - w / 2 - 4, ty = Y(y) + CELL - 4 - h - 8;
-    g.beginPath(); g.roundRect(lx, ty, CELL + w + 8, 16, 4); g.fillStyle = '#9aa0a6'; g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke();
-  }
+  LINTELS.forEach(([x, y], i) => { if (!has.has(`${x},${y}`) || !has.has(`${x + 1},${y}`)) return;
+    const lx = X(x) + CELL / 2 - w / 2 - 4, ty = Y(y) + CELL - 4 - h - 8, on = i < lit - 1; // lintel i: the i-th hero world after Camp
+    g.save(); if (on) glow('#ffd166'); g.beginPath(); g.roundRect(lx, ty, CELL + w + 8, 16, 4); g.fillStyle = on ? '#f2c14e' : '#9aa0a6'; g.fill(); g.restore();
+    g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke();
+  });
 }
 function flatShadow(f) { // style a: a hard flat drop shadow under things that stand up
   if (ART !== 'a') return f();

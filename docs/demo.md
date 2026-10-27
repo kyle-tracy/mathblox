@@ -15,6 +15,7 @@ Renumbered 2026-10-24 by level name (play order changed again: Elea's 3 rooms re
 9. `?level=33&moves=drrullurrr` (Be Someone Else): change pads.
 10. `?craft&moves=uurrrrrrr`: 2+3 makes 5, overfills the river, leaves a hill.
 11. `?craft&moves=rrrrrr`: by day, the "?" creature past the first river wears □+3=8.
+12. `?craft&moves=rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrddrrrrdddddd`: down the Keep gate into the stepwell; the camera looks down at the dark pool and its churning ÷0 storm (by night here: walk 48+ moves).
 
 ## Polish gaps
 None open. Closed: overfill hill reads as ground (425419a); creature's equation sign clamps inside the board (4069560).

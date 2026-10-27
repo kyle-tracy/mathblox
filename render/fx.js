@@ -178,8 +178,8 @@ export function wantWhole(X, Y, avoidR = [], mustR = []) {
 }
 // ÷0: a silly little whirlwind over the 0. Dividing by nothing has no answer, so no number appears: no 0, no ∞, no bolts.
 // Calm (no flashing); it spins slowly once and rests, and in reduced motion it is still.
-function storm(f, t, X, Y) {
-  const k = reduced ? 1 : ease(t / 300), spin = reduced ? 0 : Math.min(t, 900) / 300, cx = X + CELL / 2, cy = Y - 16; // floats above the 0, never covering it
+export function storm(f, t, X, Y) { // f.churn: it never rests (the Keep's pool); t is then the ambient clock
+  const k = reduced || f.churn ? 1 : ease(t / 300), spin = reduced ? 0 : (f.churn ? t : Math.min(t, 900)) / 300, cx = X + CELL / 2, cy = Y - 16; // floats above the 0, never covering it
   g.save(); g.globalAlpha = k; g.fillStyle = '#c9ccd6';
   for (const [dx, dy, r] of [[-14, 4, 12], [0, -4, 15], [15, 3, 12], [0, 8, 12]]) circle(cx + dx, cy + dy, r); // puffy cloud
   g.strokeStyle = INK; g.lineWidth = 1.8;
