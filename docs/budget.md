@@ -48,3 +48,4 @@ date | agent | task | est | actual | note
 2026-10-23 | Worldo2 | Ujjain + Elea | - | 112k | |
 2026-10-24 | session | overworld (axio, arto, testo, qualito) | - | axio 166k, arto 123k, qualito 98k, testo 24k | districts, pistons, night fire, style board
 2026-10-26 | qualito+axio+arto+visio | free-walk Road, title, bigger hub, names | - | ~380k | QC passed
+2026-10-27 | Worldo (opus) | Market 3 levels | - | 87k | cheese search timed out 5 min on one level; led to the cheese ruling |
