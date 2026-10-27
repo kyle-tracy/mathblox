@@ -5,26 +5,26 @@ import { world, missing, recruits } from './progress.js';
 
 export const NODES = {
   sumhenge: { x: 0, y: 0, world: 'camp', links: { r: 'alexandria', d: 'campfire', u: 'under' } },
-  campfire: { x: 0, y: 1, world: 'campfire', links: { u: 'sumhenge' } },
-  under: { x: 0, y: -1, world: 'under', links: { d: 'sumhenge' } },
+  campfire: { x: 0, y: 1.4, world: 'campfire', links: { u: 'sumhenge' } },
+  under: { x: 0, y: -1.3, world: 'under', links: { d: 'sumhenge' } },
   alexandria: { x: 2, y: 0, world: 'alexandria', links: { l: 'sumhenge', d: 'croton', r: 'vectors' } },
   vectors: { x: 4, y: 0, world: 'vectors', links: { l: 'alexandria' } },
-  croton: { x: 2, y: 2, world: 'croton', links: { u: 'alexandria', l: 'hut', r: 'rotation' } },
-  rotation: { x: 4, y: 2, world: 'rotation', links: { l: 'croton' } },
-  hut: { x: 0, y: 2, world: 'hut', links: { r: 'croton', l: 'ujjain' } },
-  ujjain: { x: -2, y: 2, world: 'ujjain', links: { r: 'hut', u: 'elea', d: 'distrib' } },
-  distrib: { x: -2, y: 4, world: 'distrib', links: { u: 'ujjain' } },
+  croton: { x: 2, y: 3, world: 'croton', links: { u: 'alexandria', l: 'hut', r: 'rotation' } },
+  rotation: { x: 4, y: 3, world: 'rotation', links: { l: 'croton' } },
+  hut: { x: 0, y: 3, world: 'hut', links: { r: 'croton', l: 'ujjain' } },
+  ujjain: { x: -2, y: 3, world: 'ujjain', links: { r: 'hut', u: 'elea', d: 'distrib' } },
+  distrib: { x: -2, y: 5, world: 'distrib', links: { u: 'ujjain' } },
   elea: { x: -2, y: -2, world: 'elea', links: { d: 'ujjain', r: 'keep', l: 'series', u: 'motion' } },
   series: { x: -4, y: -2, world: 'series', links: { r: 'elea' } },
   motion: { x: -2, y: -4, world: 'motion', links: { d: 'elea' } },
-  keep: { x: 6, y: -2, links: { l: 'elea', d: 'stair1' } }, // the Storm Keep's chhatri; the stepwell goes down
-  stair1: { x: 6, y: -1, links: { u: 'keep', l: 'keep-euclid-n', r: 'keep-pythagoras-n', d: 'stair2' } },
-  'keep-euclid-n': { x: 5, y: -1, world: 'keep-euclid', links: { r: 'stair1' } },
-  'keep-pythagoras-n': { x: 7, y: -1, world: 'keep-pythagoras', links: { l: 'stair1' } },
-  stair2: { x: 6, y: 0, links: { u: 'stair1', l: 'keep-brahmagupta-n', r: 'keep-zeno-n', d: 'pool' } },
-  'keep-brahmagupta-n': { x: 5, y: 0, world: 'keep-brahmagupta', links: { r: 'stair2' } },
-  'keep-zeno-n': { x: 7, y: 0, world: 'keep-zeno', links: { l: 'stair2' } },
-  pool: { x: 6, y: 1, world: 'dungeon', links: { u: 'stair2' } },
+  keep: { x: 7, y: -2, links: { l: 'elea', d: 'stair1' } }, // the Storm Keep's chhatri; the stepwell goes down
+  stair1: { x: 7, y: -0.5, links: { u: 'keep', l: 'keep-euclid-n', r: 'keep-pythagoras-n', d: 'stair2' } },
+  'keep-euclid-n': { x: 5.8, y: -0.5, world: 'keep-euclid', links: { r: 'stair1' } },
+  'keep-pythagoras-n': { x: 8.2, y: -0.5, world: 'keep-pythagoras', links: { l: 'stair1' } },
+  stair2: { x: 7, y: 1, links: { u: 'stair1', l: 'keep-brahmagupta-n', r: 'keep-zeno-n', d: 'pool' } },
+  'keep-brahmagupta-n': { x: 5.8, y: 1, world: 'keep-brahmagupta', links: { r: 'stair2' } },
+  'keep-zeno-n': { x: 8.2, y: 1, world: 'keep-zeno', links: { l: 'stair2' } },
+  pool: { x: 7, y: 2.5, world: 'dungeon', links: { u: 'stair2' } },
 };
 
 export const newMap = (done = [], at = 'sumhenge') => ({ at, done: [...done] });

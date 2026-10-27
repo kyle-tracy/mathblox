@@ -19,8 +19,8 @@ function markDone(id) { try { const d = getDone(); if (!d.includes(id)) localSto
 
 export let lvlIdx = 0, state, prev, orig, history, fx = [], fills, tMove = 0, won = false, lastDir = 'right';
 
-// Back to the Craft map at this world's door. Leaving early (Esc, ↩ map) marks nothing done.
-export const leave = () => { if (WORLD) location.search = `?craft&from=${WORLD.id}`; };
+// Back to the path map at this world's node. Leaving early (Esc, ↩ map) marks nothing done.
+export const leave = () => { if (WORLD) location.search = `?map&from=${WORLD.id}`; };
 
 export function load(i) {
   if (WORLD && i >= SET.length) return leave(); // world finished: back out of its door
