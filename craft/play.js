@@ -9,7 +9,7 @@ import { recruits, parties, canEnter, world, missing } from '../core/progress.js
 import { ghostCells, wantWhole } from '../render/fx.js';
 import { tone, pitch, boing, muted, setMute, muteBtn } from '../render/audio.js';
 import { isNat, parts } from '../core/value.js';
-import { newCraft, step, heightAt, bagSize, isNight, dayOf, movesToSwitch, choose, atSite, DAY, NIGHT, DISTRICTS, NUDGERS } from '../core/craft.js';
+import { newCraft, step, heightAt, bagSize, isNight, dayOf, choose, atSite, DAY, NIGHT, DISTRICTS, NUDGERS } from '../core/craft.js';
 
 const VW = 15, VH = 9, PAD = 40, HUD = 100; // view in cells; margins for the axes and the HUD
 // Back from a world (?craft&from=id): the Craft you left (saved on the way in, if storage allows), standing at its door.
@@ -64,9 +64,8 @@ function act(a) {
     if (e.type === 'hop') { tone(500, 0.15, 'sine', 300); say(`Not ${e.value}... it hops away.`); }
     if (e.type === 'pick') tone(pitch(8), 0.08, 'sine', 100);
     if (e.type === 'place') tone(pitch(4), 0.08, 'sine', -100);
-    if (e.type === 'dusk') say('Night falls. The fire burns faster.');
+    if (e.type === 'dusk') say('Night falls. The stars come out.');
     if (e.type === 'dawn') say(e.ids.length ? 'Morning! Rocks grew back.' : 'Morning!');
-    if (e.type === 'doze') { say('The fire went out. You dozed off and woke at camp. Nothing is lost.'); tone(300, 0.6, 'sine', -150); }
   }
 }
 const undo = () => { if (history.length) s = history.pop(); };
@@ -179,13 +178,13 @@ function draw(now) {
   const px = X(s.player.x) + CELL / 2 + (shove ? (shove.at.x - shove.to.x) * CELL * sl : 0), py = Y(s.player.y) + CELL / 2 + (shove ? (shove.at.y - shove.to.y) * CELL * sl : 0);
   flatShadow(() => sprite(g, px, py, CELL * 0.95, s.mover, live, s.facing, 0, false, blinking(live, 0)));
   if (ART === 'b') paper();
-  // Light: night is a deep blue shade with a clear circle as wide as the fire's warmth; the last moves of day turn amber.
-  const night = isNight(s.t), left = movesToSwitch(s.t);
+  // Light: night is a deep blue shade with a clear circle as wide as the fire's warmth (only a look: the road is free to walk).
+  const night = isNight(s.t);
   if (night) {
     const grad = g.createRadialGradient(fx, fy, 20, fx, fy, 60 + s.fire * 18);
     grad.addColorStop(0, 'rgba(10,14,40,0)'); grad.addColorStop(1, 'rgba(10,14,40,.62)');
     g.fillStyle = grad; g.fillRect(PAD, HUD, VW * CELL, VH * CELL);
-  } else if (left <= 8) { g.fillStyle = `rgba(255,120,40,${0.03 * (9 - left)})`; g.fillRect(PAD, HUD, VW * CELL, VH * CELL); } // dusk is coming
+  }
   // Bump explanations (they stay until the next input): no-room shows where the whole result would go; not-whole shows what fits.
   if (bump?.reason === 'no-room') { g.save(); g.translate(X(0) - 44, HUD); ghostCells(bump.ghost, true); g.restore(); }
   if (bump?.reason === 'not-whole') wantWhole(X(bump.at.x), Y(bump.at.y), [], [[X(s.player.x), Y(s.player.y), CELL, CELL]]);
@@ -211,7 +210,6 @@ function draw(now) {
   const tw = 120, dayW = tw * (DAY - NIGHT) / DAY, at = tw * (s.t % DAY) / DAY;
   rr(16, 44, dayW, 10, 4, '#ffd166'); rr(16 + dayW, 44, tw - dayW, 10, 4, '#3a4a8a');
   g.fillStyle = WHITE; circle(16 + at, 49, 6); g.strokeStyle = INK; g.lineWidth = 2; g.stroke();
-  text(night ? `${left} to dawn` : `${left} to dusk`, 76, 74, 16, '#c9d6ea', false);
   flame(172, 50, 34, 13); text(s.fire, 172, 40, 13, INK);
   g.fillStyle = '#ffd166'; for (let i = 0; i < Math.min(20, s.fire); i++) { const [ex, ey] = dotPos(i, 210, 18, 7); circle(ex, ey, 2.6); }
   text('bag', 262, 30, 16, '#c9d6ea', false);

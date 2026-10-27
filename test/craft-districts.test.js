@@ -22,7 +22,7 @@ test('districts do not overlap; door and host sit inside, side by side', () => {
 // Walking only (no pushes, merges or flips), keyed on x, y and mover (Tab is free). ponytail: time is not in the key
 // (a path that meets the night creature may be missed); capped. With `home` (a finished search from the spawn cell),
 // reaching any of its cells means reaching all its doors: the world is static, so that is exact.
-const WALK = ['move', 'leap', 'nudge', 'swap', 'face', 'enter', 'dusk', 'dawn', 'mimic', 'doze'];
+const WALK = ['move', 'leap', 'nudge', 'swap', 'face', 'enter', 'dusk', 'dawn', 'mimic'];
 function entered(start, home, cap = 30000) {
   const key = s => `${s.player.x},${s.player.y},${s.mover}`, seen = new Set([key(start)]), got = new Set();
   for (let q = [start]; q.length && seen.size < cap;) {
@@ -40,7 +40,7 @@ function entered(start, home, cap = 30000) {
 const ALL = Object.keys(DISTRICTS);
 test('from every cell where C picks a party, every party reaches each door it admits (nudgers and the ford included)', () => {
   for (const party of parties(recruits(ALL))) {
-    const s0 = { ...newCraft(ALL, party), fire: 99 }, home = entered(s0); // terrain only: the far districts are a fed fire away (no doze)
+    const s0 = { ...newCraft(ALL, party), fire: 99 }, home = entered(s0); // terrain only
     for (let dx = -2; dx <= 2; dx++) for (let dy = -2; dy <= 2; dy++) {
       const x = s0.camp.x + dx, y = s0.camp.y + dy;
       if (s0.tiles[y][x] !== '.' || s0.objects.some(o => o.x === x && o.y === y)) continue;
@@ -58,10 +58,10 @@ test('a nudger pushes you one cell on, if that cell is open', () => {
   const c = structuredClone(s); c.player = { x: 3, y: 11 }; c.objects = c.objects.filter(o => !(o.x === 3 && o.y === 11)); c.objects.push({ id: 90, x: 3, y: 9, kind: 'num', value: 1 });
   assert.deepEqual(step(c, 'up').state.player, { x: 3, y: 10 }, 'blocked: you stay on the nudger');
 });
-test('the fire burns only at night: a day of walking never dozes you off', () => {
-  let s = newCraft();
-  for (let i = 0; i < 31; i++) s = step(s, i % 2 ? 'up' : 'down').state;
-  assert.equal(s.fire, 3); assert.equal(s.dozes, 0);
+test('the Road of Lands is free to walk: a whole day and night never drains the fire or dozes you off', () => {
+  let s = newCraft(), ev = [];
+  for (let i = 0; i < DAY + 5; i++) { const r = step(s, i % 2 ? 'up' : 'down'); s = r.state; ev.push(...r.events.map(e => e.type)); }
+  assert.equal(s.fire, 3); assert.ok(ev.includes('dusk') && ev.includes('dawn') && !ev.includes('doze'));
 });
 
 const facing = (s, [x, y], dir) => { const c = structuredClone(s), [dx, dy] = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }[dir]; c.player = { x: x - dx, y: y - dy }; return c; };
@@ -81,18 +81,11 @@ test('residency demo strings still do what docs/demo.md says', () => {
   const a = play('uurrrrrrr'), land = a.ev.find(e => e.type === 'land');
   assert.equal(String(land.value), '5'); assert.equal(String(land.height), '2');
   assert.ok(a.s.objects.some(o => o.land && o.x === land.at.x && o.y === land.at.y && String(o.value) === '2'));
-  const b = play('rrdgulllguurrrrrrrdudududududududududududu'), i = b.ev.findIndex(e => e.type === 'dusk');
-  assert.ok(i >= 0); assert.equal(b.ev.find(e => e.type === 'mimic')?.value, '□+3=8');
+  const b = play('rrrrrr'), m = b.s.objects.find(o => o.mimic), cam = Math.max(0, b.s.player.x - 7); // play.js: 15 cells wide
+  assert.equal(b.s.t, 6); assert.equal(m?.value, '□+3=8'); assert.ok(m.x >= cam && m.x < cam + 15, 'on screen');
 });
 
-test('doze wakes you beside the last door you entered or bumped (camp if none); time and fire as before', () => {
-  const doze = s => { s.fire = 1; s.t = DAY - 5; /* the next move is a night burn */ let r; for (const d of ['down', 'up', 'down', 'up']) { r = step(s, d); s = r.state; if (r.events.some(e => e.type === 'doze')) return s; } return s; };
-  const d = DISTRICTS.ujjain, s = newCraft([], ['tally']); s.player = { x: d.stand[0], y: d.stand[1] + 1 };
-  let r = step({ ...s, player: { x: d.stand[0], y: d.stand[1] } }, 'right'); // bump Ujjain's door (needs Pythagoras)
-  assert.equal(r.events[0].reason, 'needs'); assert.equal(r.state.waypoint, 'ujjain'); assert.equal(r.state.t, 0);
-  const w = doze({ ...r.state, player: { x: d.stand[0], y: d.stand[1] + 1 } });
-  assert.deepEqual(w.player, { x: d.stand[0], y: d.stand[1] }); assert.equal(w.dozes, 1); assert.equal(w.fire, 3);
-  const c = doze(newCraft()); assert.deepEqual(c.player, { x: c.camp.x + 1, y: c.camp.y }, 'no waypoint: camp');
+test('entering a door costs no time', () => {
   const e = step({ ...newCraft(), player: { x: 1, y: 7 } }, 'down'); // into Camp
-  assert.equal(e.events[0].type, 'enter'); assert.equal(e.state.waypoint, 'camp'); assert.equal(e.state.t, 0);
+  assert.equal(e.events[0].type, 'enter'); assert.equal(e.state.t, 0);
 });

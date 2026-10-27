@@ -14,7 +14,7 @@ Renumbered 2026-10-24 by level name (play order changed again: Elea's 3 rooms re
 8. `?level=34&moves=ulsuullsrddldrrrr` (A Friend Is a Wall): two heroes, Tab hands over.
 9. `?level=33&moves=drrullurrr` (Be Someone Else): change pads.
 10. `?craft&moves=uurrrrrrr`: 2+3 makes 5, overfills the river, leaves a hill.
-11. `?craft&moves=rrdgulllguurrrrrrrdudududududududududududu`: night falls; the "?" creature wears □+3=8.
+11. `?craft&moves=rrrrrr`: by day, the "?" creature past the first river wears □+3=8.
 
 ## Polish gaps
 None open. Closed: overfill hill reads as ground (425419a); creature's equation sign clamps inside the board (4069560).

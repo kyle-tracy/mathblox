@@ -1,7 +1,7 @@
 // Craft: the open-world prototype. Pure, no DOM. Wraps the puzzle engine's step(), so every push,
 // merge, carve and pit fill uses the same calculator-precise rules as the puzzles (no second math truth).
 // Added here: number land (pits and hills), a fire at camp, a bag, turn-based day and night,
-// rocks that regrow at dawn, and a shy night creature that wears an equation.
+// rocks that regrow at dawn, and a shy creature that wears an equation (a new one each dawn).
 import { add, sub, isNat, parts } from './value.js';
 import { accepts } from './math.js';
 import { parseLevel, step as worldStep, DIRS, API } from './world.js';
@@ -12,7 +12,6 @@ import { missing, world } from './progress.js';
 export const DAY = 48, NIGHT = 16, BAG = 2, START_HEAT = 3; // moves per day; the last NIGHT moves are night
 export const isNight = t => t % DAY >= DAY - NIGHT;
 export const dayOf = t => Math.floor(t / DAY) + 1;
-export const movesToSwitch = t => (isNight(t) ? DAY : DAY - NIGHT) - (t % DAY); // until dawn or dusk
 
 // Hand-authored map: a road (7 rows, about 3 screens wide) between two bands of districts, one per world.
 // Camp (the fire) is the origin. The land is a number:
@@ -29,7 +28,7 @@ const STAMPS = [
   [40, 2, '9'], [41, 4, '+'], [43, 4, '9'], [44, 6, '8'], [42, 6, '5'], [45, 2, '7'], // far side: bonfire wood
   [6, 3, '#'], [13, 1, '#'], [20, 1, '#'], [20, 2, '#'], [27, 6, '#'], [27, 7, '#'], [34, 1, '#'], [40, 7, '#'], [46, 4, '#'], [7, 5, '#'], // (7,10): sets Euclid on the x-axis from the camp's west side 
 ].map(([x, y, ch]) => [x, y + OY, ch]); // authored in road rows 1-7
-// The night creature: shy, past the first river, wearing one equation per night (□ is the block you give it).
+// The creature: shy, past the first river, wearing one equation per day (□ is the block you give it).
 const MIMIC_SPOTS = [[15, 3], [17, 1], [13, 6], [19, 4]].map(([x, y]) => [x, y + OY]), MIMIC_EQS = ['□+3=8', '□+1=5', '□+4=7'];
 // Districts: one walled area per world, opening onto the road by a gap (gate) in an odd column. Inside, you stand on
 // the gate's column (`stand`) beside the door (a solid cell that enters the world); the host next to the door (hero
@@ -75,8 +74,10 @@ export function newCraft(done = [], party = ['tally']) {
   const s = parseLevel({ name: 'craft', map: craftMap(), cast: party }), ground = {};
   for (const [x, h] of RIVERS) for (const y of riverRows()) ground[`${x},${y}`] = h;
   const spawns = s.objects.map(({ x, y, kind, value, op }) => ({ x, y, kind, ...(kind === 'num' ? { value } : { op }) }));
-  return { ...s, layout: LAYOUT, camp: CAMP, ground, spawns, fire: START_HEAT, bag: [], t: 0, facing: 'right', dozes: 0, pet: null,
+  const c = { ...s, layout: LAYOUT, camp: CAMP, ground, spawns, fire: START_HEAT, bag: [], t: 0, facing: 'right', pet: null,
     done: [...done], sites: keyed('door'), hosts: keyed('host') };
+  spawnMimic(c, []);
+  return c;
 }
 
 export const heightAt = (s, x, y) => s.ground[`${x},${y}`] ?? 0;
@@ -135,8 +136,7 @@ export function step(state, action) {
 const CRAFT_API = { ...API, move: push, gatesTrue: () => true, falseGates: () => [] };
 function go(state, dir) {
   const [dx, dy] = DIRS[dir], x = state.player.x + dx, y = state.player.y + dy, site = state.sites?.[`${x},${y}`];
-  if (site) { // a site door: in you go, if you brought who it needs. Either way it is now your waypoint: you wake here.
-    if (state.waypoint !== site) state = { ...state, waypoint: site };
+  if (site) { // a site door: in you go, if you brought who it needs.
     const lack = missing(site, state.cast, state.done);
     if (lack.length) return bounce(state, 'needs', { x, y }, { world: site, missing: lack });
     if (!world(site).levels.length) return bounce(state, 'soon', { x, y }, { world: site }); // a pair world not built yet
@@ -237,10 +237,9 @@ const roomFor = (s, o, x, y) => {
   return true;
 };
 
-// Dusk: the creature peeks in (unless already tamed). Dawn: it leaves, and every starting rock
-// whose cell is empty grows back (a Tick of time), so burning the last 9 never soft-locks the world.
-function dusk(s, events) {
-  events.push({ type: 'dusk' });
+// The creature peeks in at the start and at each dawn (unless already tamed), wearing that day's equation.
+// Dawn also regrows every starting rock whose cell is empty (a Tick of time), so burning the last 9 never soft-locks the world.
+function spawnMimic(s, events) {
   if (s.pet || s.objects.some(o => o.mimic)) return;
   const spot = MIMIC_SPOTS.find(([x, y]) => free1(s, x, y));
   if (!spot) return;
@@ -253,25 +252,16 @@ function dawn(s, events) {
   const grown = [];
   for (const sp of s.spawns) if (free1(s, sp.x, sp.y)) { const o = { id: nextId(s), ...sp }; s.objects.push(o); grown.push(o.id); }
   events.push({ type: 'dawn', ids: grown });
+  spawnMimic(s, events);
 }
 
-// Time passes only on a real move (bumping a wall is free). The fire burns only at night (1 warmth every 4 moves;
-// daytime is for exploring); at 0 you doze off
-// and wake next morning beside the last district door you reached (camp if none), fire relit. Nothing is lost: the bag and the world stay as they were.
+// Time passes only on a real move (bumping a wall is free). The Road of Lands is free to walk: the fire never
+// drains and you never doze off here; night is only a look. (Deleted 2026-10-26; git keeps the doze for the wilds.)
 function tick(s, events) {
   if (events[0]?.type === 'face') return;
   const night = isNight(s.t);
   s.t++;
-  if (isNight(s.t) !== night) (night ? dawn : dusk)(s, events);
-  if (isNight(s.t) && s.t % 4 === 0) s.fire = Math.max(0, s.fire - 1);
-  if (s.fire > 0) return;
-  s.player = s.waypoint ? doorSpot(s, s.waypoint) : wakeSpot(s); // each land is a waypoint: you wake by the last door you reached
-  if (s.pet) s.pet = { ...s.player };
-  s.fire = START_HEAT;
-  s.t = (dayOf(s.t)) * DAY; // next morning
-  s.dozes++;
-  events.push({ type: 'doze', at: { ...s.player } });
-  dawn(s, events);
+  if (isNight(s.t) !== night) night ? dawn(s, events) : events.push({ type: 'dusk' });
 }
 const doorSpot = (s, id) => {
   const [x, y] = SITES[id], [sx, sy] = DISTRICTS[id].stand;

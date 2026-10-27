@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { newCraft, step, heightAt, bagSize, DAY, NIGHT, START_HEAT } from '../core/craft.js';
+import { newCraft, step, heightAt, bagSize, DAY } from '../core/craft.js';
 
 const run = (s, acts) => acts.reduce((st, a) => step(st, a).state, s);
 const at = (s, x, y) => s.objects.find(o => o.x === x && o.y === y);
@@ -20,7 +20,7 @@ test('merge then feed: 2+3 burns as 5 (the puzzle engine does the math)', () => 
   s.player = { x: 2, y: 8 }; s.facing = 'down'; // stand above the fire
   const r = step(s, 'grab');
   assert.equal(r.events[0].type, 'feed');
-  assert.equal(r.state.fire, s.fire + 5 - (r.state.t % 8 === 0 ? 1 : 0));
+  assert.equal(r.state.fire, s.fire + 5);
 });
 
 test('land is a number: −3 + 3 = 0, −3 + 2 = −1, −3 + 5 = 2 (a hill block), −3 + (−2) = −5', () => {
@@ -64,9 +64,8 @@ test('rocks regrow at dawn where their cell is empty', () => {
   assert.equal(again(DAY - 1), again(DAY - 1), 'deterministic');
 });
 
-const dusk = () => { const s = newCraft(); s.fire = 99; s.t = DAY - NIGHT - 1; s.player = { x: 3, y: 8 }; return step(s, 'up').state; };
-test('night: a "?" creature appears past the first river; the right value tames it, a wrong one makes it hop', () => {
-  const s = dusk(), m = s.objects.find(o => o.mimic);
+test('by day, from the start: a "?" creature waits past the first river; the right value tames it, a wrong one makes it hop', () => {
+  const s = newCraft(), m = s.objects.find(o => o.mimic);
   assert.ok(m && m.x > 10, 'past the first river');
   assert.equal(m.value, '□+3=8');
   const give = (v, how) => { const c = structuredClone(s); c.player = { x: m.x - 2, y: m.y }; c.facing = 'right';
@@ -84,19 +83,11 @@ test('night: a "?" creature appears past the first river; the right value tames 
   }
 });
 
-test('doze: when the fire runs out you wake at camp next morning, nothing lost', () => {
-  let s = newCraft();
-  s = run(s, ['up', 'up', 'down', 'down']); // wander
-  s.bag = [{ id: 99, kind: 'num', value: 7 }];
-  const objects = JSON.stringify(s.objects);
-  let r, n = 0;
-  do { r = step(s, n % 2 ? 'up' : 'down'); s = r.state; n++; } while (!r.events.some(e => e.type === 'doze') && n < 200);
-  assert.ok(n < 200, 'dozed');
-  assert.deepEqual(s.player, { x: s.camp.x + 1, y: s.camp.y });
-  assert.equal(s.fire, START_HEAT);
-  assert.equal(s.t % DAY, 0, 'morning');
-  assert.deepEqual(s.bag.map(o => o.value), [7]);
-  for (const o of JSON.parse(objects)) assert.ok(s.objects.some(q => q.id === o.id && q.x === o.x && q.y === o.y), 'nothing lost');
+test('each dawn brings a fresh equation; a tamed creature brings none', () => {
+  const s = newCraft(); s.t = DAY - 1; s.player = { x: 3, y: 8 };
+  assert.equal(step(s, 'up').state.objects.find(o => o.mimic)?.value, '□+1=5');
+  const p = { ...newCraft(), t: DAY - 1, player: { x: 3, y: 8 }, pet: { x: 4, y: 8 } }; p.objects = p.objects.filter(o => !o.mimic);
+  assert.ok(!step(p, 'up').state.objects.some(o => o.mimic));
 });
 
 test('bumps cost no time; 0 and −2 never feed the fire', () => {
