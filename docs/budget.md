@@ -58,3 +58,6 @@ date | agent | task | est | actual | note
 2026-10-27 | Qualito (opus) | whole-demo QC | ~60k | 54k | 3 keep, 3 fix |
 2026-10-27 | Worldo (opus) | Keep QC fixes (continued) | ~25k | ? | Last Share redone d5 |
 2026-10-27 | Worldo (sonnet) | difficulty backfill 49 levels | ~30k | ? | done |
+2026-10-27 | Arto (opus) | path map view | ~80k | 75k | committed with polish |
+2026-10-27 | Worldo (opus) | bonus rooms | ~60k | 52k | 2 rooms |
+2026-10-27 | Worldo (sonnet) | difficulty backfill | ~30k | 32k | |
