@@ -11,5 +11,5 @@ test('world levels exist and appear in one world only', () => {
   assert.equal(new Set(names).size, names.length, 'a level is in two worlds');
 });
 test('world heroes and needs are real heroes', () => {
-  for (const w of WORLDS) for (const h of [w.hero, ...w.needs].filter(h => h && !h.startsWith('pairs:'))) assert.ok(HEROES[h], `${w.id}: ${h}`);
+  for (const w of WORLDS) for (const h of [w.hero, w.host, ...w.needs].filter(h => h && !h.includes(':'))) assert.ok(HEROES[h], `${w.id}: ${h}`);
 });

@@ -18,5 +18,12 @@ export const WORLDS = [
   { id: 'under', name: 'The Discrete Underground', kid: 'odd and even', concept: 'parity, mod, primes, graphs', needs: ['tally', 'pythagoras'], levels: [] }, // Tally's one return: parity
   { id: 'vectors', name: 'The Observatory', kid: 'how far and which way', concept: 'vectors and distance', needs: ['euclid', 'pythagoras'], levels: ['A Friend Is a Wall'] },
   { id: 'series', name: 'The Endless Stair', kid: 'steps that never end', concept: 'infinite series', needs: ['brahmagupta', 'zeno'], levels: [] },
-  { id: 'dungeon', name: 'The Storm Keep', kid: 'face the ÷0 Storm', concept: 'limits: the ÷0 Storm', needs: ['pairs:2'], levels: [] }, // any 2 pair worlds done
+  // The Storm Keep (spec 2026-10-27): a stepwell under the Road. Its landings open once all 4 heroes are recruited, whatever
+  // party you bring (the rooms hand you each hero by change pads): upper tier in either order, lower tier, then the pool.
+  // `host`: the hero who greets at a landing's door (not `hero`: a landing recruits nobody and lights no stone).
+  { id: 'keep-euclid', name: "Euclid's Landing", host: 'euclid', kid: 'slide down the stairs', concept: 'limits: the ÷0 Storm', needs: ['heroes:4'], levels: [] },
+  { id: 'keep-pythagoras', name: "Pythagoras's Landing", host: 'pythagoras', kid: 'which two make zero?', concept: 'limits: the ÷0 Storm', needs: ['heroes:4'], levels: [] },
+  { id: 'keep-brahmagupta', name: "Brahmagupta's Landing", host: 'brahmagupta', kid: 'is 0÷0 really 0?', concept: 'limits: the ÷0 Storm', needs: ['done:keep-euclid', 'done:keep-pythagoras'], levels: [] },
+  { id: 'keep-zeno', name: "Zeno's Landing", host: 'zeno', kid: 'share by less and less', concept: 'limits: the ÷0 Storm', needs: ['done:keep-euclid', 'done:keep-pythagoras'], levels: [] },
+  { id: 'dungeon', name: 'The Storm Keep', kid: 'calm the ÷0 Storm', concept: 'limits: the ÷0 Storm', needs: ['done:keep-brahmagupta', 'done:keep-zeno'], levels: [] }, // the pool at the bottom
 ];
