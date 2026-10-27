@@ -14,7 +14,7 @@ export const WORLDS = [
     levels: ['Ever Smaller Steps', 'Quarter Past Half', 'A Third of Nine', 'Half of What Is Left', 'Keep the Pebble', 'Small Shared by Big'] },
   { id: 'rotation', name: 'The Turning Court', kid: 'turning numbers', concept: 'imaginary numbers: i² = −1', needs: ['brahmagupta', 'pythagoras'], levels: [] },
   { id: 'motion', name: 'The Racetrack', kid: 'how fast things go', concept: 'speed, velocity, acceleration, limits', needs: ['euclid', 'zeno'], levels: [] },
-  { id: 'distrib', name: 'The Market', kid: 'share a sum out', concept: 'distributivity', needs: ['euclid', 'brahmagupta'], levels: ['Be Someone Else'] },
+  { id: 'distrib', name: 'The Market', kid: 'share a sum out', concept: 'distributivity', needs: ['euclid', 'brahmagupta'], levels: ['Be Someone Else', 'Owe the Whole Box', 'The Sign Carries It', 'Three for Every Piece'] },
   { id: 'under', name: 'The Discrete Underground', kid: 'odd and even', concept: 'parity, mod, primes, graphs', needs: ['tally', 'pythagoras'], levels: [] }, // Tally's one return: parity
   { id: 'vectors', name: 'The Observatory', kid: 'how far and which way', concept: 'vectors and distance', needs: ['euclid', 'pythagoras'], levels: ['A Friend Is a Wall'] },
   { id: 'series', name: 'The Endless Stair', kid: 'steps that never end', concept: 'infinite series', needs: ['brahmagupta', 'zeno'], levels: [] },
