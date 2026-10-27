@@ -10,10 +10,12 @@ Read `docs/ceo.md` (new: the "Who does the work" ladder and the "Which model" ch
 - **Methodology:** spawning is a per-task cost ladder, and the model is chosen per dispatch (Haiku / Sonnet / Opus). Charters are updated to match, and Budgeto's charter is deleted.
 
 ## In flight at wrap-up
-Worldo (Task 4+6: Keep rooms, playthrough test) and Arto (Task 5: stepwell art, lit stones) were told to commit what's green and stop. See their last commits in `git log` for what landed.
+Nothing is running, and the tree is clean and pushed.
+- **Arto's Task 5 is done** (2d81ba2): the stepwell art, lit stones and wax "beyond the demo" seals. Lit stones haven't been checked by eye. The pool shows on screen only from the lower terraces.
+- **Worldo's Task 4 is not done.** Six drafted rooms with `difficulty` are saved in `docs/handoff/keep-draft.js`, which nothing imports: Down the Stone Stairs, Zero on Top, Brahmagupta Trusts the Zero, Share by Less and Less, Still Zero and The Last Share. The first two have no win (their maps are broken), the third timed out, and the last three were never searched. Ruling: the pool rooms may use swap instead of change pads (swap is an existing verb).
 
 ## Next
-1. **Finish the Storm Keep plan:** whatever is left of Tasks 4–6 (check `git log` and the Keep worlds' `levels:` in `levels/worlds.js`). Then **Matho's history check** of the spec's History section and the `ENDING` line in craft/play.js. Then **Task 7, Qualito plays the whole demo** from the title to the ending (cheeses, the difficulty curve, whether the boss feels flat, whether the 1-block bag hurts).
+1. **Finish the Storm Keep plan:** a cold Worldo starts from `docs/handoff/keep-draft.js`. Fix the maps, store the solutions, register the rooms, add the Task 6 test, then move the file to `levels/keep.js`. Whatever else is left of Tasks 4–6 (check `git log` and the Keep worlds' `levels:` in `levels/worlds.js`). Then **Matho's history check** of the spec's History section and the `ENDING` line in craft/play.js. Then **Task 7, Qualito plays the whole demo** from the title to the ending (cheeses, the difficulty curve, whether the boss feels flat, whether the 1-block bag hurts).
 2. **Brainstorm collectibles** (commissioner is considering them: "for doing more/different ways or encouraging specific solutions"). Constraints: earned by a different thought, a fixed number, can't be bought, never expire, no nagging. Ties to the shortcut wink and the Museum idea.
 3. **Backfill `difficulty`** for the existing levels (Worldo, Sonnet-able once the scale is written down) and look at Two Triangles Again.
 4. Later: the Fibonacci hero idea; more pair worlds after the demo.
