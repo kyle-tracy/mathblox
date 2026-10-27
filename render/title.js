@@ -12,8 +12,8 @@ document.body.classList.add('title');
 const ui = document.createElement('main');
 ui.id = 'title';
 ui.innerHTML = `<h1></h1><div>
-  <button data-go="?world=camp"><b>🔥</b>Start at Camp<small>learn with the Tally-Keeper</small></button>
-  <button data-go="?craft"><b>🛤</b>Go to the Road<small>explore the lands</small></button></div>`;
+  <button data-go="?world=camp"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="12" y="52" width="40" height="7" rx="3" fill="#7a5c43"/><path d="M16 54Q12 30 32 6Q52 30 48 54Z" fill="#ef476f"/><path d="M22 54Q20 36 32 20Q44 36 42 54Z" fill="#ff9f1c"/><path d="M27 54Q26 42 32 32Q38 42 37 54Z" fill="#ffd166"/></svg>Start at Camp<small>learn with the Tally-Keeper</small></button>
+  <button data-go="?craft"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M2 40Q18 28 32 34T62 30V60H2Z" fill="#9be08a"/><path d="M14 62L28 34H36L50 62Z" fill="#c9a36b"/><path d="M32 38V42M32 47V53M32 57V62" stroke="#f4efe4" stroke-width="3"/><path d="M44 26V12L56 17L44 22" fill="#ef476f" stroke="#1d1f2e" stroke-width="2"/><circle cx="16" cy="14" r="7" fill="#ffd166"/></svg>Go to the Road<small>explore the lands</small></button></div>`;
 ui.querySelector('h1').textContent = TITLE;
 document.body.append(ui);
 const btns = [...ui.querySelectorAll('button')], pick = btns[camped ? 1 : 0];

@@ -11,14 +11,17 @@ import { tone, pitch, boing, muted, setMute, muteBtn } from '../render/audio.js'
 import { isNat, parts } from '../core/value.js';
 import { newCraft, step, heightAt, bagSize, isNight, dayOf, choose, atSite, DAY, NIGHT, DISTRICTS, NUDGERS } from '../core/craft.js';
 
-const VW = 15, VH = 9, PAD = 40, HUD = 100; // view in cells; margins for the axes and the HUD
+const PAD = 40, HUD = 100; // margins for the axes and the HUD
+// View in cells: wide screens see 19×11 of the land, tall ones (phones) 13×15; a lands map in the corner shows the rest.
+let VW, VH;
+const size = () => { [VW, VH] = matchMedia('(min-aspect-ratio: 5/4)').matches ? [19, 11] : [13, 15]; cv.width = VW * CELL + PAD; cv.height = VH * CELL + PAD + HUD; };
+size();
 // Back from a world (?craft&from=id): the Craft you left (saved on the way in, if storage allows), standing at its door.
 const from = new URLSearchParams(location.search).get('from'), moves = new URLSearchParams(location.search).get('moves'), done = getDone(); // read before the URL is replaced
 let saved = null;
 if (from && world(from)) try { saved = JSON.parse(localStorage.getItem('mathblox.craft')); } catch { /* no storage: a fresh Craft */ }
 if (saved?.layout !== newCraft().layout) saved = null; // a save from an older map
 let s = from && world(from) ? atSite({ ...(saved ?? newCraft(done)), done }, from) : newCraft(done), history = [], msg = '', msgT = 0;
-cv.width = VW * CELL + PAD; cv.height = VH * CELL + PAD + HUD;
 document.getElementById('name').textContent = 'MathBlox: the Road of Lands';
 const say = m => { msg = m; msgT = performance.now(); };
 if (from) window.history.replaceState(null, '', '?craft'); // a reload starts here, not from the save we came back from
@@ -117,7 +120,7 @@ function creature(cx, cy, spec) {
 }
 
 function draw(now) {
-  const W = s.tiles[0].length, cam = Math.max(0, Math.min(W - VW, s.player.x - 7)), camY = Math.max(0, Math.min(s.tiles.length - VH, s.player.y - 4));
+  const W = s.tiles[0].length, cam = Math.max(0, Math.min(W - VW, s.player.x - (VW >> 1))), camY = Math.max(0, Math.min(s.tiles.length - VH, s.player.y - (VH >> 1)));
   const X = x => PAD + (x - cam) * CELL, Y = y => HUD + (y - camY) * CELL;
   const wob = (x, y) => { // the bumped piece shakes (a rubbery no, never a buzzer)
     if (!bump || reduced || age(bump) > 400 || !bump.wob || bump.wob.x !== x || bump.wob.y !== y) return 0;
@@ -204,6 +207,7 @@ function draw(now) {
   g.fillStyle = '#f4efe4'; g.fillRect(0, HUD + VH * CELL, cv.width, PAD); g.fillRect(0, HUD, PAD, VH * CELL);
   for (let x = cam; x < cam + VW; x++) text(x - s.camp.x, X(x) + CELL / 2, HUD + VH * CELL + 20, 17, C.axis, x === s.camp.x);
   for (let y = camY; y < camY + VH; y++) text(s.camp.y - y, PAD / 2, Y(y) + CELL / 2, 17, C.axis, y === s.camp.y);
+  lands(cam, camY, now);
   // HUD: sun or moon and a day track (amber day, blue night, a dot for now), warmth as a flame with one ember per unit, the bag.
   g.fillStyle = '#2b2d42'; g.fillRect(0, 0, cv.width, HUD);
   sun(24, 24, night); text(`Day ${dayOf(s.t)}`, 84, 22, 20, WHITE);
@@ -251,7 +255,7 @@ cv.addEventListener('touchend', e => {
   act(Math.max(Math.abs(dx), Math.abs(dy)) > 24 ? (Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up')) : 'grab');
 });
 // The board fills the window (buttons beside it on wide screens, below on tall ones; index.html's media query).
-const fit = () => { const wide = matchMedia('(min-aspect-ratio: 5/4)').matches;
+const fit = () => { size(); const wide = matchMedia('(min-aspect-ratio: 5/4)').matches;
   const k = wide ? Math.min((innerWidth - 190) / cv.width, (innerHeight - 90) / cv.height) : Math.min((innerWidth - 24) / cv.width, (innerHeight - 220) / cv.height);
   cv.style.width = `${cv.width * Math.max(0.4, Math.min(1.6, k))}px`; };
 fit(); addEventListener('resize', fit);
@@ -385,6 +389,19 @@ function ambient(X, Y, cam, camY, t) { // pennants over each gate, cloud shadows
     const k = hash(d.x, d.y), bx = X(d.x + d.w / 2) + Math.sin(t / 1900 + k) * d.w * 22, by = Y(d.y + d.h / 2) + Math.cos(t / 1300 + k) * d.h * 12, f = Math.abs(Math.sin(t / 90 + k));
     g.fillStyle = ['#ef476f', '#ffd166', '#8e7dff', '#06d6a0'][k % 4]; g.strokeStyle = INK; g.lineWidth = 1;
     for (const sgn of [-1, 1]) { g.beginPath(); g.ellipse(bx + sgn * 8 * f, by, 8 * f + 1.5, 10, 0, 0, 7); g.fill(); g.stroke(); } }
+}
+// The lands map: the whole Road at 5px a cell, every district in its own colours, its door a dot, you blinking, the view framed.
+// It moves to the top corner when you walk under it.
+function lands(cam, camY, t) {
+  const k = 5, mw = s.tiles[0].length * k, mh = s.tiles.length * k, low = s.player.x - cam >= VW - 5 && s.player.y - camY >= VH - 3;
+  const x0 = PAD + VW * CELL - mw - 8, y0 = low ? HUD + 8 : HUD + VH * CELL - mh - 8;
+  g.globalAlpha = 0.9; rr(x0 - 4, y0 - 4, mw + 8, mh + 8, 6, INK);
+  s.tiles.forEach((row, y) => [...row].forEach((c, x) => { const st = LAND[`${x},${y}`] && landLook(LAND[`${x},${y}`]);
+    g.fillStyle = heightAt(s, x, y) ? C.pit : c === '#' ? st?.wall ?? C.wall : st?.floor ?? C.floor; g.fillRect(x0 + x * k, y0 + y * k, k, k); }));
+  g.globalAlpha = 1;
+  for (const d of Object.values(DISTRICTS)) { g.fillStyle = INK; circle(x0 + (d.door[0] + 0.5) * k, y0 + (d.door[1] + 0.5) * k, 3.5); }
+  g.strokeStyle = WHITE; g.lineWidth = 1.5; g.strokeRect(x0 + cam * k, y0 + camY * k, VW * k, VH * k);
+  if (reduced || t % 800 < 560) { g.fillStyle = C.player; circle(x0 + (s.player.x + 0.5) * k, y0 + (s.player.y + 0.5) * k, 4); g.strokeStyle = WHITE; g.stroke(); }
 }
 function flatShadow(f) { // style a: a hard flat drop shadow under things that stand up
   if (ART !== 'a') return f();
