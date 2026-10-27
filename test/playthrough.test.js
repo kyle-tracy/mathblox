@@ -6,7 +6,7 @@ import { WORLDS } from '../levels/worlds.js';
 import { LEVELS } from '../levels/levels.js';
 import { parseLevel, step as play } from '../core/world.js';
 import { newCraft, step, atSite } from '../core/craft.js';
-import { recruits } from '../core/progress.js';
+import { recruits, stonesLit } from '../core/progress.js';
 
 const KEY = { u: 'up', d: 'down', l: 'left', r: 'right', s: 'swap' };
 const SOLO = ['camp', 'alexandria', 'croton', 'ujjain', 'elea'];
@@ -49,4 +49,14 @@ test('walk the map: from each finished world to the next solo world, then the bu
   }
   for (const id of ['distrib', 'vectors'])
     assert.ok(reaches(atSite(newCraft(done, partyFor(id)), 'elea'), id), `cannot reach ${id} after all solo worlds`);
+});
+
+test('the Storm Keep: with all 4 heroes, walk each landing in tier order, then the pool; every stone is lit', () => {
+  const done = [...SOLO];
+  assert.equal(stonesLit(done), 5);
+  for (const [id, from] of [['keep-euclid', 'elea'], ['keep-pythagoras', 'keep-euclid'], ['keep-brahmagupta', 'keep-pythagoras'], ['keep-zeno', 'keep-brahmagupta'], ['dungeon', 'keep-zeno']]) {
+    assert.ok(reaches(atSite(newCraft(done, ['tally']), from), id), `cannot reach ${id} from ${from} with done=${done}`);
+    done.push(id);
+  }
+  assert.equal(stonesLit(done), 5, 'landings light no stones');
 });

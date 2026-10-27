@@ -20,10 +20,11 @@ import croton from './croton.js';
 import ujjain from './ujjain.js';
 import elea from './elea.js';
 import market from './market.js';
+import keep from './keep.js';
 
 // Old levels are the Tally-Keeper's (camp tutorial); solo worlds are one hero each (commissioner 2026-10-23).
 import { WORLDS } from './worlds.js';
-const ALL = [...meadow, ...balance, ...merge, ...carve, ...lanes, ...fields, ...sandbox, ...cast, ...alexandria, ...croton, ...ujjain, ...elea, ...market];
+const ALL = [...meadow, ...balance, ...merge, ...carve, ...lanes, ...fields, ...sandbox, ...cast, ...alexandria, ...croton, ...ujjain, ...elea, ...market, ...keep];
 // Qualito's cut (2026-10-23): kept in their files and git history, out of play.
 const CUT = new Set(['Take It Out', 'Turn to Pass', 'Weighing a Field', 'Ten in One', 'Every Hole Names Its Kind', 'Sandbox', 'Nothing Times', 'The Low Tunnel', 'Something to Stop On', 'Leap Behind It', 'A Debt Counts Twice', 'Halfway There'] /* old intros reworked in alexandria/croton; Low Tunnel: Euclid's curl hits ×-no-room */);
 const placed = WORLDS.flatMap(w => w.levels);
