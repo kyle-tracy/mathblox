@@ -2,6 +2,35 @@
 
 Raw proposals. Qualito, Testo, and the CEO filter them. An idea that gets built moves to decisions.md.
 
+## Names (2026-10-26): title and hub
+
+Game titles:
+1. **Number Rush**: playful, chaotic, kid-shouty. Collides with existing mobile games.
+2. **Blockheads & Heroes**: cheeky cast-forward title. "The Blockheads" already exists as a craft game.
+3. **Anti**: one word, named after the anti-block, the game's signature weirdness. Too bare to search well.
+4. **Carvaroo**: kid coinage built from carve. Silly in a good way.
+5. **Zeno's Rocket**: the paradox hero plus the end goal. It grows with the arc, and you never quite arrive... until you do.
+6. **Legends of the Number Line**: mythic and epic, the line is a world.
+7. **The Proofs of Old**: an epic quest with ancient heroes. Sounds a bit like school.
+8. **Sum Kind of Wonderful**: pun. Fine as a tagline, too long as a title.
+9. **Numbercraft**: the craft promise is stated plainly. Probably taken already (likely collisions).
+10. **Mathica**: a mythic one-word land name.
+11. **Blox to Orbit**: grows from blocks to space, and keeps the MathBlox lineage.
+12. **Zero to Orbit**: starts at zero, ends in orbit, so the arc is in the name. "Zero to orbit" is a common phrase for rockets and STEM kits; check it.
+13. **Mirrorgrad**: named for the Mirror Lands and negatives. Strange and memorable.
+14. **Unbreakable**: primes as blocks that can't be broken. Film collision.
+15. **Sumhenge**: a punny mythic monument of number stones that ancient mathematicians built. A coinage, likely clear.
+
+Hub names:
+1. **The Number Line**: the hub is literally the line from negatives to the positives. Honest and teachable.
+2. **Euclid's Crossing**
+3. **The Axis**: the visible frame of reference, which matches the locks.
+4. **Zero Junction**: the origin where every land meets.
+5. **The Long Count**: Maya counting, epic in feel.
+6. **Origin Town**: (0,0) as home, which pays off later with coordinates and vectors.
+
+Top 3 titles: Sumhenge, Zero to Orbit, Mirrorgrad. Top 2 hubs: Zero Junction, The Number Line.
+
 ## Batch 1 (2026-10-22): new math made physical, plus Craft systems
 
 ### Prime Ore: only some piles can be floors (risk: low · math: primes, factors, area · age: 7–9)
