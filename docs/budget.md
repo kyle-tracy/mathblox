@@ -55,3 +55,5 @@ date | agent | task | est | actual | note
 2026-10-27 | Arto (opus) | stepwell art + lit stones | - | 72k | done |
 2026-10-27 | Matho (opus) | Keep history check | ~15k | 18k | ending line fixed |
 2026-10-27 | Worldo (opus) | Keep rooms finished + Task 6 test | ~80k | 107k | 6 rooms, 165 pass |
+2026-10-27 | Qualito (opus) | whole-demo QC | ~60k | 54k | 3 keep, 3 fix |
+2026-10-27 | Worldo (opus) | Keep QC fixes (continued) | ~25k | ? | Last Share redone d5 |
