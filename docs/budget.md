@@ -49,3 +49,5 @@ date | agent | task | est | actual | note
 2026-10-24 | session | overworld (axio, arto, testo, qualito) | - | axio 166k, arto 123k, qualito 98k, testo 24k | districts, pistons, night fire, style board
 2026-10-26 | qualito+axio+arto+visio | free-walk Road, title, bigger hub, names | - | ~380k | QC passed
 2026-10-27 | Worldo (opus) | Market 3 levels | - | 87k | cheese search timed out 5 min on one level; led to the cheese ruling |
+2026-10-27 | Axio (sonnet) | Keep plan Tasks 1-3 | ~60k | 50k | layout shifts logged; 158 pass |
+2026-10-27 | Testo (sonnet) | bot ladder calibration | ~50k | 43k | tier fails to separate; detours weak |
