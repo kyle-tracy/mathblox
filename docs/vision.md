@@ -1,8 +1,16 @@
-# MathBlox — Vision
+# Zeraphi — Vision
+
+*Zeraphi is the game; MathBlox is the studio.*
 
 **The math is the physics.** You explore a world of MathBlox. Each block carries math **attributes** (its value, its kind, and later its unit size, sign, fraction, and direction). Blocks combine physically, exactly the way the math says they should. Nothing in the game is a quiz.
 
 **Where it goes (commissioner, 2026-10-21):** the puzzles are the tutorial. The game gradually becomes an **open-world survival-craft**: you live, explore, and build in a world made of math blocks. The engine is as precise as a calculator. When a combination breaks a level, that is play, not a bug.
+
+## Zeraphi: start from zero, grow by φ
+The name is the method. Fibonacci called zero *zephirum*; φ is the golden ratio his sequence grows toward.
+- **Zero, the origin.** Everything starts at (0,0): the player at camp, a feature as its smallest true version, a session at the handoff. Zero is also the identity: a change adds +0 to everything it did not mean to touch, so tests and replays stay green. Zero dark patterns, zero waste.
+- **φ, the spiral.** Each Fibonacci term is built from the two before it. So is the game: a new level, world or hero combines two things the player already owns, and a new system reuses what the code already has. Growth spirals outward from the origin (camp → Sumhenge → districts → wilds → space), never a jump to the edge.
+- **Golden balance, a smoke alarm.** About 3 parts making to 2 parts playing, cutting and polishing (≈ φ). If a stretch of work tips far from that, stop and look. It is not a quota.
 
 ## Pillars
 1. **Intrinsic integration.** The math is the core mechanic, never a gate in front of the fun.

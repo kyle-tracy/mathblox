@@ -17,6 +17,7 @@ Read `docs/ceo.md`, then this file, `docs/vision.md`, and `tail -n 25 docs/decis
 Nothing is running. The tree is clean and pushed (51b55ff+), and 151 tests pass. Axio's last fix (solo Pythagoras from every camp pick cell) is in, and the hub screenshot checked out.
 
 ## Next
+0. Idea to weigh: **Fibonacci** (Leonardo of Pisa, who named zero *zephirum*) as a hero whose move grows by the sum of his last two; the name's own mathematician. Parents: Tally's +1 and Zeno's halving.
 1. **Commissioner play-through:** they were told at wrap-up that it's ready. Act on their feedback first.
 2. **Style choice is open.** Honest read: B and C are too close to A (B ≈ a texture filter, C pixelates only the terrain props). Ask: lock A, or have Arto push B and C fully (outlined, shaded storybook; a full 16×16 pixel set)?
 3. Demo due 2026-10-27: Craft strings re-verified 2026-10-26.

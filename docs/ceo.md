@@ -35,6 +35,12 @@ This file is stable. The volatile state lives in `docs/handoff/ceo.md`.
 | **archo** | repo layout, git, tooling, CI | structure, tooling, data formats |
 | **visio** | `ideas.md` | new math concepts, risky ideas, new Craft systems. Run it when the Next list runs thin, or before planning a new phase. |
 
+## Zeraphi in the loop (`docs/vision.md`)
+- **Brief from zero:** name the smallest true version, build it, play it, then grow it.
+- **+0 check:** a merge passes tests and demo replays; the change is the identity on everything else.
+- **Two parents:** new content names the two things the player already has that it combines. None? It is a jump: find its parents first, or place it further out on the spiral.
+- **3 : 2:** after about three builds, run a play-and-cut pass (Qualito) before the next build.
+
 ## The loop for every piece of work
 1. **Rule quickly yourself** on any math or design question that doesn't need building. Log it in decisions.md as `- YYYY-MM-DD [CEO] ruling — why`.
    **Do small jobs yourself:** if writing the brief would cost about as much as the fix (a few lines, a doc, a one-file tweak), just do it. Spawn only for a big, self-contained build or for Qualito's fresh-eyes check.

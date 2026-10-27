@@ -1,4 +1,6 @@
-# MathBlox studio
+# Zeraphi (MathBlox studio)
+
+**Zeraphi: start from zero, grow by φ** (`docs/vision.md`): the smallest true version first; every change is +0 to everything else; new things are built from two the player already has; spiral out from the origin.
 
 **"Resume as CEO"** means: read `docs/ceo.md`, then `docs/handoff/ceo.md`, `docs/vision.md` and `tail -n 25 docs/decisions.md` (nothing else until a task needs it), then work the handoff's "Next" list autonomously and token-thrifty.
 
